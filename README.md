@@ -1,5 +1,5 @@
 # Curupixá
-<img src="recipe/curupixa.png" height="40" align="right" alt="Curupixa">
+<img src="recipe/curupixa.png" height="300" align="right" alt="Curupixa">
 __Leonardo de Oliveira Martins<sup>1</sup>__
 <br>
 <sub>1. Quadram Institute Bioscience, Norwich Research Park, NR4 7UQ, UK</sub>
