@@ -76,7 +76,7 @@ This is free software; you can redistribute it and/or modify it under the terms 
 License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later
 version (http://www.gnu.org/copyleft/gpl.html).
 
-The [logo owl](https://www.flickr.com/photos/biodivlibrary/51267563412/in/album-72157719506234015/) belongs to the 
+The [logo owl](https://www.flickr.com/photos/biodivlibrary/51267563412/in/album-72157719506234015/) is based on the 
 [Fauna japonica v.4 Aves](https://www.flickr.com/photos/biodivlibrary/albums/72157719506234015/with/51267563412/)
 provided by the Biodiversity Heritage Library under the Public Domain.
 
