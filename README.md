@@ -1,5 +1,5 @@
-<img src="recipe/nologo.png" height="40">
-
+# Curupixá
+<img src="recipe/nologo.png" height="40" align="middle" alt="Curupixa">
 __Leonardo de Oliveira Martins<sup>1</sup>__
 <br>
 <sub>1. Quadram Institute Bioscience, Norwich Research Park, NR4 7UQ, UK</sub>
@@ -12,6 +12,7 @@ In all likelihood you don't need to install it, since the derived software will 
 downloaded the derived software from github with `--recursive`.
 It will be a replacement or auxiliary to [biomcmc-lib](https://github.com/quadram-institute-bioscience/biomcmc-lib).
 
+**Etymology:** Curupixá is the name of a Brazilian tree (_Micropholis venulosa_), also known as salgueiro, Guajará, Grumixava, Grubixa, cubixa, Abiurana, Bacu Mixa, etc. 
 ## Installation
 This library is usually not installed directly, but as a submodule of another project. 
 It includes, however, the `makefile.am` and `configure.ac` for autotools, and it provides unit tests from the
