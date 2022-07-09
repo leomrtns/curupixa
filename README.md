@@ -1,5 +1,5 @@
 # Curupixá
-<img src="recipe/nologo.png" height="40" align="middle" alt="Curupixa">
+<img src="recipe/curupixa.png" height="40" align="right" alt="Curupixa">
 __Leonardo de Oliveira Martins<sup>1</sup>__
 <br>
 <sub>1. Quadram Institute Bioscience, Norwich Research Park, NR4 7UQ, UK</sub>
@@ -75,6 +75,10 @@ Copyright (C) 2022-today  [Leonardo de Oliveira Martins](https://github.com/leom
 This is free software; you can redistribute it and/or modify it under the terms of the GNU General Public
 License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later
 version (http://www.gnu.org/copyleft/gpl.html).
+
+The [logo owl](https://www.flickr.com/photos/biodivlibrary/51267563412/in/album-72157719506234015/) belongs to the 
+[Fauna japonica v.4 Aves](https://www.flickr.com/photos/biodivlibrary/albums/72157719506234015/with/51267563412/)
+provided by the Biodiversity Heritage Library under the Public Domain.
 
 ![Anurag's github stats](https://github-readme-stats.vercel.app/api?username=leomrtns&count_private=true&show_icons=true&theme=calm)
 
