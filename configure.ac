@@ -1,34 +1,50 @@
 dnl Autoconf init, autoheader output location, config and prefix directories
-AC_INIT([curupixa], [0.1], [leomrtns@gmail.com])
+AC_INIT([curupixa], [0.1], [leomrtns@gmail.com],,[https://github.com/leomrtns/curupixa])
 AC_CONFIG_AUX_DIR([.])
 
 dnl see AX_CHECK_X86_FEATURES https://www.gnu.org/software/autoconf-archive/ax_check_x86_features.html 
-
 AC_CONFIG_HEADER([lib/config.h])
 AC_PREFIX_DEFAULT(${HOME})
 dnl libtoolize recomendation
 AC_CONFIG_MACRO_DIR([m4])
-
 dnl Override default O2
 CFLAGS=${CFLAGS-""}
-CXXFLAGS=${CXXFLAGS-""}
 
-dnl automake initialization (completely unrelated to compiler arguments)
-AM_INIT_AUTOMAKE([-Wall -Werror])
+dnl automake initialization (completely unrelated to compiler arguments; subdir-objects generates .o in subdirs so avoid name clashes)
+AM_INIT_AUTOMAKE([-Wall -Werror color-tests subdir-objects])
+AM_SILENT_RULES([yes])
 AC_USE_SYSTEM_EXTENSIONS
 AM_MAINTAINER_MODE
 dnl must be called after AC_USE_SYSTEM_EXTENSIONS (new restriction in autoconf2.68) 
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
-
-dnl Basic compiler and related tools
+dnl Basic compiler and related tools (CC_C_O is a prerequisite for automake's subdir-objects)
 AC_LANG_C
 AC_PROG_CC
+AM_PROG_CC_C_O
 AC_PROG_INSTALL
+AC_PROG_LN_S
 dnl directs the libc header files to provide the standard GNU system interfaces including all GNU extensions
 AC_GNU_SOURCE
 dnl Libtool (for library): in lib/Makefile.am, we include an "abstract" libfoo.la
 LT_INIT
 AC_PROG_LIBTOOL
+dnl will add lines #define SIZEOF_INT to config.h etc.
+AC_CHECK_SIZEOF(int)
+AC_CHECK_SIZEOF(double)
+AC_CHECK_SIZEOF(long long int)
+dnl check for the clock_gettime function in rt library (linking with -lrt if found)
+dnl (preferred way of checking for libraries, over AC_CHECK_LIB...)
+AC_SEARCH_LIBS([clock_gettime],[rt])                                               
+dnl Check for the 15 Standard C (ANSI-C/ISO-C) headers
+AC_HEADER_STDC
+dnl Check for additional headers 
+AC_CHECK_HEADERS( \
+    unistd.h \
+    sys/time.h \
+    sys/times.h \
+)
+
+AC_MSG_RESULT([                ===    configuration options specific to curupixa])
 
 dnl openMP: sets $OPENMP_CFLAGS which should be passed to CFLAGS, CPPFLAGS; creates preprocessor macro _OPENMP 
 dnl         (checked with "ifdef _OPENMP"); user can disable it through "--disable-openmp"
@@ -50,25 +66,33 @@ AC_SEARCH_LIBS([BZ2_bzlibVersion], [bz2]) # AC_CHECK_LIB([bz2],[BZ2_bzlibVersion
 dnl check for the math library
 AC_SEARCH_LIBS([sqrt], [m]) # modern equivalent of AC_CHECK_LIB([m],[main])
 
-dnl check for the clock_gettime function in rt library (linking with -lrt if found)
-dnl (preferred way of checking for libraries, over AC_CHECK_LIB...)
-AC_SEARCH_LIBS([clock_gettime],[rt])                                               
+dnl if --enable-FEATURE is missing, it assumes --disable-FEATURE (last argument) by default; we invert it below
+AC_ARG_ENABLE(sse2,  AC_HELP_STRING([--disable-sse2], [disable SSE2 instructions]), , enable_sse2=yes)
+if test "$enable_sse2" != no; then
+  dnl decide if system actually allows SSE2 instructions (MSG_CHECKING and MSG_RESULT go together to print to user)
+  AC_MSG_CHECKING(for SSE2 support)
+  AC_LINK_IFELSE([ AC_LANG_PROGRAM([[ 
+    #include <immintrin.h>
+    __m128 testtunc(float *a, float *b) {return _mm_add_ps(_mm_loadu_ps(a), _mm_loadu_ps(b));}
+  ]])], [has_sse2=yes], [has_sse2=no])
+  AC_MSG_RESULT($has_sse2) 
+  if test "$has_sse2" != no; then
+    dnl gcc already defines __SSE2__ but we create an extra HAVE_SSE2 macro
+    AC_DEFINE([HAVE_SSE2], [1], [Define if SSE2 support is available at build])
+    AX_APPEND_COMPILE_FLAGS([-msse2], [AM_CFLAGS])
+  fi
+else
+  AC_MSG_NOTICE([SSE2 support disabled at request of user])
+  AX_APPEND_COMPILE_FLAGS([-mno-sse2], [AM_CFLAGS])
+fi
 
-dnl Check for the 15 Standard C (ANSI-C/ISO-C) headers
-AC_HEADER_STDC
-
-dnl Check for additional headers 
-AC_CHECK_HEADERS( \
-    unistd.h \
-    sys/time.h \
-    sys/times.h \
-)
-dnl will add lines #define SIZEOF_INT to config.h etc.
-AC_CHECK_SIZEOF(int)
-AC_CHECK_SIZEOF(double)
-AC_CHECK_SIZEOF(long long int)
-
-AC_MSG_RESULT([                ===    configuration options specific to curupixa])
+AC_MSG_CHECKING(for AVX2 support)
+AC_ARG_ENABLE(avx2, AC_HELP_STRING([--enable-avx2], [enable AVX2 instructions (makes executable less portable)]),enable_avx2=yes, enable_avx2=no)
+AC_MSG_RESULT($enable_avx2)
+AS_IF([test "x$enable_avx2" != xno], [
+       AC_DEFINE([HAVE_AVX2], [1], [Define if AVX2 support is available at build])
+       AX_APPEND_COMPILE_FLAGS([-mavx2], [AM_CFLAGS])
+       ], [AX_APPEND_COMPILE_FLAGS([-mno-avx2], [AM_CFLAGS])])
 
 AC_MSG_CHECKING([whether to build (slower) debug code])
 AC_ARG_ENABLE([debug],
@@ -77,10 +101,10 @@ AC_ARG_ENABLE([debug],
 AC_MSG_RESULT([$debugit])
 if test x"$debugit" = x"yes"; then
     AC_DEFINE([CURUPIXA_DEBUG],[],[Debug Mode, with assert()-like error checking])
-    AM_CFLAGS="${AM_CFLAGS} -g -pg -W -Wall -Werror -Wno-uninitialized -O1"
+    AX_APPEND_COMPILE_FLAGS([-g -pg -W -Wall -Werror -Wno-uninitialized -O1], [AM_CFLAGS])
 else
     AC_DEFINE([NDEBUG],[],[not in debug mode, disabling all assert() macros])
-    AM_CFLAGS="${AM_CFLAGS} -funroll-loops -fomit-frame-pointer -finline-functions -O4"
+    AX_APPEND_COMPILE_FLAGS([-funroll-loops -fomit-frame-pointer -finline-functions -O4], [AM_CFLAGS])
 fi
 
 AC_MSG_CHECKING([whether you want static binaries (not the library, but the executables)])
