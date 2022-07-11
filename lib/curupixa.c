@@ -64,6 +64,7 @@ void test_mm128(void) {
     for (int i = 0; i < 8; i++) {
       printf ("%i mm128 %d\n", i, res[i]);
     }
+    // printf ("extract mm128 0:%d\n", _mm_extract_epi32(values, 0)); // inlining failed with SSE2 but not with AVX2
     return;
 }
 #endif
@@ -76,6 +77,7 @@ void test_mm256(void) {
       res = _mm256_extract_epi32(values2, (const int) i);
       printf ("%i mm256 %d\n", i, res);
     }
+    printf ("extract mm256 0:%d\n", _mm256_extract_epi32(values2, 0));
     return;
 }
 #endif
