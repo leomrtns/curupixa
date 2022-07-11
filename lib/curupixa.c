@@ -59,10 +59,11 @@ return 0;
 #ifdef __SSE__
 void test_mm128(void) {
     __m128i values =  _mm_setr_epi32(10, 20, 30, 40);
-    printf ("mm128 %d ",_mm_extract_epi32(values, 0));
-    printf ("%d ",_mm_extract_epi32(values, 1));
-    printf ("%d ",_mm_extract_epi32(values, 2));
-    printf ("%d\n",_mm_extract_epi32(values, 3));
+    uint16_t res[4];
+    memcpy(res, &values, sizeof(values));
+    for (int i = 0; i < 8; i++) {
+      printf ("%i mm128 %d\n", i, res[i]);
+    }
     return;
 }
 #endif
@@ -70,14 +71,11 @@ void test_mm128(void) {
 #ifdef __AVX2__
 void test_mm256(void) {
     __m256i values2 =  _mm256_setr_epi32(1, 2, 3, 4, 5, 6, 7, 8); // set and extract are "int", other functions may need difference between epi and epu (unsigned)
-    printf ("mm256 %d ",_mm256_extract_epi32(values2, 0));
-    printf ("%d ",_mm256_extract_epi32(values2, 1));
-    printf ("%d ",_mm256_extract_epi32(values2, 2));
-    printf ("%d ",_mm256_extract_epi32(values2, 3));
-    printf ("%d ",_mm256_extract_epi32(values2, 4));
-    printf ("%d ",_mm256_extract_epi32(values2, 5));
-    printf ("%d ",_mm256_extract_epi32(values2, 6));
-    printf ("%d\n",_mm256_extract_epi32(values2, 7));
+    int res;
+    for (int i = 0; i < 8; i++) {
+      res = _mm256_extract_epi32(values2, (const int) i);
+      printf ("%i mm256 %d\n", i, res);
+    }
     return;
 }
 #endif

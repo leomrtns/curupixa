@@ -42,7 +42,7 @@
 #ifdef _OPENMP
 #include <omp.h>         /* OpenMP parallel threading library when available */
 #endif
-#ifdef __SSE2__ || __SSE3__ || __SSE4_1__ || __SSE4_2__ || __AVX__ || __AVX2__ || __AVX512F__ || __AVX512DQ__ || __AVX512ER__ || __AVX512PF__
+#if defined HAVE_SSE2 || defined HAVE_AVX2 /* these are defined in config.h, not __SSE2__ from gcc */
 #include <immintrin.h>
 #endif
 

@@ -116,7 +116,7 @@ AC_ARG_ENABLE([debug],
 AC_MSG_RESULT([$debugit])
 if test x"$debugit" = x"yes"; then
     AC_DEFINE([CURUPIXA_DEBUG],[],[Debug Mode, with assert()-like error checking])
-    AX_APPEND_COMPILE_FLAGS([-g -pg -W -Wall -Werror -Wno-uninitialized -O1], [AM_CFLAGS])
+    AX_APPEND_COMPILE_FLAGS([-g -pg -W -Wall -Werror -Wno-uninitialized -O0], [AM_CFLAGS])
 else
     AC_DEFINE([NDEBUG],[],[not in debug mode, disabling all assert() macros])
     AX_APPEND_COMPILE_FLAGS([-funroll-loops -fomit-frame-pointer -finline-functions -O4], [AM_CFLAGS])
