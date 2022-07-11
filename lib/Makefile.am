@@ -10,10 +10,10 @@ otherincludedir = $(includedir)/curupixa
 otherinclude_HEADERS = config.h $(common_headers) # if headers are here (=global) should not be on SOURCES (=local)
 
 lib_LTLIBRARIES = libcurupixa.la  # libtools 
-libbiomcmc_la_SOURCES = $(common_headers) config.h
-libbiomcmc_la_CPPFLAGS = $(AM_CPPFLAGS)
-libbiomcmc_la_CFLAGS = $(AM_CFLAGS) 
-libbiomcmc_la_LIBADD = $(GTKDEPS_LIBS) libcurupixa_static.la @ZLIB_LIBS@  @LZMA_LIBS@ $(AM_LDFLAGS) 
+libcurupixa_la_SOURCES = $(common_headers) config.h
+libcurupixa_la_CPPFLAGS = $(AM_CPPFLAGS)
+libcurupixa_la_CFLAGS = $(AM_CFLAGS) 
+libcurupixa_la_LIBADD = $(GTKDEPS_LIBS) libcurupixa_static.la @ZLIB_LIBS@  @LZMA_LIBS@ $(AM_LDFLAGS) 
 
 noinst_LTLIBRARIES = libcurupixa_static.la # convenience lib (not installed globally)
 libcurupixa_static_la_SOURCES = $(common_src) $(common_headers) config.h # listed here s.t. any change triggers recompilation 

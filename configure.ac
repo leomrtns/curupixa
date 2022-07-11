@@ -11,7 +11,7 @@ dnl Override default O2
 CFLAGS=${CFLAGS-""}
 
 dnl automake initialization (completely unrelated to compiler arguments; subdir-objects generates .o in subdirs so avoid name clashes)
-AM_INIT_AUTOMAKE([-Wall -Werror color-tests subdir-objects])
+AM_INIT_AUTOMAKE([-Wall -Werror foreign color-tests subdir-objects])
 AM_SILENT_RULES([yes])
 AC_USE_SYSTEM_EXTENSIONS
 AM_MAINTAINER_MODE
