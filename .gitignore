@@ -51,9 +51,7 @@ env.bak/
 venv.bak/
 
 ##  <autotools>
-#aclocal.m4
 *.so
-m4/
 aclocal.m4
 autom4te.cache/
 compile

@@ -76,23 +76,38 @@ if test "$enable_sse2" != no; then
     __m128 testtunc(float *a, float *b) {return _mm_add_ps(_mm_loadu_ps(a), _mm_loadu_ps(b));}
   ]])], [has_sse2=yes], [has_sse2=no])
   AC_MSG_RESULT($has_sse2) 
-  if test "$has_sse2" != no; then
-    dnl gcc already defines __SSE2__ but we create an extra HAVE_SSE2 macro
-    AC_DEFINE([HAVE_SSE2], [1], [Define if SSE2 support is available at build])
-    AX_APPEND_COMPILE_FLAGS([-msse2], [AM_CFLAGS])
-  fi
+  AS_IF([test "x$has_sse2" != xno], [
+       dnl gcc already defines __SSE2__ but we create an extra HAVE_SSE2 macro
+       AC_DEFINE([HAVE_SSE2], [1], [Define if SSE2 support is available at build])
+       AX_APPEND_COMPILE_FLAGS([-msse2], [AM_CFLAGS])
+       ], [
+       AC_MSG_NOTICE([SSE2 not supported by this system])
+       AX_APPEND_COMPILE_FLAGS([-mno-sse2], [AM_CFLAGS])
+       ])
 else
   AC_MSG_NOTICE([SSE2 support disabled at request of user])
   AX_APPEND_COMPILE_FLAGS([-mno-sse2], [AM_CFLAGS])
 fi
 
-AC_MSG_CHECKING(for AVX2 support)
 AC_ARG_ENABLE(avx2, AC_HELP_STRING([--enable-avx2], [enable AVX2 instructions (makes executable less portable)]),enable_avx2=yes, enable_avx2=no)
-AC_MSG_RESULT($enable_avx2)
-AS_IF([test "x$enable_avx2" != xno], [
+if test "$enable_avx2" != no; then
+  AC_MSG_CHECKING(for AVX2 support)
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+    #pragma GCC target("avx2")
+    #include <immintrin.h>
+    ]],[[
+    __m256 x = _mm256_set1_ps(7); __m256 y = _mm256_permutevar8x32_ps(x, _mm256_set1_epi32(21));
+    return _mm256_movemask_ps(_mm256_cmp_ps(x, y, _CMP_NEQ_OQ));
+  ]])], [has_avx2=yes], [has_avx2=no])
+  AC_MSG_RESULT($enable_avx2)
+  AS_IF([test "x$has_avx2" != xno], [
        AC_DEFINE([HAVE_AVX2], [1], [Define if AVX2 support is available at build])
        AX_APPEND_COMPILE_FLAGS([-mavx2], [AM_CFLAGS])
-       ], [AX_APPEND_COMPILE_FLAGS([-mno-avx2], [AM_CFLAGS])])
+       ], [
+       AC_MSG_NOTICE([AVX2 not supported by this system])
+       AX_APPEND_COMPILE_FLAGS([-mno-avx2], [AM_CFLAGS])
+       ])
+fi
 
 AC_MSG_CHECKING([whether to build (slower) debug code])
 AC_ARG_ENABLE([debug],
