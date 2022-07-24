@@ -57,6 +57,11 @@
 #define CRPX_MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define CRPX_MOD(a)   (((a)>0)   ? (a) :(-a))
 
+typedef struct {
+  uint8_t log_level:3, error:1, log_color:1;
+} crpx_global_struct, *crpx_global_t;
+
+
 /*! \brief Memory-safe malloc() function.
  *
  *  Allocates size bytes and returns a pointer to the allocated memory. An error message is thrown in case of failure.

@@ -98,4 +98,9 @@ static char* getDateString() { // https://github.com/ntpeters/SimpleLogger/blob/
     return date;
 }
 
+// from https://github.com/rxi/log.c/blob/master/src/log.h
+enum { LOG_TRACE, LOG_DEBUG, LOG_INFO, LOG_WARN, LOG_ERROR, LOG_FATAL };
+#define log_trace(...) log_log(LOG_TRACE, __FILE__, __LINE__, __VA_ARGS__)
+void log_log(int level, const char *file, int line, const char *fmt, ...);
+
 
