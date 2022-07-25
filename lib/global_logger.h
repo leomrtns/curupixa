@@ -57,8 +57,22 @@
 #define CRPX_MAX(x,y) (((x)>(y)) ? (x) : (y))
 #define CRPX_MOD(a)   (((a)>0)   ? (a) :(-a))
 
+#define CRPX_LOGLEVEL_FATAL   0U // enum{} would complain about unsigned
+#define CRPX_LOGLEVEL_ERROR   1U
+#define CRPX_LOGLEVEL_WARNING 2U
+#define CRPX_LOGLEVEL_INFO    3U
+#define CRPX_LOGLEVEL_VERBOSE 4U
+#define CRPX_LOGLEVEL_DEBUG   5U
+#define crpx_logger_fatal(...)   crpx_logger_message(CRPX_LOGLEVEL_FATAL, __FILE__, __LINE__, __VA_ARGS__)
+#define crpx_logger_error(...)   crpx_logger_message(CRPX_LOGLEVEL_ERROR, __FILE__, __LINE__, __VA_ARGS__)
+#define crpx_logger_warning(...) crpx_logger_message(CRPX_LOGLEVEL_WARNING, __FILE__, __LINE__, __VA_ARGS__)
+#define crpx_logger_info(...)    crpx_logger_message(CRPX_LOGLEVEL_INFO, __FILE__, __LINE__, __VA_ARGS__)
+#define crpx_logger_verbose(...) crpx_logger_message(CRPX_LOGLEVEL_VERBOSE, __FILE__, __LINE__, __VA_ARGS__)
+#define crpx_logger_debug(...)   crpx_logger_message(CRPX_LOGLEVEL_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
+
 typedef struct {
-  uint8_t log_level:3, error:1, log_color:1;
+  uint8_t loglevel_stderr:3, loglevel_file:3, error:1;
+  FILE *logfile;
 } crpx_global_struct, *crpx_global_t;
 
 
@@ -83,7 +97,13 @@ void *crpx_realloc (void *ptr, size_t size);
  * \param[in] template va_list following same format as printf()
  * \result exits program */
 void crpx_logger_error (const char *template, ...);
-
 void crpx_logger_warning (const char *template, ...);
+
+// FIXME: logger_message not really multithread safe (although we can have several FILE*s pointed to same file in append mode)
+
+/*! \brief Prints message to stderr,  and also to log file depending on global settings.
+ * prints to sdterr in colours and to log file in plain text, without compression. Called through macros like crpx_logger_error() etc. */
+void crpx_logger_message (uint8_t level, const char *c_file, int c_line, crpx_global_t cglobal, const char *fmt, ...);
+
 #endif
 
