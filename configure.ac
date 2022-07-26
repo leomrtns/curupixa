@@ -109,17 +109,17 @@ if test "$enable_avx2" != no; then
        ])
 fi
 
-AC_MSG_CHECKING([whether to build (slower) debug code])
+AC_MSG_CHECKING([whether to build debug code (development version only, not for final user)])
 AC_ARG_ENABLE([debug],
     [AS_HELP_STRING([--enable-debug], [enable debugging with gdb and friends (default=no)])],
     [debugit="$enableval"], [debugit=no])
 AC_MSG_RESULT([$debugit])
 if test x"$debugit" = x"yes"; then
     AC_DEFINE([CURUPIXA_DEBUG],[],[Debug Mode, with assert()-like error checking])
-    AX_APPEND_COMPILE_FLAGS([-g -pg -W -Wall -Werror -Wno-uninitialized -O0], [AM_CFLAGS])
+    AX_APPEND_COMPILE_FLAGS([-g -pg -W -Wall -Werror -Wno-uninitialized -O0 -fsanitize=undefined -fsanitize=address -fno-omit-frame-pointer], [AM_CFLAGS])
 else
     AC_DEFINE([NDEBUG],[],[not in debug mode, disabling all assert() macros])
-    AX_APPEND_COMPILE_FLAGS([-funroll-loops -fomit-frame-pointer -finline-functions -O4], [AM_CFLAGS])
+    AX_APPEND_COMPILE_FLAGS([-funroll-loops -fomit-frame-pointer -finline-functions -O3], [AM_CFLAGS])
 fi
 
 AC_MSG_CHECKING([whether you want static binaries (not the library, but the executables)])
