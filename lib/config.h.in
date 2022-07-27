@@ -3,7 +3,7 @@
 /* Debug Mode, with assert()-like error checking */
 #undef CURUPIXA_DEBUG
 
-/* Define if AVX2 support is available at build */
+/* Define if AVX2 support is requested */
 #undef HAVE_AVX2
 
 /* set to one if bz2 compression library found */
@@ -21,8 +21,11 @@
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
-/* Define if SSE2 support is available at build */
-#undef HAVE_SSE2
+/* Define if Intel RDRAND instruction support is requested */
+#undef HAVE_RDRND
+
+/* Define if SSE support is requested */
+#undef HAVE_SSE
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H

@@ -1,5 +1,4 @@
-/* 
- *This file is part of curupixa, a low-level library for phylogenomic analysis.
+/* This file is part of curupixa, a low-level library for phylogenomic analysis.
  * Copyright (C) 2022-today  Leonardo de Oliveira Martins [ leomrtns at gmail.com;  http://www.leomartins.org ]
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -12,17 +11,19 @@
  * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
  */
 
-/*! \file curupixa.h 
+/*! \file hash_functions.h 
  *  \brief headers exposed to other programs
  */
 
-#ifndef _curupixa_toplevel_h_ 
-#define _curupixa_toplevel_h_
+#ifndef _curupixa_hash_functions_h_ 
+#define _curupixa_hash_functions_h_
 
-#include "lowlevel.h"
-#include "random_constants.h" // included in hash_functions.h
-#include "hash_functions.h"
+#include "random_constants.h"
 
-crpx_global_t crpx_global_init (__attribute__((unused)) uint64_t seed, uint16_t thread, const char *level_string);
-void crpx_global_finalise (crpx_global_t cglob);
+void crpx_generate_random_seed_256bits (crpx_global_t cglob, uint64_t seed[4]);
+void crpx_get_time_128bits (uint64_t time[2]);
+uint64_t crpx_wyhash64 (uint64_t *seed); // changes seed state (thus a PRNG) 
+uint64_t crpx_splitmix64 (uint64_t *seed); // changes seed state (thus a PRNG) 
+uint64_t crpx_fmix64 (uint64_t k);
+ 
 #endif

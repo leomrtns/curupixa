@@ -15,7 +15,7 @@
  *  \brief Lowest level basic functions, that should be available to all other modules. 
  */
 
-#include "global_logger.h"
+#include "lowlevel.h"
 
 const char prt_col_reset[] = "\e[0m";
 const char *prt_col[][8]={ // 0-black   1-red   2-grn   3-yel   4-blu   5-mag   6-cyn   7-white
@@ -34,7 +34,7 @@ void *
 crpx_malloc (size_t size)
 {
   void *value = malloc (size);
-  if ((value == NULL) && (size > 0)) biomcmc_error ( "biomcmc_malloc error allocating %d bites", size);
+  if ((value == NULL) && (size > 0)) printf ("biomcmc_malloc error allocating %lu bites", size);
   return value;
 }
 
@@ -42,7 +42,7 @@ void *
 crpx_realloc (void *ptr, size_t size)
 {
   void *value = (void *) realloc ((void *)ptr, size);
-  if ((value == NULL) && (size > 0)) biomcmc_error ( "biomcmc_realloc error on pointer 0x%08X of %d bites\n", ptr, size);
+  if ((value == NULL) && (size > 0)) printf ( "biomcmc_realloc error on pointer 0x%p of %lu bites\n", ptr, size);
   return value;
 }
 
@@ -67,21 +67,50 @@ crpx_logger_message (uint8_t level, const char *c_file, int c_line, crpx_global_
   if ((level > cglobal->loglevel_stderr) && (level > cglobal->loglevel_file)) return;
   va_list ap;
   time_t t = time (NULL);
-  char msg_prefix[32] = '\0';
+  char msg_prefix[32] = {'\0'};
   strftime (msg_prefix, 32, "%T", localtime (&t)); // alternative is "%F %T" where %F is yyyy-mm-dd and %T is hh:mm:ss 
-
+  /* crpx29 refers to the 30th global variable set (in case it's multithreaded for instance); "%-3u" means to left-adjust, but notice that id can be larger than 3 digits */
   if (level >= cglobal->loglevel_stderr) { // colour output to stderr
-    fprintf (stderr, "%s %s%s%s ", mgs_prefix, msg_level_colours[level], msg_level_names[level], prt_col_reset);
-    va_start (ap, fmt); vfprintf (stderr, fmt, ap); va_end (fmt); fprintf (stderr, "\n");
-    if ((level < CRPX_LOG_WARNING) || (level > CRPX_LOG_VERBOSE)) fprintf (stderr, "file %s line %d\n", c_file, c_line);
+    fprintf (stderr, "crpx%-3u %s %s%s%s ", cglobal->id, msg_prefix, msg_level_colours[level], msg_level_names[level], prt_col_reset);
+    va_start (ap, fmt); vfprintf (stderr, fmt, ap); va_end (ap); fprintf (stderr, "\n");
+    if ((level < CRPX_LOGLEVEL_WARN) || (level > CRPX_LOGLEVEL_VERBOSE)) fprintf (stderr, "file %s line %d\n", c_file, c_line);
     fflush(stderr);
   }
   if ((level >= cglobal->loglevel_file) && (cglobal->logfile)) { // no colours to log file
-    fprintf (cglobal->logfile, "[%s %s] ", mgs_prefix, msg_level_names[level]);
-    va_start (ap, fmt); vfprintf (cglobal->logfile, fmt, ap); va_end (fmt); fprintf (cglobal->logfile, "\n");
-    if ((level < CRPX_LOG_WARNING) || (level > CRPX_LOG_VERBOSE)) fprintf (cglobal->logfile, "file %s line %d\n", c_file, c_line);
+    fprintf (cglobal->logfile, "[crpx%-3u %s %s] ", cglobal->id, msg_prefix, msg_level_names[level]);
+    va_start (ap, fmt); vfprintf (cglobal->logfile, fmt, ap); va_end (ap); fprintf (cglobal->logfile, "\n");
+    if ((level < CRPX_LOGLEVEL_WARN) || (level > CRPX_LOGLEVEL_VERBOSE)) fprintf (cglobal->logfile, "file %s line %d\n", c_file, c_line);
     fflush(cglobal->logfile);
   }
+  return;
+}
+
+void
+crpx_logger_set_level (crpx_global_t cglobal, uint8_t level)
+{
+  if (level > CRPX_LOGLEVEL_DEBUG) level = CRPX_LOGLEVEL_DEBUG;
+  cglobal->loglevel_stderr = level;
+  crpx_logger_info (cglobal, "Screen log level set to %s", msg_level_names[level]);
+  return;
+}
+
+void
+crpx_logger_set_file (crpx_global_t cglobal, const char *filename, uint8_t level)
+{
+  if (level > CRPX_LOGLEVEL_DEBUG) level = CRPX_LOGLEVEL_DEBUG;
+  if (cglobal->logfile) {
+    crpx_logger_warning (cglobal, "crpx_logger_set_file: log file already open, closing it and re-opening as %s", filename);
+    fclose (cglobal->logfile);
+    cglobal->logfile = NULL;
+  }
+  cglobal->logfile = fopen (filename, "a");
+  if (cglobal->logfile == NULL) {
+    crpx_logger_error (cglobal, "crpx_logger_set_file: could not open log file %s", filename);
+    return;
+  }
+  if (cglobal->id) crpx_logger_verbose (cglobal, "crpx_logger_set_file: possible multithreaded application, several threads may write to same log file.");
+  cglobal->loglevel_file = level;
+  crpx_logger_info (cglobal, "crpx_logger_set_file: file %s opened and log will be appended to it at level %s", filename, msg_level_names[level]);
   return;
 }
 

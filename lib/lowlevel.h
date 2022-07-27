@@ -21,7 +21,7 @@
 
 #include "config.h"
 
-#include <stdio.h>      /* [ANSI C C89] */
+#include <stdio.h>
 #include <stdlib.h>     /* random number, searching, sorting, EXIT_SUCCESS */
 #include <string.h>     /* string manipulation */
 #include <stdarg.h>     /* Access to va_arg, va_list */
@@ -44,6 +44,9 @@
 #ifdef _OPENMP
 #include <omp.h>         /* OpenMP parallel threading library when available */
 #endif
+#if defined HAVE_SSE || defined HAVE_AVX2 /* these are defined in config.h, not __SSE2__ from gcc */
+#include <immintrin.h>
+#endif
 
 /* Global constants */
 
@@ -59,19 +62,19 @@
 
 #define CRPX_LOGLEVEL_FATAL   0U // enum{} would complain about unsigned
 #define CRPX_LOGLEVEL_ERROR   1U
-#define CRPX_LOGLEVEL_WARNING 2U
+#define CRPX_LOGLEVEL_WARN    2U
 #define CRPX_LOGLEVEL_INFO    3U
 #define CRPX_LOGLEVEL_VERBOSE 4U
 #define CRPX_LOGLEVEL_DEBUG   5U
 #define crpx_logger_fatal(...)   crpx_logger_message(CRPX_LOGLEVEL_FATAL, __FILE__, __LINE__, __VA_ARGS__)
 #define crpx_logger_error(...)   crpx_logger_message(CRPX_LOGLEVEL_ERROR, __FILE__, __LINE__, __VA_ARGS__)
-#define crpx_logger_warning(...) crpx_logger_message(CRPX_LOGLEVEL_WARNING, __FILE__, __LINE__, __VA_ARGS__)
+#define crpx_logger_warning(...) crpx_logger_message(CRPX_LOGLEVEL_WARN, __FILE__, __LINE__, __VA_ARGS__)
 #define crpx_logger_info(...)    crpx_logger_message(CRPX_LOGLEVEL_INFO, __FILE__, __LINE__, __VA_ARGS__)
 #define crpx_logger_verbose(...) crpx_logger_message(CRPX_LOGLEVEL_VERBOSE, __FILE__, __LINE__, __VA_ARGS__)
 #define crpx_logger_debug(...)   crpx_logger_message(CRPX_LOGLEVEL_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
 
 typedef struct {
-  uint8_t loglevel_stderr:3, loglevel_file:3, error:1;
+  uint32_t id:16, loglevel_stderr:4, loglevel_file:4, error:2;
   FILE *logfile;
 } crpx_global_struct, *crpx_global_t;
 
@@ -91,17 +94,10 @@ void *crpx_malloc (size_t size);
  * \return pointer to newly allocated memory */
 void *crpx_realloc (void *ptr, size_t size);
 
-/*! \brief Prints error message and quits program.
- *
- * similar to fprintf (stderr, ...), but exits after printing the message
- * \param[in] template va_list following same format as printf()
- * \result exits program */
-void crpx_logger_error (const char *template, ...);
-void crpx_logger_warning (const char *template, ...);
-
-// FIXME: logger_message not really multithread safe (although we can have several FILE*s pointed to same file in append mode)
+void curupixa_fprintf_colour (FILE *stream, int regular, int colour, const char *message, const char *normaltext, ...);
 
 /*! \brief Prints message to stderr,  and also to log file depending on global settings.
+ * save to file not really thread safe, although we can have several FILE*s pointed to same file in append mode
  * prints to sdterr in colours and to log file in plain text, without compression. Called through macros like crpx_logger_error() etc. */
 void crpx_logger_message (uint8_t level, const char *c_file, int c_line, crpx_global_t cglobal, const char *fmt, ...);
 

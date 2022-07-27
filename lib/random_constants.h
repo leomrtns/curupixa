@@ -22,9 +22,10 @@
 #include "lowlevel.h"
 
 extern uint16_t crpx_random_prime32_length;
-extern uint32_t crpx_random_prime32;
+extern uint32_t crpx_random_prime32[];
 extern uint16_t crpx_random_prime64_length;
-extern uint64_t crpx_random_prime64;
+extern uint64_t crpx_random_prime64[];
 extern uint16_t crpx_random64_length;
-extern uint64_t crpx_random64;
+extern uint64_t crpx_random64[];
+
 #endif

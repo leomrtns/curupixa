@@ -68,6 +68,31 @@ which is used with other programs (through `autotools` subdirs usually) and is n
 Remember that the installation and `autogen.sh` in particular modify/add local files; therefore updating the repository
 from github will complain about uncommited changes. You can run `git stash` (or reinstall from scratch) before `git pull`.
 
+## How to use it in other projects 
+
+As I said, this is not a general-purpose library and I can't help you if you want to use it as such. So in the following
+I assume you know enough to be able to include in your own project. If you don't use autotools you can install it globally. 
+
+The main component is to include something like the following in your `configure.ac`
+```
+AC_SUBST([CURUPIXALIB], [curupixa])
+dnl generate makefiles (last recipes, after defining CFLAGS etc.)
+AC_CONFIG_FILES([curupixa/Makefile
+```
+such that the variable `@CURUPIXALIB@` is available to your `makefile.am` as the location of the `curupixa` directories.
+
+There is an older approach, which is to call `curupixa/configure` recursively:
+```
+AC_CONFIG_SUBDIRS([curupixa])
+```
+I don't use it anymore due to the issue of autotools+github which forces us to run `autoreconf -fi` (which I provide
+through the script `autogen.sh`). And `curupixa` (as well as my other project, `biomcmc-lib`), can generate a
+"convenience library" (`noinst_LTLIBRARIES = libcurupixa_static.la`) which is included into the downstreal project
+instead of being installed in a shared location.  
+
+## Acknowledgements 
+I incorporated or was inspired by many existing open source libraries and publicly available implementations.
+For a more complete, but perhaps non-exhaustive list, please see the file [README_references.md](README_references.md)
 
 ## License 
 SPDX-License-Identifier: GPL-3.0-or-later

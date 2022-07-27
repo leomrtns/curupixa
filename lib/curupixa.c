@@ -11,74 +11,42 @@
  * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
  */
 
-/*! \file lowlevel.c 
- *  \brief Lowest level basic functions, that should be available to all other modules. 
+/*! \file curupixa.c 
+ *  \brief high-level functions handling the global variables. 
  */
 
 #include "curupixa.h"
 
-#ifdef __SSE__
-void test_mm128(void);
-#endif
-#ifdef __AVX2__
-void test_mm256(void);
-#endif
-
-int main()
+crpx_global_t
+crpx_global_init (__attribute__((unused)) uint64_t seed, uint16_t thread, const char *level_string)
 {
-#ifdef __SSE__
-    printf("SSE defined\n");
-#endif
-#ifdef __SSE2__
-    printf("SSE2 defined\n");
-#endif
-#ifdef __AVX__
-    printf("AVX defined\n");
-#endif
-#ifdef __AVX2__
-    printf("AVX2 defined\n");
-#endif
-
-#ifdef HAVE_SSE2
-    printf("HAVE_SSE2\n");
-#endif
-#ifdef HAVE_AVX2
-    printf("HAVE_AVX2\n");
-#endif
-
-    printf ("sse2  = %d\n", __builtin_cpu_supports("sse2"));
-    printf ("avx2  = %d\n", __builtin_cpu_supports("avx2"));
-#ifdef __SSE__
-    if (__builtin_cpu_supports("sse")) test_mm128(); // compiled with SSE4 _and_ runtime host supports it 
-#endif
-#ifdef __AVX2__
-    if (__builtin_cpu_supports("avx2")) test_mm256();
-#endif
-return 0;
+  char level_stdout[16] = {'\0'};
+  crpx_global_t cglob = (crpx_global_t) malloc (sizeof (crpx_global_struct));
+  if (cglob == NULL) {  fprintf (stderr, "toplevel FATAL ERROR: could not allocate memory for crpx_global_t\n");  return NULL; }
+  cglob->loglevel_file = CRPX_LOGLEVEL_DEBUG + 1; // never
+  cglob->logfile = NULL;
+  cglob->error = false;
+  cglob->id = thread;
+  switch(level_string[0]) {
+    case 'f': case 'F': cglob->loglevel_stderr = CRPX_LOGLEVEL_FATAL; strcpy(level_stdout,"fatal"); break;
+    case 'e': case 'E': cglob->loglevel_stderr = CRPX_LOGLEVEL_ERROR; strcpy(level_stdout,"error"); break;
+    case 'w': case 'W': cglob->loglevel_stderr = CRPX_LOGLEVEL_WARN; strcpy(level_stdout,"warning"); break;
+    case 'i': case 'I': cglob->loglevel_stderr = CRPX_LOGLEVEL_INFO; strcpy(level_stdout,"info"); break;
+    case 'v': case 'V': cglob->loglevel_stderr = CRPX_LOGLEVEL_VERBOSE; strcpy(level_stdout,"verbose"); break;
+    case 'd': case 'D': cglob->loglevel_stderr = CRPX_LOGLEVEL_DEBUG; strcpy(level_stdout,"debug"); break;
+    default: cglob->loglevel_stderr = CRPX_LOGLEVEL_ERROR; strcpy(level_stdout,"error"); break;
+  }
+  crpx_logger_verbose (cglob, "Set id%u of thread-safe global variables initialised with seed=%lu and loglevel=%s", cglob->id, seed, level_stdout);
+  return cglob;
 }
 
-#ifdef __SSE__
-void test_mm128(void) {
-    __m128i values =  _mm_setr_epi32(10, 20, 30, 40);
-    uint16_t res[4];
-    memcpy(res, &values, sizeof(values));
-    for (int i = 0; i < 8; i++) {
-      printf ("%i mm128 %d\n", i, res[i]);
-    }
-    // printf ("extract mm128 0:%d\n", _mm_extract_epi32(values, 0)); // inlining failed with SSE2 but not with AVX2
-    return;
+void
+crpx_global_finalise (crpx_global_t cglob)
+{
+  if (cglob) {
+    if (cglob->logfile) { fclose (cglob->logfile); cglob->logfile = NULL; cglob->loglevel_file = CRPX_LOGLEVEL_DEBUG + 1; }
+    crpx_logger_verbose (cglob, "Finalising global variables\n");
+    free (cglob);
+  }
 }
-#endif
 
-#ifdef __AVX2__
-void test_mm256(void) {
-    __m256i values2 =  _mm256_setr_epi32(1, 2, 3, 4, 5, 6, 7, 8); // set and extract are "int", other functions may need difference between epi and epu (unsigned)
-    int res;
-    for (int i = 0; i < 8; i++) {
-      res = _mm256_extract_epi32(values2, (const int) i);
-      printf ("%i mm256 %d\n", i, res);
-    }
-    printf ("extract mm256 0:%d\n", _mm256_extract_epi32(values2, 0));
-    return;
-}
-#endif
