@@ -65,21 +65,24 @@ void
 crpx_logger_message (uint8_t level, const char *c_file, int c_line, crpx_global_t cglobal, const char *fmt, ...)
 {
   if ((level > cglobal->loglevel_stderr) && (level > cglobal->loglevel_file)) return;
+
   va_list ap;
   time_t t = time (NULL);
   char msg_prefix[32] = {'\0'};
   strftime (msg_prefix, 32, "%T", localtime (&t)); // alternative is "%F %T" where %F is yyyy-mm-dd and %T is hh:mm:ss 
   /* crpx29 refers to the 30th global variable set (in case it's multithreaded for instance); "%-3u" means to left-adjust, but notice that id can be larger than 3 digits */
-  if (level >= cglobal->loglevel_stderr) { // colour output to stderr
-    fprintf (stderr, "crpx%-3u %s %s%s%s ", cglobal->id, msg_prefix, msg_level_colours[level], msg_level_names[level], prt_col_reset);
-    va_start (ap, fmt); vfprintf (stderr, fmt, ap); va_end (ap); fprintf (stderr, "\n");
-    if ((level < CRPX_LOGLEVEL_WARN) || (level > CRPX_LOGLEVEL_VERBOSE)) fprintf (stderr, "file %s line %d\n", c_file, c_line);
+  if (level <= cglobal->loglevel_stderr) { // colour output to stderr
+    fprintf (stderr, "id%-3u %s %s%s%s ", cglobal->id, msg_prefix, msg_level_colours[level], msg_level_names[level], prt_col_reset);
+    va_start (ap, fmt); vfprintf (stderr, fmt, ap); va_end (ap); 
+    if ((level < CRPX_LOGLEVEL_WARN) || (level > CRPX_LOGLEVEL_VERBOSE)) fprintf (stderr, "  [file %s line %d]\n", c_file, c_line);
+    else fprintf (stderr, "\n");
     fflush(stderr);
   }
-  if ((level >= cglobal->loglevel_file) && (cglobal->logfile)) { // no colours to log file
-    fprintf (cglobal->logfile, "[crpx%-3u %s %s] ", cglobal->id, msg_prefix, msg_level_names[level]);
-    va_start (ap, fmt); vfprintf (cglobal->logfile, fmt, ap); va_end (ap); fprintf (cglobal->logfile, "\n");
-    if ((level < CRPX_LOGLEVEL_WARN) || (level > CRPX_LOGLEVEL_VERBOSE)) fprintf (cglobal->logfile, "file %s line %d\n", c_file, c_line);
+  if ((level <= cglobal->loglevel_file) && (cglobal->logfile)) { // no colours to log file
+    fprintf (cglobal->logfile, "[id%-3u %s %s] ", cglobal->id, msg_prefix, msg_level_names[level]);
+    va_start (ap, fmt); vfprintf (cglobal->logfile, fmt, ap); va_end (ap);
+    if ((level < CRPX_LOGLEVEL_WARN) || (level > CRPX_LOGLEVEL_VERBOSE)) fprintf (cglobal->logfile, "  [file %s line %d]\n", c_file, c_line);
+    else fprintf (cglobal->logfile, "\n");
     fflush(cglobal->logfile);
   }
   return;

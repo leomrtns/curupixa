@@ -17,6 +17,36 @@
 
 #include "hash_functions.h"
 
+size_t
+crpx_generate_bytesized_random_seeds (crpx_global_t cglob, void *seed, size_t seed_size)
+{
+  size_t i = 0, j = 0, last = seed_size;
+  int success = 0; // gententropy() and syscall() return 0 on success and negative in failure (syscall returns errno)
+  uint16_t *seed_16bits = (uint16_t *)seed; // up to __builtin_ia32_rdrand64_step() but it tends to have too many zeroes
+
+#ifdef HAVE_RDRND 
+  for (i=0, j=0; (i < 2 * seed_size) && (j < seed_size - 1); i++) { // DRNG suggests 10 attempts per rng, we do 2
+    success = __builtin_ia32_rdrand16_step (seed_16bits + j); // 16 bits = 2 bytes thus "j+=2" "j<size-1"
+    j += 2 * (success > 0); // avoid mispredicted branches 
+  } // it may ends with fewer than seed_size since not always succeed (and seed%2 may be > 0)
+  crpx_logger_verbose (cglob, "Random seeds produced by CPU crystal entropy (RDRAND): %lu", j);
+#endif
+  seed_size -= j;
+  seed += j;
+  for (i=0; (seed_size > 0) && (i < 2); i += (success<0)) { // i increments at every failure (which is a negative success)
+    j = seed_size > 256 ? 256 : seed_size; /* maximum buffer size is 256 bytes */
+#if (__GLIBC__ > 2 || __GLIBC_MINOR__ > 24)
+    success = getentropy (seed, j);
+#else
+    success = syscall (SYS_getrandom, seed, j, 0);
+#endif
+    seed += j * (~success & 1);      // avoid mispredicted branches (not performance-critical here though)
+    seed_size -= j * (~success & 1); // (success==0) is a success 
+  }
+  crpx_logger_verbose (cglob, "Random seeds produced in total, including linux random: %lu", last - seed_size);
+  return last - seed_size;
+}
+
 void
 crpx_generate_random_seed_256bits (crpx_global_t cglob, uint64_t seed[4])
 {
