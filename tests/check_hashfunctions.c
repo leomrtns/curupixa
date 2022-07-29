@@ -27,7 +27,8 @@ START_TEST(small_random_seeds)
 
   j = crpx_generate_bytesized_random_seeds (cglob, seed, 64);
   memcpy (small, seed, 64);
-  for (i=0; i<j;i++) printf ("%3lu %hhu\n", i, small[i]);
+  for (i=0; i<j;i++) { printf ("%3lu -> %5hhu | ", i, small[i]); if (i && !((i+1)%8)) printf ("\n"); }
+  printf ("\n");
   // if something goes wrong you can use: ck_abort_msg ("message");
   crpx_global_finalise (cglob);
 }
@@ -36,18 +37,19 @@ END_TEST
 START_TEST(big_random_seeds)
 {
   size_t i, j;
-  uint64_t seed[1000];
-  uint8_t small[8000];
+  uint64_t seed[10001];
+  uint8_t small[80001];
   int count = 0;
   crpx_global_t cglob = crpx_global_init (0, 0, "debug");
 
-  j = crpx_generate_bytesized_random_seeds (cglob, seed, 8000);
-  memcpy (small, seed, 8000);
-  for (i=0; i < j;i++) count += (~small[i]) & 1;
-  printf ("number of 8bit zeroes = %d out of 8000\n", count);
+  j = crpx_generate_bytesized_random_seeds (cglob, seed, 80001);
+  memcpy (small, seed, 80001);
+  for (i=0; i < j;i++) count += (small[i] == 0);
+  printf ("number of 8bit zeroes = %d out of %lu\n", count, j);
   count = 0;
-  for (i=0; i < j/8;i++) count += (~seed[i]) & 1;
-  printf ("number of 64bit zeroes = %d out of 1000\n", count);
+  for (i=0; i < j/8;i++) count += (seed[i] == 0);
+  printf ("number of 64bit zeroes = %d out of %lu\n", count, j/8);
+  printf ("\n");
   // if something goes wrong you can use: ck_abort_msg ("message");
   crpx_global_finalise (cglob);
 }

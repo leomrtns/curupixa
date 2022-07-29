@@ -26,5 +26,9 @@ void crpx_get_time_128bits (uint64_t time[2]);
 uint64_t crpx_wyhash64 (uint64_t *seed); // changes seed state (thus a PRNG) 
 uint64_t crpx_splitmix64 (uint64_t *seed); // changes seed state (thus a PRNG) 
 uint64_t crpx_fmix64 (uint64_t k);
+uint64_t crpx_hash_pearson (void *key, size_t len, const void *seed); // seed must have >= 256 bytes
+uint32_t crpx_hash_pseudocrc32 (uint32_t crc, void *key, size_t len, const uint32_t *seed); // seed must have >= 256 elements (of 32bits)
+uint32_t crpx_hash_fletcher32 (uint16_t const *data, size_t words);
+uint32_t crpx_hash_jenkins (void *key, size_t len);
  
 #endif
