@@ -36,6 +36,7 @@ crpx_global_init (__attribute__((unused)) uint64_t seed, uint16_t thread, const 
     case 'd': case 'D': cglob->loglevel_stderr = CRPX_LOGLEVEL_DEBUG; strcpy(level_stdout,"debug"); break;
     default: cglob->loglevel_stderr = CRPX_LOGLEVEL_ERROR; strcpy(level_stdout,"error"); break;
   }
+  crpx_get_time_128bits (cglob->elapsed_time[2]);
   crpx_logger_verbose (cglob, "Set id%u of thread-safe global variables initialised with seed=%lu and loglevel=%s", cglob->id, seed, level_stdout);
   return cglob;
 }
@@ -45,7 +46,7 @@ crpx_global_finalise (crpx_global_t cglob)
 {
   if (cglob) {
     if (cglob->logfile) { fclose (cglob->logfile); cglob->logfile = NULL; cglob->loglevel_file = CRPX_LOGLEVEL_DEBUG + 1; }
-    crpx_logger_verbose (cglob, "Finalising global variables\n");
+    crpx_logger_verbose (cglob, "Finalising global variables, program finished in %lf seconds.", crpx_update_elapsed_time_128bits (cglob->elapsed_time));
     free (cglob);
   }
 }

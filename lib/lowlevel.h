@@ -76,6 +76,7 @@
 
 typedef struct {
   uint32_t id:16, loglevel_stderr:4, loglevel_file:4, error:2;
+  uint64_t elapsed_time[2];
   FILE *logfile;
 } crpx_global_struct, *crpx_global_t;
 

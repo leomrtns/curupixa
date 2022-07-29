@@ -98,6 +98,18 @@ crpx_get_time_128bits (uint64_t time[2])
   return;
 }
 
+double
+crpx_update_elapsed_time_128bits (uint64_t past[2])
+{
+  uint64_t now[2];
+  double seconds;
+  crpx_get_time_128bits (now);
+  if (now[1] < past[1]) seconds = (((double)(past[1] - now[1]) / (double)(TIMEWARP)) - 1. + (double)(now[0] - past[0]));
+  else                  seconds = (((double)(now[1] - past[1]) / (double)(TIMEWARP))      + (double)(now[0] - past[0]));
+  past[0] = now[0]; past[1] = now[1];
+  return seconds;
+}
+
 uint64_t 
 crpx_wyhash64 (uint64_t *seed) // changes seed state (thus a PRNG) 
 {  // https://github.com/lemire/testingRNG/blob/master/wyhash.c

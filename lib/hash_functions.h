@@ -23,6 +23,7 @@
 size_t crpx_generate_bytesized_random_seeds (crpx_global_t cglob, void *seed, size_t seed_size);
 void crpx_generate_random_seed_256bits (crpx_global_t cglob, uint64_t seed[4]);
 void crpx_get_time_128bits (uint64_t time[2]);
+double crpx_update_elapsed_time_128bits (uint64_t past[2]);
 uint64_t crpx_wyhash64 (uint64_t *seed); // changes seed state (thus a PRNG) 
 uint64_t crpx_splitmix64 (uint64_t *seed); // changes seed state (thus a PRNG) 
 uint64_t crpx_fmix64 (uint64_t k);
