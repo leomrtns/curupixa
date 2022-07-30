@@ -98,6 +98,12 @@ crpx_get_time_128bits (uint64_t time[2])
   return;
 }
 
+#ifdef _POSIX_TIMERS
+#define TIMEWARP 1.e9
+#else
+#define TIMEWARP 1.e6
+#endif
+
 double
 crpx_update_elapsed_time_128bits (uint64_t past[2])
 {
