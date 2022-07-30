@@ -8,11 +8,19 @@ __Leonardo de Oliveira Martins<sup>1</sup>__
 
 ## Introduction
 
-This library provides low level functions used by other phylogenetic programs. Currently it is only a testing
-environment. 
-In all likelihood you don't need to install it, since the derived software will take care of it &mdash; assuming you
+This library provides low level functions used by other phylogenetic programs. 
+It will be a replacement or auxiliary to [biomcmc-lib](https://github.com/quadram-institute-bioscience/biomcmc-lib),
+but currently it is only a testing environment.
+Some functions in `biomcmc-lib` are not thread-safe, e.g. the random functions.
+Furthermore when used as an API for other languages, it should not exit with error (it should delegate to the calling
+program what to do with the exception).
+
+In all likelihood you won't need to install it, since the derived software will have taken care of it &mdash; assuming you
 downloaded the derived software from github with `--recursive`.
-It will be a replacement or auxiliary to [biomcmc-lib](https://github.com/quadram-institute-bioscience/biomcmc-lib).
+You are free to add it to your own project, but unfortunately I may be unable to provide adequate support. 
+You can [join the discussion](https://github.com/leomrtns/curupixa/discussions), or [report an issue](https://github.com/leomrtns/curupixa/issues) if you
+know how to solve it :wink:. 
+See [more on that below](##how-to-use-it-in-other-projects).
 
 **Etymology:** Curupixá is the name of a Brazilian tree (_Micropholis venulosa_), also known as salgueiro, Guajará, Grumixava, Grubixa, cubixa, Abiurana, Bacu Mixa, etc. 
 ## Installation
@@ -70,7 +78,7 @@ from github will complain about uncommited changes. You can run `git stash` (or 
 
 ## How to use it in other projects 
 
-As I said, this is not a general-purpose library and I can't help you if you want to use it as such. So in the following
+As I said, this is not a general-purpose library and I can't help much you if you want to use it as such. So in the following
 I assume you know enough to be able to include in your own project. If you don't use autotools you can install it globally. 
 
 The main component is to include something like the following in your `configure.ac`
@@ -90,12 +98,16 @@ through the script `autogen.sh`). And `curupixa` (as well as my other project, `
 "convenience library" (`noinst_LTLIBRARIES = libcurupixa_static.la`) which is included into the downstreal project
 instead of being installed in a shared location.  
 
+Provided that you follow the licence and proper attribution standards, you are free to copy chunks of code and
+add into your own projects as an alternative to linking to curupixa. 
+Substantial code from external sources are mentioned in the file together with their copyright.
+
 ## Acknowledgements 
 I incorporated or was inspired by many existing open source libraries and publicly available implementations.
-For a more complete, but perhaps non-exhaustive list, please see the file [README_references.md](README_references.md)
+For a more complete, but perhaps non-exhaustive list, please see the file [README_references.md](README_references.md).
 
-## License 
-SPDX-License-Identifier: GPL-3.0-or-later
+## Licence 
+SPDX-License-Identifier: [GPL-3.0-or-later](LICENSE)
 
 Copyright (C) 2022-today  [Leonardo de Oliveira Martins](https://github.com/leomrtns)
 

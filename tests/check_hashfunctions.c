@@ -21,13 +21,14 @@ size_t prefix_size = strlen(TEST_FILE_DIR); // all modifications to filename[] c
 START_TEST(small_random_seeds)
 {
   size_t i, j;
-  uint64_t seed[8];
-  uint8_t small[64];
+  uint64_t seed[16];
+  uint8_t small[128];
   crpx_global_t cglob = crpx_global_init (0, 0, "debug");
 
-  j = crpx_generate_bytesized_random_seeds (cglob, seed, 64);
-  memcpy (small, seed, 64);
-  for (i=0; i<j;i++) { printf ("%3lu -> %5hhu | ", i, small[i]); if (i && !((i+1)%8)) printf ("\n"); }
+  j = crpx_generate_bytesized_random_seeds (cglob, seed, 128);
+  memcpy (small, seed, 128);
+  printf ("list of 8bit 'truely' random numbers:\n");
+  for (i=0; i<j;i++) { printf ("%5hhu ", small[i]); if (i && !((i+1)%16)) printf ("\n"); }
   printf ("\n");
   // if something goes wrong you can use: ck_abort_msg ("message");
   crpx_global_finalise (cglob);

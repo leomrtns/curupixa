@@ -34,9 +34,6 @@ AC_CHECK_SIZEOF(long long int)
 dnl check for the clock_gettime function in rt library (linking with -lrt if found)
 dnl (preferred way of checking for libraries, over AC_CHECK_LIB...)
 AC_SEARCH_LIBS([clock_gettime],[rt])                                               
-dnl Check for the 15 Standard C (ANSI-C/ISO-C) headers
-AC_CHECK_INCLUDES_DEFAULT
-AC_PROG_EGREP
 
 dnl Check for additional headers 
 AC_CHECK_HEADERS( unistd.h sys/time.h sys/times.h)
