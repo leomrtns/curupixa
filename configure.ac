@@ -1,9 +1,9 @@
 dnl Autoconf init, autoheader output location, config and prefix directories
-AC_INIT([curupixa], [0.1], [leomrtns@gmail.com],,[https://github.com/leomrtns/curupixa])
+AC_INIT([curupixa],[0.1],[leomrtns@gmail.com],[],[https://github.com/leomrtns/curupixa])
 AC_CONFIG_AUX_DIR([.])
 
 dnl see AX_CHECK_X86_FEATURES https://www.gnu.org/software/autoconf-archive/ax_check_x86_features.html 
-AC_CONFIG_HEADER([lib/config.h])
+AC_CONFIG_HEADERS([lib/config.h])
 AC_PREFIX_DEFAULT(${HOME})
 dnl libtoolize recomendation
 AC_CONFIG_MACRO_DIR([m4])
@@ -18,16 +18,15 @@ AM_MAINTAINER_MODE
 dnl must be called after AC_USE_SYSTEM_EXTENSIONS (new restriction in autoconf2.68) 
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 dnl Basic compiler and related tools (CC_C_O is a prerequisite for automake's subdir-objects)
-AC_LANG_C
+AC_LANG([C])
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AC_PROG_LN_S
 dnl directs the libc header files to provide the standard GNU system interfaces including all GNU extensions
-AC_GNU_SOURCE
+AC_USE_SYSTEM_EXTENSIONS
 dnl Libtool (for library): in lib/Makefile.am, we include an "abstract" libfoo.la
 LT_INIT
-AC_PROG_LIBTOOL
 dnl will add lines #define SIZEOF_INT to config.h etc.
 AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(double)
@@ -36,7 +35,9 @@ dnl check for the clock_gettime function in rt library (linking with -lrt if fou
 dnl (preferred way of checking for libraries, over AC_CHECK_LIB...)
 AC_SEARCH_LIBS([clock_gettime],[rt])                                               
 dnl Check for the 15 Standard C (ANSI-C/ISO-C) headers
-AC_HEADER_STDC
+AC_CHECK_INCLUDES_DEFAULT
+AC_PROG_EGREP
+
 dnl Check for additional headers 
 AC_CHECK_HEADERS( unistd.h sys/time.h sys/times.h)
 
@@ -48,16 +49,18 @@ AC_OPENMP
 AC_SUBST(OPENMP_CFLAGS)
 AC_SUBST(OPENMP_CPPFLAGS)
 dnl notice that default if-not-found action is to exist with error
-PKG_CHECK_MODULES([CHECK], [check >= 0.9.10]) # unit tests
+PKG_CHECK_MODULES([CHECK], [check >= 0.9.10],
+                  AC_DEFINE([HAVE_CHECK],[1],[set to one if check library is present]),
+                  [AC_MSG_NOTICE([optional check library not found, not possible to run tests; please install it with "apt-get install check" or "conda check"])] )
 PKG_CHECK_MODULES([ZLIB], [zlib],
                   AC_DEFINE([HAVE_ZLIB],[1],[set to one if gz compression library found]),
-                  [AC_MSG_NOTICE([optional zlib headers not found])]  )
+                  [AC_MSG_NOTICE([optional zlib headers not found; please install them with "apt-get install zlib1g-dev" or "conda zlib"])] )
 PKG_CHECK_MODULES([LZMA], [liblzma],
                   AC_DEFINE([HAVE_LZMA],[1],[set to one if xz compression library found]),
-                  [AC_MSG_NOTICE([optional lzma headers not found])]  )
+                  [AC_MSG_NOTICE([optional lzma headers not found; please install them with "apt-get install liblzma-dev" or "conda xz"])] )
 AC_CHECK_HEADER(bzlib.h,
                   AC_DEFINE([HAVE_BZIP2],[1],[set to one if bz2 compression library found]),
-                  [AC_MSG_NOTICE([optional bzip2 headers not found])] )
+                  [AC_MSG_NOTICE([optional bzip2 headers not found; please install them with "apt-get install libbz2-dev" or "conda bzip2"])] )
 AC_SEARCH_LIBS([BZ2_bzlibVersion], [bz2]) # AC_CHECK_LIB([bz2],[BZ2_bzlibVersion])
 dnl check for the math library
 AC_SEARCH_LIBS([sqrt], [m]) # modern equivalent of AC_CHECK_LIB([m],[main])
@@ -77,7 +80,7 @@ AS_IF([test "x$enable_sse" != "xno"], [
   ])
 
 dnl this follows usual pattern: disabled by default 
-AC_ARG_ENABLE(avx2, AC_HELP_STRING([--enable-avx2], [enable AVX2 instructions (makes executable less portable)]),enable_avx2=yes, enable_avx2=no)
+AC_ARG_ENABLE(avx2, AS_HELP_STRING([--enable-avx2],[enable AVX2 instructions (makes executable less portable)]),enable_avx2=yes, enable_avx2=no)
 AC_MSG_CHECKING([AVX2 support])
 AS_IF([test "x$enable_avx2" != "xno"], [
     has_avx2=yes
