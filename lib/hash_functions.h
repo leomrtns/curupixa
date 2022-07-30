@@ -31,5 +31,6 @@ uint64_t crpx_hash_pearson (void *key, size_t len, const void *seed); // seed mu
 uint32_t crpx_hash_pseudocrc32 (uint32_t crc, void *key, size_t len, const uint32_t *seed); // seed must have >= 256 elements (of 32bits)
 uint32_t crpx_hash_fletcher32 (uint16_t const *data, size_t words);
 uint32_t crpx_hash_jenkins (void *key, size_t len);
+void crpx_siphash (const void *in, const size_t inlen, const void *k, uint8_t *out, const size_t outlen);
  
 #endif

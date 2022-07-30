@@ -52,9 +52,9 @@
 /* Global constants */
 
 #if defined(__GNUC__) && __GNUC__ >= 7
- #define attribute_FALLTHROUGH __attribute__ ((fallthrough));
+ #define CRPX_attribute_FALLTHROUGH __attribute__ ((fallthrough));
 #else
- #define attribute_FALLTHROUGH ((void)0);
+ #define CRPX_attribute_FALLTHROUGH ((void)0);
 #endif /* __GNUC__ >= 7 */
 
 #define CRPX_MIN(x,y) (((x)<(y)) ? (x) : (y))
