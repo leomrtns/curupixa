@@ -122,6 +122,11 @@ crpx_update_elapsed_time_128bits (uint64_t past[2])
 #define ROTL64(x, b) (uint64_t)(((x) << (b)) | ((x) >> (64 - (b))))
 #define ROTR64(x, b) (uint64_t)(((x) >> (b)) | ((x) << (64 - (b))))
 #define ROTL32(x, b) (uint32_t)(((x) << (b)) | ((x) >> (32 - (b))))
+#define MIX32(a,b,c) { a -= b; a -= c; a ^= (c>>13);        \
+b -= c; b -= a; b ^= (a<<8);  c -= a; c -= b; c ^= (b>>13); \
+a -= b; a -= c; a ^= (c>>12); b -= c; b -= a; b ^= (a<<16); \
+c -= a; c -= b; c ^= (b>>5);  a -= b; a -= c; a ^= (c>>3);  \
+b -= c; b -= a; b ^= (a<<10); c -= a; c -= b; c ^= (b>>15); }
 
 inline uint64_t
 crpx_fastmix64 (uint64_t x)
@@ -203,6 +208,63 @@ crpx_hash_jenkins (void *vkey, size_t len)
   hash += (hash << 3);
   hash ^= (hash >> 11);
   hash += (hash << 15);
+  return hash;
+}
+
+uint32_t 
+crpx_hash_jenkins_mailund_seed32 (void *vkey, size_t len, void *vseed)
+{ // https://github.com/mailund/hash/blob/master/HashFunctions/source/hash_strings.c
+  uint32_t a, b; a = b = 0x9e3779b9;
+  uint32_t c = *(uint32_t*)(vseed);
+  uint8_t *input = (uint8_t*) vkey;
+
+  while (len >= 12) {
+      a += *((uint32_t*)input);
+      b += *((uint32_t*)input + 4);
+      c += *((uint32_t*)input + 8);
+      MIX32(a,b,c);
+      input += 12;
+      len -= 12;
+  }
+  c += len;
+  switch(len) {
+      case 11: c += input[10] << 24; CRPX_attribute_FALLTHROUGH
+      case 10: c += input[9] << 16;  CRPX_attribute_FALLTHROUGH
+      case 9 : c += input[8] << 8;   CRPX_attribute_FALLTHROUGH
+      case 8 : b += input[7] << 24;  CRPX_attribute_FALLTHROUGH
+      case 7 : b += input[6] << 16;  CRPX_attribute_FALLTHROUGH
+      case 6 : b += input[5] << 8;   CRPX_attribute_FALLTHROUGH
+      case 5 : b += input[4];        CRPX_attribute_FALLTHROUGH
+      case 4 : a += input[3] << 24;  CRPX_attribute_FALLTHROUGH
+      case 3 : a += input[2] << 16;  CRPX_attribute_FALLTHROUGH
+      case 2 : a += input[1] << 8;   CRPX_attribute_FALLTHROUGH
+      case 1 : a += input[0]; break;
+  }
+  MIX32(a,b,c);
+  return c;
+}
+
+uint32_t
+crpx_hash_mailund_seed32 (void *vkey, size_t len, void *vseed)
+{ // https://github.com/mailund/hash/blob/master/HashFunctions/source/hash_strings.c one_at_a_time
+  uint32_t hash = *(uint32_t*)(vseed);
+  uint8_t *input = (uint8_t*) vkey;
+  for (size_t i = 0; i < len; i++) {
+      hash += input[i];// combine
+      hash += (hash << 10); hash ^= (hash >> 6);// mix
+  }
+  hash += (hash << 3);  // final mix
+  hash ^= (hash >> 11);
+  hash += (hash << 15);
+  return hash;
+}
+
+uint32_t
+crpx_hash_rotating_seed32 (void *vkey, size_t len, void *vseed)
+{ // https://github.com/mailund/hash/blob/master/HashFunctions/source/hash_strings.c
+  uint32_t hash = *(uint32_t*)(vseed);
+  uint8_t *input = (uint8_t*) vkey;
+  for (size_t i = 0; i < len; i++) hash += ROTL32(hash, 4) ^ input[i];
   return hash;
 }
 

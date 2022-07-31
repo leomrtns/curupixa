@@ -35,6 +35,11 @@ uint64_t crpx_hash_pearson_seed2048 (void *vkey, size_t len, const void *vseed);
 uint32_t crpx_hash_pseudocrc32_seed8192 (uint32_t crc, void *vkey, size_t len, const void *vseed); // seed must have >= 1024 bytes (256 x 32bits)
 uint32_t crpx_hash_fletcher32 (void *vkey, size_t len); // assumes vkey has pair number of number of bytes (o.w. last byte is lost)
 uint32_t crpx_hash_jenkins (void *vkey, size_t len);
+
+uint32_t crpx_hash_jenkins_mailund_seed32 (void *vkey, size_t len, void *vseed);
+uint32_t crpx_hash_mailund_seed32 (void *vkey, size_t len, void *vseed);
+uint32_t crpx_hash_rotating_seed32 (void *vkey, size_t len, void *vseed);
+
 uint64_t crpx_fasthash64_seed64 (const void *vkey, size_t len, void *vseed);
 uint32_t crpx_fnv_hash32 (const void* vkey, size_t len);
 uint64_t crpx_fnv_hash64 (const void* vkey, size_t len);
