@@ -17,6 +17,9 @@
 
 #ifndef _curupixa_hash_functions_h_ 
 #define _curupixa_hash_functions_h_
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 #include "random_constants.h"
 
@@ -24,13 +27,32 @@ size_t crpx_generate_bytesized_random_seeds (crpx_global_t cglob, void *seed, si
 void crpx_generate_random_seed_256bits (crpx_global_t cglob, uint64_t seed[4]);
 void crpx_get_time_128bits (uint64_t time[2]);
 double crpx_update_elapsed_time_128bits (uint64_t past[2]);
-uint64_t crpx_wyhash64 (uint64_t *seed); // changes seed state (thus a PRNG) 
-uint64_t crpx_splitmix64 (uint64_t *seed); // changes seed state (thus a PRNG) 
-uint64_t crpx_fmix64 (uint64_t k);
-uint64_t crpx_hash_pearson (void *key, size_t len, const void *seed); // seed must have >= 256 bytes
-uint32_t crpx_hash_pseudocrc32 (uint32_t crc, void *key, size_t len, const uint32_t *seed); // seed must have >= 256 elements (of 32bits)
-uint32_t crpx_hash_fletcher32 (uint16_t const *data, size_t words);
-uint32_t crpx_hash_jenkins (void *key, size_t len);
-void crpx_siphash (const void *in, const size_t inlen, const void *k, uint8_t *out, const size_t outlen);
+
+extern uint64_t crpx_fastmix64 (uint64_t x);
+extern uint64_t crpx_murmurmix64 (uint64_t k);
+
+uint64_t crpx_hash_pearson_seed2048 (void *vkey, size_t len, const void *vseed); // seed must have >= 256 bytes
+uint32_t crpx_hash_pseudocrc32_seed8192 (uint32_t crc, void *vkey, size_t len, const void *vseed); // seed must have >= 1024 bytes (256 x 32bits)
+uint32_t crpx_hash_fletcher32 (void *vkey, size_t len); // assumes vkey has pair number of number of bytes (o.w. last byte is lost)
+uint32_t crpx_hash_jenkins (void *vkey, size_t len);
+uint64_t crpx_fasthash64_seed64 (const void *vkey, size_t len, void *vseed);
+uint32_t crpx_fnv_hash32 (const void* vkey, size_t len);
+uint64_t crpx_fnv_hash64 (const void* vkey, size_t len);
+uint32_t crpx_hsieh_hash32_seed32 (const void * vkey, size_t len, void *vseed);
+
+uint64_t crpx_metrohash64_v1_seed64 (const void *vkey, size_t vlen, const void *seed); // 32bits seed cast to 64bits
+uint64_t crpx_metrohash64_v2_seed64 (const void *vkey, size_t vlen, const void *seed); // 32bits seed cast to 64bits
+void crpx_metrohash128_v1_seed64 (const void *vkey, size_t vlen, const void *seed, void *vout); // 32bits seed cast to 64bits
+void crpx_metrohash128_v2_seed64 (const void *vkey, size_t vlen, const void *seed, void *vout); // 32bits seed cast to 64bits
+void crpx_siphash_seed128 (const void *in, const size_t inlen, const void *seed, uint8_t *out, const size_t outlen);
+
+/* random numbers (depend on a state which is updated as new numbers are generated) */
+uint64_t crpx_rng_wyhash64_state64 (void *vstate);
+uint64_t crpx_rng_splitmix64_seed64 (void *vstate);
+void cprx_rng_abyssinian_set_seed128 (void *vstate, uint32_t seed);
+uint32_t crpx_rng_abyssinian32_seed128 (void *vstate); // 2 x uint64_t 
  
-#endif
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+#endif /* if header not defined */

@@ -19,6 +19,10 @@
 
 #ifndef _curupixa_random_constants_h_
 #define _curupixa_random_constants_h_
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #include "lowlevel.h"
 
 extern uint16_t crpx_random_prime32_length;
@@ -28,4 +32,7 @@ extern uint64_t crpx_random_prime64[];
 extern uint16_t crpx_random64_length;
 extern uint64_t crpx_random64[];
 
-#endif
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+#endif /* if header not defined */

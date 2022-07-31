@@ -18,6 +18,10 @@
 
 #ifndef _curupixa_lowlevel_h_
 #define _curupixa_lowlevel_h_
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 
 #include "config.h"
 
@@ -103,5 +107,7 @@ void curupixa_fprintf_colour (FILE *stream, int regular, int colour, const char 
  * prints to sdterr in colours and to log file in plain text, without compression. Called through macros like crpx_logger_error() etc. */
 void crpx_logger_message (uint8_t level, const char *c_file, int c_line, crpx_global_t cglobal, const char *fmt, ...);
 
-#endif
-
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+#endif /* if header not defined */

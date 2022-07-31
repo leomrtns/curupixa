@@ -18,6 +18,9 @@
 
 #ifndef _curupixa_toplevel_h_ 
 #define _curupixa_toplevel_h_
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 #include "lowlevel.h"
 #include "random_constants.h" // included in hash_functions.h
@@ -25,4 +28,7 @@
 
 crpx_global_t crpx_global_init (__attribute__((unused)) uint64_t seed, uint16_t thread, const char *level_string);
 void crpx_global_finalise (crpx_global_t cglob);
-#endif
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+#endif /* if header not defined */

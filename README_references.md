@@ -16,6 +16,9 @@ code to the best of my recollection.
 ## List of libraries and algorithms supporting curupixa
 
 * https://github.com/lemire/testingRNG (Apache License 2.0)
+* https://github.com/opencoff/portable-lib (GPL-2.0)
+* https://github.com/veorq/SipHash (CC0)
+* https://github.com/maciejczyzewski/retter (CC0
 
 ## List of other libraries and algorithms 
 
