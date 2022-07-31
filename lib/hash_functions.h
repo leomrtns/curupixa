@@ -52,6 +52,13 @@ uint64_t crpx_rng_splitmix64_seed64 (void *vstate);
 void cprx_rng_abyssinian_set_seed128 (void *vstate, uint32_t seed);
 uint32_t crpx_rng_abyssinian32_seed128 (void *vstate); // 2 x uint64_t 
  
+uint64_t crpx_rng_romu_seed256 (void *vstate); // romu_quad: 4 x uint64_t 
+uint64_t crpx_rng_romu_seed192 (void *vstate); // romu_trio: 3 x uint64_t 
+uint64_t crpx_rng_romu_seed128 (void *vstate); // romu_duo: 2 x uint64_t 
+uint64_t crpx_xoro128plus_seed128 (void *vstate);
+uint64_t crpx_xs64star_seed64 (void *vstate);
+uint64_t crpx_xs128plus_seed128 (void *vstate);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

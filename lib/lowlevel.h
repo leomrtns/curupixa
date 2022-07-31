@@ -34,16 +34,16 @@ extern "C" {
 #include <math.h>       /* standard math functions (e.g. exp() ) */
 #include <float.h>      /* DBL_MAX_EXP, DBL_EPSILON constants (to avoid underflow etc) */
 #include <time.h>       /* speed profiling(e.g. clock(), clock_gettime(), struct timespec ) */
-#include <unistd.h>     /* system values checking at runtime (e.g. sysconf() ) and getrandom() getentropy()  */
+#include <unistd.h>     /* sysconf(), getrandom() getentropy(), and getpid() function, used together with sys/types.h */
 #include <sys/time.h>   /* random seed (e.g. gettimeofday(), struct timeval) */
 #include <sys/times.h>  /* speed profiling in clock ticks (e.g. times() ) */ 
 #include <sys/types.h>  /* pid_t for process ID, used together with unistd.h */
 #include <sys/syscall.h>/* system calls like syscall(SYS_getrandom, buf, buflen, 0) for random noise */
-#include <unistd.h>     /* getpid() function, used together with sys/types.h */
 #include <fcntl.h>      /* open() read() close() for /dev/urandom */
 #include <sys/stat.h>   /* mkdir(); returns EEXIST from sys/types.h if dir already exist (as dir or not) */ 
 #include <libgen.h>     /* standard XPG basename() - the one provided by string.h is a GNU extension, fails on macOSX */
 #include <stdbool.h>    /* macros bool, true, and false */
+#include <limits.h>     /* UINT_MAX etc */
 #include <assert.h>    
 
 #ifdef _OPENMP
