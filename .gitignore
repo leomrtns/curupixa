@@ -63,9 +63,9 @@ configure
 configure~
 configure.ac~
 config.h.in~
+**/config.h.in*
 depcomp
 missing
-ltmain.sh
 libtool
 install-sh
 Makefile
@@ -74,3 +74,10 @@ Makefile
 .deps
 ar-lib
 test-driver
+# regenerated with autoreconf -fi (some are version-specific) 
+ltmain.sh
+m4/libtool.m4
+m4/lt~obsolete.m4 
+m4/ltoptions.m4
+m4/ltsugar.m4  
+m4/ltversion.m4
