@@ -74,6 +74,7 @@ Makefile
 .deps
 ar-lib
 test-driver
+gmon.out
 # regenerated with autoreconf -fi (some are version-specific) 
 ltmain.sh
 m4/libtool.m4

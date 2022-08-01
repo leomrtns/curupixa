@@ -5,7 +5,7 @@ LDADD =  ../lib/libcurupixa_static.la $(GTKDEPS_LIBS) $(AM_LDFLAGS) @CHECK_LIBS@
 EXTRA_DIST = files # directory with fasta etc files (accessed with #define TEST_FILE_DIR above)
 
 # list of programs to be compiled only with 'make check' (like noinst_PROGRAMS)
-check_PROGRAMS = check_intrinsics check_hashfunctions debug_rng 
+check_PROGRAMS = check_instructions check_hashfunctions dieharder_rng dieharder_hash
 # list of test programs (duplicate of above, since we want all to be compiled only with 'make check'):
 TESTS = $(check_PROGRAMS)
 

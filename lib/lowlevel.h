@@ -49,7 +49,8 @@ extern "C" {
 #ifdef _OPENMP
 #include <omp.h>         /* OpenMP parallel threading library when available */
 #endif
-#if defined HAVE_SSE || defined HAVE_AVX2 /* these are defined in config.h, not __SSE2__ from gcc */
+#if defined HAVE_SSE || defined HAVE_AVX /* these are defined in config.h, not __SSE2__ from gcc */
+//#if defined __SSE4_2__ || defined __AVX2__    /* we compile with -msse4.2 or -mno-sse (i.e. whole range is included or excluded) */
 #include <immintrin.h>
 #endif
 
@@ -79,7 +80,7 @@ extern "C" {
 #define crpx_logger_debug(...)   crpx_logger_message(CRPX_LOGLEVEL_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
 
 typedef struct {
-  uint32_t id:16, loglevel_stderr:4, loglevel_file:4, error:2;
+  uint32_t id:16, loglevel_stderr:4, loglevel_file:4, error:2, sse:1, avx:1;
   uint64_t elapsed_time[2];
   FILE *logfile;
 } crpx_global_struct, *crpx_global_t;

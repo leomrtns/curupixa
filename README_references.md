@@ -18,7 +18,8 @@ code to the best of my recollection.
 * https://github.com/lemire/testingRNG (Apache License 2.0)
 * https://github.com/opencoff/portable-lib (GPL-2.0)
 * https://github.com/veorq/SipHash (CC0)
-* https://github.com/maciejczyzewski/retter (CC0
+* https://github.com/maciejczyzewski/retter (CC0)
+* https://github.com/mailund/hash/ (GPL-3.0)
 
 ## List of other libraries and algorithms 
 

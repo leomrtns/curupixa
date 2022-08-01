@@ -129,7 +129,7 @@ c -= a; c -= b; c ^= (b>>5);  a -= b; a -= c; a ^= (c>>3);  \
 b -= c; b -= a; b ^= (a<<10); c -= a; c -= b; c ^= (b>>15); }
 
 inline uint64_t
-crpx_fastmix64 (uint64_t x)
+crpx_fastmix64 (uint64_t x) // terrible dieharder properties
 { // https://github.com/opencoff/portable-lib/blob/master/src/fasthash.c; Compression function for Merkle-Damgard construction
   x ^= x >> 23;
   x *= 0x2127599bf4325c37ULL;
@@ -138,7 +138,7 @@ crpx_fastmix64 (uint64_t x)
 }
 
 inline uint64_t
-crpx_murmurmix64 (uint64_t k) 
+crpx_murmurmix64 (uint64_t k) // not bad dieharer properties
 { // https://github.com/lemire/clhash/blob/master/clhash.c ; mixer for murmurhash
   k ^= k >> 33;
   k *= 0xff51afd7ed558ccdULL;
@@ -148,10 +148,31 @@ crpx_murmurmix64 (uint64_t k)
   return k;
 }
 
+inline uint64_t 
+crpx_rrmixer64 (uint64_t x) 
+{ // https://mostlymangling.blogspot.com/2018/07/
+  x ^= ROTR64(x, 49) ^ ROTR64(x, 24);
+  x *= 0x9fb21c651e98df25LL;
+  x ^= x >> 28;
+  x *= 0x9fb21c651e98df25LL;
+  return x ^ x >> 28;
+}
+
+inline uint64_t 
+crpx_moremur64 (uint64_t x) 
+{ // https://mostlymangling.blogspot.com/2019/12/stronger-better-morer-moremur-better.html
+  x ^= x >> 27;
+  x *= 0x3C79AC492BA7B653UL;
+  x ^= x >> 33;
+  x *= 0x1C69B3F74AC4AE35UL;
+  x ^= x >> 27;
+  return x;
+}
+
 uint64_t
-crpx_hash_pearson_seed2048 (void *vkey, size_t len, const void *vseed) // seed must have >= 256 bytes
+crpx_hash_pearson_seed2048 (const void *vkey, size_t len, const void *vseed) // seed must have >= 256 bytes
 { // https://github.com/maciejczyzewski/retter/blob/master/algorithms/Pearson/pearson.c
-  uint8_t *key = (uint8_t *) vkey, *seed = (uint8_t *) vseed;
+  const uint8_t *key = (const uint8_t *) vkey, *seed = (uint8_t *) vseed;
   uint64_t hash = 0;
   unsigned char h = 0;
   size_t i,j;
@@ -164,9 +185,9 @@ crpx_hash_pearson_seed2048 (void *vkey, size_t len, const void *vseed) // seed m
 }
 
 uint32_t
-crpx_hash_pseudocrc32_seed8192 (uint32_t crc, void *vkey, size_t len, const void *vseed) // seed must have >= 1024 bytes (256 x 32bits)
+crpx_hash_pseudocrc32_seed8192 (uint32_t crc, const void *vkey, size_t len, const void *vseed) // seed must have >= 1024 bytes (256 x 32bits)
 { // modified from https://github.com/maciejczyzewski/retter/blob/master/algorithms/CRC/crc32.c (NOT CRC32)
-  uint8_t *key = (uint8_t *) vkey;
+  const uint8_t *key = (const uint8_t *) vkey;
   uint32_t *seed = (uint32_t *) vseed;
   crc = crc ^ ~0U;
   while (len--) crc = seed[(crc ^ *key++) & 0xFF] ^ (crc >> 8);
@@ -174,11 +195,11 @@ crpx_hash_pseudocrc32_seed8192 (uint32_t crc, void *vkey, size_t len, const void
 }
 
 uint32_t 
-crpx_hash_fletcher32 (void *vkey, size_t len) // assumes vkey has pair number of number of bytes (o.w. last byte is lost)
+crpx_hash_fletcher32 (const void *vkey, size_t len) // assumes vkey has pair number of number of bytes (o.w. last byte is lost) (terrible dieharder)
 { // https://github.com/maciejczyzewski/retter/tree/master/algorithms/Fletcher
 /* The Fletcher checksum cannot distinguish between blocks of all 0  bits and blocks of all 1 bits. 
  * For example, if a 16-bit block in the data word changes from 0x0000 to 0xFFFF, the Fletcher-32 checksum remains the same. */
-  uint16_t *key = (uint16_t *) vkey;
+  const uint16_t *key = (const uint16_t *) vkey;
   uint32_t sum1 = 0xffff, sum2 = 0xffff;
   len <<= 1; // len is in bytes, but we assume 16 bits per key element
 
@@ -196,9 +217,9 @@ crpx_hash_fletcher32 (void *vkey, size_t len) // assumes vkey has pair number of
 }
 
 uint32_t
-crpx_hash_jenkins (void *vkey, size_t len)
+crpx_hash_jenkins (const void *vkey, size_t len) // not bad dieharder
 { // https://github.com/maciejczyzewski/retter/tree/master/algorithms/Jenkins
-  uint8_t *key = (uint8_t *) vkey;
+  const uint8_t *key = (const uint8_t *) vkey;
   uint32_t hash, i;
   for(hash = i = 0; i < len; ++i) {
     hash += key[i];
@@ -212,7 +233,7 @@ crpx_hash_jenkins (void *vkey, size_t len)
 }
 
 uint32_t 
-crpx_hash_jenkins_mailund_seed32 (void *vkey, size_t len, void *vseed)
+crpx_hash_jenkins_mailund_seed32 (const void *vkey, size_t len, void *vseed)
 { // https://github.com/mailund/hash/blob/master/HashFunctions/source/hash_strings.c
   uint32_t a, b; a = b = 0x9e3779b9;
   uint32_t c = *(uint32_t*)(vseed);
@@ -245,10 +266,10 @@ crpx_hash_jenkins_mailund_seed32 (void *vkey, size_t len, void *vseed)
 }
 
 uint32_t
-crpx_hash_mailund_seed32 (void *vkey, size_t len, void *vseed)
+crpx_hash_mailund_seed32 (const void *vkey, size_t len, void *vseed)
 { // https://github.com/mailund/hash/blob/master/HashFunctions/source/hash_strings.c one_at_a_time
   uint32_t hash = *(uint32_t*)(vseed);
-  uint8_t *input = (uint8_t*) vkey;
+  const uint8_t *input = (const uint8_t*) vkey;
   for (size_t i = 0; i < len; i++) {
       hash += input[i];// combine
       hash += (hash << 10); hash ^= (hash >> 6);// mix
@@ -260,10 +281,10 @@ crpx_hash_mailund_seed32 (void *vkey, size_t len, void *vseed)
 }
 
 uint32_t
-crpx_hash_rotating_seed32 (void *vkey, size_t len, void *vseed)
+crpx_hash_rotating_seed32 (const void *vkey, size_t len, void *vseed)
 { // https://github.com/mailund/hash/blob/master/HashFunctions/source/hash_strings.c
   uint32_t hash = *(uint32_t*)(vseed);
-  uint8_t *input = (uint8_t*) vkey;
+  const uint8_t *input = (const uint8_t*) vkey;
   for (size_t i = 0; i < len; i++) hash += ROTL32(hash, 4) ^ input[i];
   return hash;
 }
@@ -312,7 +333,7 @@ crpx_fnv_hash32 (const void* vkey, size_t len)
 }
 
 uint64_t
-crpx_fnv_hash64 (const void* vkey, size_t len)
+crpx_fnv_hash64 (const void* vkey, size_t len) // terrible dieharder properties
 { // https://github.com/opencoff/portable-lib/blob/master/src/fnvhash.c
   const unsigned char* p = (const unsigned char*) vkey;
   uint64_t h = 14695981039346656037ULL;
@@ -323,6 +344,7 @@ crpx_fnv_hash64 (const void* vkey, size_t len)
   }
   return h;
 }
+
 
 uint32_t
 crpx_hsieh_hash32_seed32 (const void * vkey, size_t len, void *vseed)
@@ -695,11 +717,36 @@ crpx_rng_wyhash64_state64 (void *vstate)
 uint64_t
 crpx_rng_splitmix64_seed64 (void *vstate)
 { // https://github.com/lemire/testingRNG/blob/master/splitmix64.c
-  uint64_t *state = (uint64_t *)vstate;
+  uint64_t *state = (uint64_t *) vstate;
   uint64_t z = (*state += UINT64_C(0x9E3779B97F4A7C15));
   z = (z ^ (z >> 30)) * UINT64_C(0xBF58476D1CE4E5B9);
   z = (z ^ (z >> 27)) * UINT64_C(0x94D049BB133111EB);
   return z ^ (z >> 31);
+}
+
+uint64_t
+crpx_rng_rrmixer_seed64 (void *vstate)
+{ // general hash-to-rng trick: increment state and hash it 
+  uint64_t *state = (uint64_t *) vstate;
+  uint64_t k = (*state += UINT64_C(0x2adca2f5d6da1507)); // large prime by @leomrtns
+  k ^= ROTR64(k, 49) ^ ROTR64(k, 24);
+  k *= 0x9fb21c651e98df25LL;
+  k ^= k >> 28;
+  k *= 0x9fb21c651e98df25LL;
+  return k ^ k >> 28;
+}
+
+uint64_t
+crpx_rng_moremur_seed64 (void *vstate)
+{ 
+  uint64_t *state = (uint64_t *) vstate;
+  uint64_t x = (*state += UINT64_C(0x0be40fe266ab1ec7)); // large prime by @leomrtns
+  x ^= x >> 27;
+  x *= 0x3C79AC492BA7B653UL;
+  x ^= x >> 33;
+  x *= 0x1C69B3F74AC4AE35UL;
+  x ^= x >> 27;
+  return x;
 }
 
 void

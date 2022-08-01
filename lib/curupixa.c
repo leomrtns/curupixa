@@ -37,7 +37,19 @@ crpx_global_init (__attribute__((unused)) uint64_t seed, uint16_t thread, const 
     default: cglob->loglevel_stderr = CRPX_LOGLEVEL_ERROR; strcpy(level_stdout,"error"); break;
   }
   crpx_get_time_128bits (cglob->elapsed_time);
-  crpx_logger_verbose (cglob, "Set id%u of thread-safe global variables initialised with seed=%lu and loglevel=%s", cglob->id, seed, level_stdout);
+  crpx_logger_verbose (cglob, "Thread-safe global variable set \"id%u\" initialised with seed = %lu and log level = %s", cglob->id, seed, level_stdout);
+#ifdef __SSE4_2__
+  cglob->sse = (__builtin_cpu_supports ("sse4.2") > 0);
+  crpx_logger_verbose (cglob, "Compiled with SSE4.2 instructions, which are %s by host machine", cglob->sse ? "enabled" : "disabled");
+#endif
+#ifdef __AVX2__
+  cglob->avx = (__builtin_cpu_supports ("avx2") > 0);
+  crpx_logger_verbose (cglob, "Compiled with AVX2 instructions, which are %s by host machine", cglob->avx ? "enabled" : "disabled");
+#endif
+#if !defined(__SSE4_2__) && !defined(__AVX2__)
+  cglob->sse = cglob->avx = false;
+  crpx_logger_verbose (cglob, "Compiled without SSE3 or AVX2 instructions, irrespective of host machine capabilities");
+#endif
   return cglob;
 }
 

@@ -5,10 +5,15 @@
 #define TEST_SKIPPED 77
 #define TEST_HARDERROR 99
 
-
+/* Testing available PRNGs with dieharder, command line below:
+ * `./tests/dieharder_rng 7 | dieharder -g 200 -a`
+ * notice that according to dieharder's man page, the _generator_ number 200 is stdin (thus "-g 200", not "-f 200")
+ *
+ * WARNING: this program will run for a _very_ long time 
+ */
 int main(int argc, char **argv)
 {
-  uint32_t i;
+  uint64_t i;
   uint64_t x, seed[16];
   uint64_t (*rng)(void*);
   uint8_t algo;
@@ -19,7 +24,7 @@ int main(int argc, char **argv)
 
   sscanf (argv[1], " %hhd ", &algo);
 	
-  switch (algo) {
+  switch (algo) { 
     case 0: rng = &crpx_rng_romu_seed256; break;
     case 1: rng = &crpx_rng_romu_seed192; break;
     case 2: rng = &crpx_rng_romu_seed128; break;
@@ -27,9 +32,11 @@ int main(int argc, char **argv)
     case 4: rng = &crpx_xs64star_seed64; break;
     case 5: rng = &crpx_rng_wyhash64_state64; break;
     case 6: rng = &crpx_rng_splitmix64_seed64; break;
+    case 7: rng = &crpx_rng_rrmixer_seed64; break;
+    case 8: rng = &crpx_rng_moremur_seed64; break;
     default: rng = &crpx_xs128plus_seed128; break;
   }
-  for (i=0; i < UINT_MAX; i++) {
+  for (i=0; i < UINT64_MAX; i++) {
     x = rng(seed);
     fwrite (&x, sizeof (uint64_t), 1, stdout);
   };

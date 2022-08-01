@@ -66,14 +66,14 @@ dnl see if SSE, AVX should be disabled (do not check against build machine since
 dnl original configure.ac had AC_LINK_ELSE 
 
 dnl if --enable-FEATURE is missing, it assumes --disable-FEATURE (last argument) by default; we invert it below
-AC_ARG_ENABLE(sse, AS_HELP_STRING([--disable-sse], [Build without SSE support]), , enable_sse=yes)
+AC_ARG_ENABLE(sse, AS_HELP_STRING([--disable-sse], [Build without SSE support (default is full support, up to SSE4.2)]), , enable_sse=yes)
 AC_MSG_CHECKING([SSE support])
 AS_IF([test "x$enable_sse" != "xno"], [
     has_sse=yes
-    AC_DEFINE([HAVE_SSE], [1], [Define if SSE support is requested])
+    AC_DEFINE([HAVE_SSE], [1], [Define if SSE SSE2 ..etc.. SSE4.2 support is requested])
     AX_APPEND_COMPILE_FLAGS([-msse4.2], [AM_CFLAGS]) # alternative is to add to Makefile.am only in files where needed (using MK_HAVE_SSE)
   ], [
-    AX_APPEND_COMPILE_FLAGS([-mno-sse4.2], [AM_CFLAGS])
+    AX_APPEND_COMPILE_FLAGS([-mno-sse], [AM_CFLAGS]) # notice that we exclude whole range SSE SSE2 ... SSE4.2
   ])
 
 dnl this follows usual pattern: disabled by default 
@@ -81,15 +81,15 @@ AC_ARG_ENABLE(avx2, AS_HELP_STRING([--enable-avx2],[enable AVX2 instructions (ma
 AC_MSG_CHECKING([AVX2 support])
 AS_IF([test "x$enable_avx2" != "xno"], [
     has_avx2=yes
-    AC_DEFINE([HAVE_AVX2], [1], [Define if AVX2 support is requested])
+    AC_DEFINE([HAVE_AVX], [1], [Define if AVX, AVX2, and FMA support is requested])
     AX_APPEND_COMPILE_FLAGS([-mavx2 -mfma], [AM_CFLAGS]) 
   ], [
-    AX_APPEND_COMPILE_FLAGS([-mno-avx2 -mno-mfma], [AM_CFLAGS])
+    AX_APPEND_COMPILE_FLAGS([-mno-avx -mno-mfma], [AM_CFLAGS]) # exclude AVX as well as AVX2
     ## AC_MSG_RESULT([disabled (to enable AVX2, add --enable-avx2 to configure command line)]) # append_compile_flags already announces result
   ])
 
 AM_CONDITIONAL(MK_HAVE_SSE,  test "x${has_sse}" = "xyes") # these are automake conditionals AM, not the preprocessor symbol HAVE_SSE 
-AM_CONDITIONAL(MK_HAVE_AVX2, test "x${has_avx2}" = "xyes") 
+AM_CONDITIONAL(MK_HAVE_AVX, test "x${has_avx2}" = "xyes") 
 
 AC_ARG_ENABLE(rdrnd, AS_HELP_STRING([--disable-rdrnd], [Build without Intel RDRAND instruction support]), , enable_rdrnd=yes) 
 AC_MSG_CHECKING([RDRAND support])

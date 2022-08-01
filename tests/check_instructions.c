@@ -18,31 +18,36 @@ char filename[2048] = TEST_FILE_DIR; // now we can memcpy() file names _after_ p
 size_t prefix_size = strlen(TEST_FILE_DIR); // all modifications to filename[] come after prefix_size
 
 
-START_TEST(have_intrinsics)
+START_TEST(have_instructions)
 {
+#ifdef __SSE__
+    printf("SSE defined\n");
+#endif
 #ifdef __SSE2__
     printf("SSE2 defined\n");
 #endif
 #ifdef __AVX__
     printf("AVX defined\n");
 #endif
-#ifdef HAVE_SSE
-    printf("HAVE_SSE2 from config.h\n");
-#endif
-#ifdef HAVE_AVX2
-    printf("HAVE_AVX2 from config.h\n");
-#endif
-
-    printf ("sse2  = %d\n", __builtin_cpu_supports("sse2"));
-    printf ("avx2  = %d\n", __builtin_cpu_supports("avx2"));
-#ifdef __SSE__
-    printf("SSE defined\n");
-    if (__builtin_cpu_supports("sse")) printf ("runtime hosts supports SSE\n"); // compiled with SSE4 _and_ runtime host supports it 
-#endif
 #ifdef __AVX2__
     printf("AVX2 defined\n");
-    if (__builtin_cpu_supports("avx2")) printf ("runtime hosts supports AVX2\n"); // compiled with AVX2 _and_ runtime host supports it
 #endif
+
+#ifdef HAVE_SSE
+    printf("HAVE_SSE from config.h\n");
+#endif
+#ifdef HAVE_AVX
+    printf("HAVE_AVX from config.h\n");
+#endif
+
+    printf ("sse   = %d\n", __builtin_cpu_supports("sse"));
+    printf ("sse2  = %d\n", __builtin_cpu_supports("sse2"));
+    printf ("sse3  = %d\n", __builtin_cpu_supports("sse3"));
+    printf ("ssse3 = %d\n", __builtin_cpu_supports("ssse3"));
+    printf ("sse4.1= %d\n", __builtin_cpu_supports("sse4.1"));
+    printf ("sse4.2= %d\n", __builtin_cpu_supports("sse4.2"));
+    printf ("avx   = %d\n", __builtin_cpu_supports("avx"));
+    printf ("avx2  = %d\n", __builtin_cpu_supports("avx2"));
   // if something goes wrong you can use: ck_abort_msg ("message");
 }
 END_TEST
@@ -78,14 +83,14 @@ START_TEST(test_mm256)
 }
 END_TEST
 
-Suite * intrinsics_suite(void)
+Suite * this_suite(void)
 {
   Suite *s;
   TCase *tc_case;
 
-  s = suite_create("SSE/AVX intrinsics");
+  s = suite_create("SSE/AVX instructions");
   tc_case = tcase_create("macros");
-  tcase_add_test(tc_case, have_intrinsics);
+  tcase_add_test(tc_case, have_instructions);
   tcase_add_test(tc_case, test_mm128);
   tcase_add_test(tc_case, test_mm256);
   suite_add_tcase(s, tc_case);
@@ -97,7 +102,7 @@ int main(void)
   int number_failed;
   SRunner *sr;
 
-  sr = srunner_create (intrinsics_suite());
+  sr = srunner_create (this_suite());
   srunner_run_all(sr, CK_VERBOSE);
   number_failed = srunner_ntests_failed(sr);
   srunner_free(sr);
