@@ -56,6 +56,18 @@ START_TEST(big_random_seeds)
 }
 END_TEST
 
+START_TEST(combination)
+{
+  int comb[7], n = crpx_choose_n_k (7, 3);
+  printf ("Checking combination of 7 choose 3: %d\n", n);
+  for (int i=0; i<n; i++) {
+    crpx_ordered_combination_n_k (comb, 7, 3, i);
+    for (int j=0; j<3; j++) printf ("%d ", comb[j]); 
+    printf ("  <- %d\n", i);
+  }
+}
+END_TEST
+
 Suite * this_suite(void)
 {
   Suite *s;
@@ -65,6 +77,9 @@ Suite * this_suite(void)
   tc_case = tcase_create("random seeds");
   tcase_add_test(tc_case, small_random_seeds);
   tcase_add_test(tc_case, big_random_seeds);
+  suite_add_tcase(s, tc_case);
+  tc_case = tcase_create("maths and bits");
+  tcase_add_test(tc_case, combination);
   suite_add_tcase(s, tc_case);
   return s;
 }

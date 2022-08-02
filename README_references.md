@@ -20,6 +20,7 @@ code to the best of my recollection.
 * https://github.com/veorq/SipHash (CC0)
 * https://github.com/maciejczyzewski/retter (CC0)
 * https://github.com/mailund/hash/ (GPL-3.0)
+* https://graphics.stanford.edu/~seander/bithacks.html (CC0)
 
 ## List of other libraries and algorithms 
 

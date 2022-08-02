@@ -23,6 +23,7 @@ extern "C" {
 
 #include "random_constants.h"
 
+
 size_t crpx_generate_bytesized_random_seeds (crpx_global_t cglob, void *seed, size_t seed_size);
 void crpx_generate_random_seed_256bits (crpx_global_t cglob, uint64_t seed[4]);
 void crpx_get_time_128bits (uint64_t time[2]);

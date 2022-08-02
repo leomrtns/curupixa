@@ -23,6 +23,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #include "lowlevel.h"
+#include "maths_and_bits.h"
 #include "random_constants.h" // included in hash_functions.h
 #include "hash_functions.h"
 

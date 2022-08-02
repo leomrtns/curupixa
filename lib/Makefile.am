@@ -2,9 +2,9 @@
 AM_CPPFLAGS = $(GTKDEPS_CFLAGS)  @OPENMP_CPPFLAGS@ @ZLIB_CFLAGS@ @LZMA_CFLAGS@
 AM_CFLAGS = @AM_CFLAGS@  @OPENMP_CFLAGS@ @ZLIB_CFLAGS@ @LZMA_CFLAGS@
 
-common_headers = curupixa.h lowlevel.h random_constants.h hash_functions.h
+common_headers = curupixa.h lowlevel.h maths_and_bits.h random_constants.h hash_functions.h
 
-common_src     = curupixa.c lowlevel.c random_constants.c hash_functions.c
+common_src     = curupixa.c lowlevel.c maths_and_bits.c random_constants.c hash_functions.c
 
 otherincludedir = $(includedir)/curupixa
 otherinclude_HEADERS = config.h $(common_headers) # if headers are here (=global) should not be on SOURCES (=local)
