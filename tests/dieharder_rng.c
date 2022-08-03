@@ -21,16 +21,20 @@ int main(int argc, char **argv)
   if (argc == 1) return TEST_SKIPPED;
   crpx_global_t cglob = crpx_global_init (0,0,"debug");
   crpx_generate_bytesized_random_seeds (cglob, seed, 128);
+  for (i=0; i < 16; i++) {
+    seed[i] |= 1ULL; // make it odd
+    fprintf (stderr, "%16lx ", seed[i]); if (i && !(i%4)) fprintf (stderr, "\n");
+  }
 
   sscanf (argv[1], " %hhd ", &algo);
 	
   switch (algo) { 
-    case 0: rng = &crpx_rng_romu_seed256; break;
-    case 1: rng = &crpx_rng_romu_seed192; break;
-    case 2: rng = &crpx_rng_romu_seed128; break;
-    case 3: rng = &crpx_xoro128plus_seed128; break;
-    case 4: rng = &crpx_xs64star_seed64; break;
-    case 5: rng = &crpx_rng_wyhash64_state64; break;
+    case 0: rng = &crpx_rng_romu_seed256; break; // +-
+    case 1: rng = &crpx_rng_romu_seed192; break; // OK 
+    case 2: rng = &crpx_rng_romu_seed128; break; // OK excellent
+    case 3: rng = &crpx_xoro128plus_seed128; break; // +-
+    case 4: rng = &crpx_xs64star_seed64; break; // OK excellent
+    case 5: rng = &crpx_rng_wyhash64_state64; break; // OK excellent
     case 6: rng = &crpx_rng_splitmix64_seed64; break;
     case 7: rng = &crpx_rng_rrmixer_seed64; break;
     case 8: rng = &crpx_rng_moremur_seed64; break;

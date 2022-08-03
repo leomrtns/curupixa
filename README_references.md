@@ -28,7 +28,7 @@ These libraries are not implemented in curupixa, but have helped me in other sof
 (aesthetically, or through OO ideas). The list below is copied from [biomcmc-lib](https://github.com/quadram-institute-bioscience/biomcmc-lib)
 which still is my main repository of code.
 
-### hash functions
+#### hash functions
 
  * http://www.cs.hmc.edu/~geoff/classes/hmc.cs070.200101/homework10/hashfuncs.html
  * http://burtleburtle.net/bob/hash/integer.html 
@@ -36,39 +36,40 @@ which still is my main repository of code.
  * https://lemire.me/blog/2018/08/15/fast-strongly-universal-64-bit-hashing-everywhere/
  * https://github.com/Cyan4973/smhasher
  * https://github.com/PeterScott/murmur3/ 
- * http://www.concentric.net/~Ttwang/tech/inthash.htm 
+ * http://www.concentric.net/~Ttwang/tech/inthash.htm (now available at https://gist.github.com/badboy/6267743)
+ * http://burtleburtle.net/bob/hash/integer.html
 
 The rolling hash algorithm for genomics (not incorporated into biomcmc-lib yet) was inspired by the [linclust algorithm](https://github.com/soedinglab/MMseqs2). 
 Their implementation is clean and very fast, but (at least at the time of our implementation) does not compute the
 reverse strand &mdash; since it works with a reduced amino acid alphabet. 
  
-### hash table
+#### hash table
 
 Our first implementation is derived from the software (Rec-I-DCM3)[https://web.njit.edu/~usman/RecIDCM3.html], 
 released under the GPL license (Copyright (C) 2004 The University of Texas at Austin. 
 
-### argtable 
+#### argtable 
 
 The files `argtable3.c` and `argtable3.h` were copied with small modicifcations from [argtable3](https://www.argtable.org/) library, 
 maintained by Tom G. Huang at the time of this import (2019.06) and are distributed under a BSD license. 
 Please refer to  https://github.com/argtable/argtable3 for the list of authors.
 
-### clustering
+#### clustering
 
  *  OPTICS algorithm based on https://github.com/guineri/GOPTICS  
 
-### quickselect
+#### quickselect
 Code by Nicolas Devillard - 1998. Public domain.  http://ndevilla.free.fr/median
 
  * Quickselect algorithm: described in "Numerical recipes in C" Section 8.5 (ISBN 0-521-43108-5)
  * Writh algorithm: "Algorithms + data structures = programs". Englewood Cliffs: Prentice-Hall, 1976
 
-### getline
+#### getline
 
 Our implementation is originally from the CvsGui project (http://www.wincvs.org/).
 It may be equivalent to the standard GNU getline since (POSIX.1-2008)[https://man7.org/linux/man-pages/man3/getline.3.html].
 
-### Hungarian method
+#### Hungarian method
 
 The hungarian method was copied (with modifications) from http://www.informatik.uni-freiburg.de/~stachnis/misc.html
 The original message follows:
@@ -80,13 +81,13 @@ The original message follows:
  "Stanford GraphGase" distribution!
 ```
 
-### Probability distributions
+#### Probability distributions
 
 The probability distribution functions and auxiliary mathematical functions are derived from the (R project for Statistical Computing)[http://www.r-project.org/],
 version 2.9.1, available under the GPL license.
 The code for the discrete sampling comes from the [GNU Scientific Library](https://www.gnu.org/software/gsl/), version 1.14.
 
-### Random number generation
+#### Random number generation
 
 The basic algorithms for random number generation come from the [GNU Scientific Library](https://www.gnu.org/software/gsl/), version 1.14, with 
 motivation for the uncorrelated parallel streams from the [Scalable Parallel Pseudo Random Number Generators Library (SPRNG)](http://www.sprng.org/).
@@ -103,7 +104,7 @@ Other references:
 
 It is noted that most of these algorithms are in the public domain.
 
-### reconciliation
+#### reconciliation
 
 All reconciliation algorithms were implemented here by Leo Martins, based on methods described in
 
@@ -115,7 +116,7 @@ All reconciliation algorithms were implemented here by Leo Martins, based on met
 
 (this is **not** an exhaustive list)
 
-### suffix tree
+#### suffix tree
 
 Implementation not functional, but these are the projects that I considered and have been studying.
 ```
@@ -125,14 +126,14 @@ git@github.com:shysaur/shysaur-suffixtrees.git
 git@github.com:mattporritt/suffix_tree.git
 git@github.com:Jodh/Ukkonen_Algorithm.git
 ```
-### SVD
+#### SVD
 
 Not implemented yet, but I am considering the implementation from [git@github.com:lucasmaystre/svdlibc.git](https://github.com/lucasmaystre/svdlibc).
 It contains a fast implementation of SVD matrix decomposition by Doug Rohde.
 As of version 1.4, the original files (SVDLIBC) are explicitly available under a BSD license, according to 
 [the github repository](https://github.com/lucasmaystre/svdlibc). 
 
-### hyperloglog
+#### hyperloglog
 
 Not finished yet, but my implementation is based on code by Ivan Vitjuk https://github.com/ivitjuk/libhll, 
 released under an ISC License.

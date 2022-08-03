@@ -35,7 +35,7 @@ extern uint64_t crpx_rrmixer64 (uint64_t x); /*!< \brief good dieharder propetie
 extern uint64_t crpx_moremur64 (uint64_t x); /*!< \brief good dieharder propeties */
 
 uint64_t crpx_hash_pearson_seed2048 (const void *vkey, size_t len, const void *vseed); // seed must have >= 256 bytes
-uint32_t crpx_hash_pseudocrc32_seed8192 (uint32_t crc, const void *vkey, size_t len, const void *vseed); // seed >= 1024 bytes (256 x 32bits)
+uint32_t crpx_hash_pseudocrc32_seed8192 (const void *vkey, size_t len, const void *vseed, uint32_t crc); // seed >= 1024 bytes (256 x 32bits)
 uint32_t crpx_hash_fletcher32 (const void *vkey, size_t len); /*!< \brief _not_for RNG */  // len==pair (o.w. last byte is lost); 
 uint32_t crpx_hash_jenkins (const void *vkey, size_t len); /*!< \brief good dieharder propeties */
 

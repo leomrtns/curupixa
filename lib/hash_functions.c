@@ -185,7 +185,7 @@ crpx_hash_pearson_seed2048 (const void *vkey, size_t len, const void *vseed) // 
 }
 
 uint32_t
-crpx_hash_pseudocrc32_seed8192 (uint32_t crc, const void *vkey, size_t len, const void *vseed) // seed must have >= 1024 bytes (256 x 32bits)
+crpx_hash_pseudocrc32_seed8192 (const void *vkey, size_t len, const void *vseed, uint32_t crc) // seed must have >= 1024 bytes (256 x 32bits), crc can be zero, for chaining
 { // modified from https://github.com/maciejczyzewski/retter/blob/master/algorithms/CRC/crc32.c (NOT CRC32)
   const uint8_t *key = (const uint8_t *) vkey;
   uint32_t *seed = (uint32_t *) vseed;
@@ -355,7 +355,6 @@ crpx_hsieh_hash32_seed32 (const void * vkey, size_t len, void *vseed)
 
   rem = len & 3;
   len >>= 2;
-  /* Main loop */
   for (;len > 0; len--) {
     hash  += (*((uint16_t*)(data)) ); // (uint16_t)(*data) is illegal since void doesn't know size of data[0] 
     tmp    = (*((uint16_t*)(data+2)) << 11) ^ hash;
@@ -377,8 +376,7 @@ crpx_hsieh_hash32_seed32 (const void * vkey, size_t len, void *vseed)
             hash ^= hash << 10;
             hash += hash >> 1;
    }
-  /* Force "avalanching" of final bits */
-  hash ^= hash << 3;  hash += hash >> 5;
+  hash ^= hash << 3;  hash += hash >> 5;/* Force "avalanching" of final bits */
   hash ^= hash << 4;  hash += hash >> 17;
   hash ^= hash << 25; hash += hash >> 6;
   return hash;
@@ -387,14 +385,10 @@ crpx_hsieh_hash32_seed32 (const void * vkey, size_t len, void *vseed)
 uint64_t
 crpx_metrohash64_v1_seed64 (const void *vkey, size_t vlen, const void *seed) // 32bits seed in original, but cast to 64bits
 { // https://github.com/opencoff/portable-lib/blob/master/src/metrohash64.c
-  static const uint64_t k0 = 0xC83A91E1;
-  static const uint64_t k1 = 0x8648DBDB;
-  static const uint64_t k2 = 0x7BDEC03B;
-  static const uint64_t k3 = 0x2F5870A5;
+  static const uint64_t k0 = 0xC83A91E1ULL, k1 = 0x8648DBDBULL, k2 = 0x7BDEC03BULL, k3 = 0x2F5870A5ULL;
   const uint8_t *ptr = (const uint8_t *) vkey;
-  uint64_t len = (uint64_t) vlen; // vout must have at least 16 bytes
+  uint64_t len = (uint64_t) vlen, hash = (((*(uint64_t*)(seed)) + k2) * k0) + len; 
   const uint8_t * const end = ptr + len;
-  uint64_t hash = (((*(uint64_t*)(seed)) + k2) * k0) + len;
 
   if (len >= 32) {
     uint64_t v[4];
@@ -418,18 +412,10 @@ crpx_metrohash64_v1_seed64 (const void *vkey, size_t vlen, const void *seed) // 
     v1 ^= ROTR64(v1 * k3, 35) + v0;
     hash += v1;
   }
-  if ((end - ptr) >= 8) {
-    hash += *(uint64_t*)(ptr) * k3; ptr += 8; hash ^= ROTR64(hash, 33) * k1;
-  }
-  if ((end - ptr) >= 4) {
-    hash += *(uint32_t*)(ptr) * k3; ptr += 4; hash ^= ROTR64(hash, 15) * k1;
-  }
-  if ((end - ptr) >= 2) {
-    hash += *(uint16_t*)(ptr) * k3; ptr += 2; hash ^= ROTR64(hash, 13) * k1;
-  }
-  if ((end - ptr) >= 1) {
-    hash += *(uint8_t*)(ptr) * k3; hash ^= ROTR64(hash, 25) * k1;
-  }
+  if ((end - ptr) >= 8) { hash += *(uint64_t*)(ptr) * k3; ptr += 8; hash ^= ROTR64(hash, 33) * k1; }
+  if ((end - ptr) >= 4) { hash += *(uint32_t*)(ptr) * k3; ptr += 4; hash ^= ROTR64(hash, 15) * k1; }
+  if ((end - ptr) >= 2) { hash += *(uint16_t*)(ptr) * k3; ptr += 2; hash ^= ROTR64(hash, 13) * k1; }
+  if ((end - ptr) >= 1) { hash += *(uint8_t*)(ptr) * k3; hash ^= ROTR64(hash, 25) * k1; }
   hash ^= ROTR64(hash, 33);
   hash *= k0;
   hash ^= ROTR64(hash, 33);
@@ -439,14 +425,10 @@ crpx_metrohash64_v1_seed64 (const void *vkey, size_t vlen, const void *seed) // 
 uint64_t
 crpx_metrohash64_v2_seed64 (const void *vkey, size_t vlen, const void *seed) // 32bits seed in original, but cast to 64bits
 { // https://github.com/opencoff/portable-lib/blob/master/src/metrohash64.c
-  static const uint64_t k0 = 0xD6D018F5;
-  static const uint64_t k1 = 0xA2AA033B;
-  static const uint64_t k2 = 0x62992FC1;
-  static const uint64_t k3 = 0x30BC5B29; 
+  static const uint64_t k0 = 0xD6D018F5ULL, k1 = 0xA2AA033BULL, k2 = 0x62992FC1ULL, k3 = 0x30BC5B29UL;
   const uint8_t *ptr = (const uint8_t *) vkey;
-  uint64_t len = (uint64_t) vlen; // vout must have at least 16 bytes
+  uint64_t len = (uint64_t) vlen, hash = (((*(uint64_t*)(seed)) + k2) * k0) + len; 
   const uint8_t * const end = ptr + len;
-  uint64_t hash = (((*(uint64_t*)(seed)) + k2) * k0) + len;
 
   if (len >= 32) {
     uint64_t v[4];
@@ -470,18 +452,10 @@ crpx_metrohash64_v2_seed64 (const void *vkey, size_t vlen, const void *seed) // 
     v1 ^= ROTR64(v1 * k3, 34) + v0;
     hash += v1;
   }
-  if ((end - ptr) >= 8) {
-    hash += *(uint64_t*)(ptr) * k3; ptr += 8; hash ^= ROTR64(hash, 36) * k1;
-  }
-  if ((end - ptr) >= 4) {
-    hash += *(uint32_t*)(ptr) * k3; ptr += 4; hash ^= ROTR64(hash, 15) * k1;
-  }
-  if ((end - ptr) >= 2) {
-    hash += *(uint16_t*)(ptr) * k3; ptr += 2; hash ^= ROTR64(hash, 15) * k1;
-  }
-  if ((end - ptr) >= 1) {
-    hash += *(uint8_t*)(ptr) * k3; hash ^= ROTR64(hash, 23) * k1;
-  }
+  if ((end - ptr) >= 8) { hash += *(uint64_t*)(ptr) * k3; ptr += 8; hash ^= ROTR64(hash, 36) * k1; }
+  if ((end - ptr) >= 4) { hash += *(uint32_t*)(ptr) * k3; ptr += 4; hash ^= ROTR64(hash, 15) * k1; }
+  if ((end - ptr) >= 2) { hash += *(uint16_t*)(ptr) * k3; ptr += 2; hash ^= ROTR64(hash, 15) * k1; }
+  if ((end - ptr) >= 1) { hash += *(uint8_t*)(ptr)  * k3;           hash ^= ROTR64(hash, 23) * k1; }
   hash ^= ROTR64(hash, 28);
   hash *= k0;
   hash ^= ROTR64(hash, 29);
@@ -491,10 +465,7 @@ crpx_metrohash64_v2_seed64 (const void *vkey, size_t vlen, const void *seed) // 
 void
 crpx_metrohash128_v1_seed64 (const void *vkey, size_t vlen, const void *seed, void *vout) // 32bits seed in original, but always cast to 64bits
 { // https://github.com/opencoff/portable-lib/blob/master/src/metrohash128.c
-  static const uint64_t k0 = 0xC83A91E1ULL;
-  static const uint64_t k1 = 0x8648DBDBULL;
-  static const uint64_t k2 = 0x7BDEC03BULL;
-  static const uint64_t k3 = 0x2F5870A5ULL;
+  static const uint64_t k0 = 0xC83A91E1ULL, k1 = 0x8648DBDBULL, k2 = 0x7BDEC03BULL, k3 = 0x2F5870A5ULL;
   const uint8_t *ptr = (const uint8_t *) vkey;
   uint64_t *v = (uint64_t *)vout, len = (uint64_t) vlen; // vout must have at least 16 bytes
   const uint8_t * const end = ptr + len;
@@ -523,22 +494,10 @@ crpx_metrohash128_v1_seed64 (const void *vkey, size_t vlen, const void *seed, vo
     v[0] ^= ROTR64((v[0] * k2) + v[1], 17) * k1;
     v[1] ^= ROTR64((v[1] * k3) + v[0], 17) * k0;
   }
-  if ((end - ptr) >= 8) {
-    v[0] += *(uint64_t*)(ptr) * k2; ptr += 8; v[0] = ROTR64(v[0],33) * k3;
-    v[0] ^= ROTR64((v[0] * k2) + v[1], 20) * k1;
-  }
-  if ((end - ptr) >= 4) {
-    v[1] += *(uint32_t*)(ptr) * k2; ptr += 4; v[1] = ROTR64(v[1],33) * k3;
-    v[1] ^= ROTR64((v[1] * k3) + v[0], 18) * k0;
-  }
-  if ((end - ptr) >= 2) {
-    v[0] += *(uint16_t*)(ptr) * k2; ptr += 2; v[0] = ROTR64(v[0],33) * k3;
-    v[0] ^= ROTR64((v[0] * k2) + v[1], 24) * k1;
-  }
-  if ((end - ptr) >= 1) {
-    v[1] += *(uint8_t*)(ptr) * k2; v[1] = ROTR64(v[1],33) * k3;
-    v[1] ^= ROTR64((v[1] * k3) + v[0], 24) * k0;
-  }
+  if ((end - ptr) >= 8) { v[0] += *(uint64_t*)(ptr) * k2; ptr += 8; v[0] = ROTR64(v[0],33) * k3; v[0] ^= ROTR64((v[0] * k2) + v[1], 20) * k1; }
+  if ((end - ptr) >= 4) { v[1] += *(uint32_t*)(ptr) * k2; ptr += 4; v[1] = ROTR64(v[1],33) * k3; v[1] ^= ROTR64((v[1] * k3) + v[0], 18) * k0; }
+  if ((end - ptr) >= 2) { v[0] += *(uint16_t*)(ptr) * k2; ptr += 2; v[0] = ROTR64(v[0],33) * k3; v[0] ^= ROTR64((v[0] * k2) + v[1], 24) * k1; }
+  if ((end - ptr) >= 1) { v[1] += *(uint8_t*)(ptr)  * k2;           v[1] = ROTR64(v[1],33) * k3; v[1] ^= ROTR64((v[1] * k3) + v[0], 24) * k0; }
   v[0] += ROTR64((v[0] * k0) + v[1], 13);
   v[1] += ROTR64((v[1] * k1) + v[0], 37);
   v[0] += ROTR64((v[0] * k2) + v[1], 13);
@@ -548,12 +507,9 @@ crpx_metrohash128_v1_seed64 (const void *vkey, size_t vlen, const void *seed, vo
 void
 crpx_metrohash128_v2_seed64 (const void *vkey, size_t vlen, const void *seed, void *vout) // 32bits seed in original, but always cast to 64bits
 { // https://github.com/opencoff/portable-lib/blob/master/src/metrohash128.c
-  static const uint64_t k0 = 0xD6D018F5;
-  static const uint64_t k1 = 0xA2AA033B;
-  static const uint64_t k2 = 0x62992FC1;
-  static const uint64_t k3 = 0x30BC5B29; 
+  static const uint64_t k0 = 0xD6D018F5ULL, k1 = 0xA2AA033BULL, k2 = 0x62992FC1ULL, k3 = 0x30BC5B29UL;
   const uint8_t *ptr = (const uint8_t *) vkey;
-  uint64_t *v = (uint64_t *)vout, len = (uint64_t) vlen; // vout must have at least 16 bytes
+  uint64_t *v = (uint64_t *)vout, len = (uint64_t) vlen; // vout must have at least 16 bytes (128bits)
   const uint8_t * const end = ptr + len;
 
   v[0] = (((*(uint64_t*)(seed)) - k0) * k3) + len;
@@ -580,33 +536,19 @@ crpx_metrohash128_v2_seed64 (const void *vkey, size_t vlen, const void *seed, vo
     v[0] ^= ROTR64((v[0] * k2) + v[1], 29) * k1;
     v[1] ^= ROTR64((v[1] * k3) + v[0], 29) * k0;
   }
-  if ((end - ptr) >= 8) {
-    v[0] += *(uint64_t*)(ptr) * k2; ptr += 8; v[0] = ROTR64(v[0],29) * k3;
-    v[0] ^= ROTR64((v[0] * k2) + v[1], 29) * k1;
-  }
-  if ((end - ptr) >= 4) {
-    v[1] += *(uint32_t*)(ptr) * k2; ptr += 4; v[1] = ROTR64(v[1],29) * k3;
-    v[1] ^= ROTR64((v[1] * k3) + v[0], 25) * k0;
-  }
-  if ((end - ptr) >= 2) {
-    v[0] += *(uint16_t*)(ptr) * k2; ptr += 2; v[0] = ROTR64(v[0],29) * k3;
-    v[0] ^= ROTR64((v[0] * k2) + v[1], 30) * k1;
-  }
-  if ((end - ptr) >= 1) {
-    v[1] += *(uint8_t*)(ptr) * k2; v[1] = ROTR64(v[1],29) * k3;
-    v[1] ^= ROTR64((v[1] * k3) + v[0], 18) * k0;
-  }
+  if ((end - ptr) >= 8) { v[0] += *(uint64_t*)(ptr) * k2; ptr += 8; v[0] = ROTR64(v[0],29) * k3; v[0] ^= ROTR64((v[0] * k2) + v[1], 29) * k1; }
+  if ((end - ptr) >= 4) { v[1] += *(uint32_t*)(ptr) * k2; ptr += 4; v[1] = ROTR64(v[1],29) * k3; v[1] ^= ROTR64((v[1] * k3) + v[0], 25) * k0; }
+  if ((end - ptr) >= 2) { v[0] += *(uint16_t*)(ptr) * k2; ptr += 2; v[0] = ROTR64(v[0],29) * k3; v[0] ^= ROTR64((v[0] * k2) + v[1], 30) * k1; }
+  if ((end - ptr) >= 1) { v[1] += *(uint8_t*)(ptr)  * k2;           v[1] = ROTR64(v[1],29) * k3; v[1] ^= ROTR64((v[1] * k3) + v[0], 18) * k0; }
   v[0] += ROTR64((v[0] * k0) + v[1], 33);
   v[1] += ROTR64((v[1] * k1) + v[0], 33);
   v[0] += ROTR64((v[0] * k2) + v[1], 33);
   v[1] += ROTR64((v[1] * k3) + v[0], 33);
 }
 
-/* SipHash reference C implementation:  https://github.com/veorq/SipHash 
+/* SipHash reference C implementation:  https://github.com/veorq/SipHash  (Public Domain)
    Copyright (c) 2012-2021 Jean-Philippe Aumasson <jeanphilippe.aumasson@gmail.com>
-   Copyright (c) 2012-2014 Daniel J. Bernstein <djb@cr.yp.to>
-   To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring 
-   rights to this software to the public domain worldwide. */ 
+   Copyright (c) 2012-2014 Daniel J. Bernstein <djb@cr.yp.to> */
 #define U32TO8_LE(p, v)                                                        \
     (p)[0] = (uint8_t)((v));                                                   \
     (p)[1] = (uint8_t)((v) >> 8);                                              \
@@ -622,26 +564,19 @@ crpx_metrohash128_v2_seed64 (const void *vkey, size_t vlen, const void *seed, vo
      ((uint64_t)((p)[6]) << 48) | ((uint64_t)((p)[7]) << 56))
 #define SIPROUND                                                               \
     do {                                                                       \
-        v0 += v1; v1 = ROTL64(v1, 13);                                         \
-        v1 ^= v0; v0 = ROTL64(v0, 32);                                         \
-        v2 += v3; v3 = ROTL64(v3, 16);                                         \
-        v3 ^= v2;                                                              \
-        v0 += v3; v3 = ROTL64(v3, 21);                                         \
-        v3 ^= v0;                                                              \
-        v2 += v1; v1 = ROTL64(v1, 17);                                         \
-        v1 ^= v2; v2 = ROTL64(v2, 32);                                         \
+        v0 += v1; v1 = ROTL64(v1, 13); v1 ^= v0; v0 = ROTL64(v0, 32);          \
+        v2 += v3; v3 = ROTL64(v3, 16); v3 ^= v2;                               \
+        v0 += v3; v3 = ROTL64(v3, 21); v3 ^= v0;                               \
+        v2 += v1; v1 = ROTL64(v1, 17); v1 ^= v2; v2 = ROTL64(v2, 32);          \
     } while (0)
 
 void 
 crpx_siphash_seed128 (const void *in, const size_t inlen, const void *seed, uint8_t *out, const size_t outlen)
 { // k is 16 bytes seed (128bits), out is 64bits or 128bits 
+  assert((outlen == 8) || (outlen == 16)); // 64 or 128 bits
   const unsigned char *ni = (const unsigned char *)in;
   const unsigned char *kk = (const unsigned char *)seed;
-  assert((outlen == 8) || (outlen == 16)); // 64 or 128 bits
-  uint64_t v0 = UINT64_C(0x736f6d6570736575);
-  uint64_t v1 = UINT64_C(0x646f72616e646f6d);
-  uint64_t v2 = UINT64_C(0x6c7967656e657261);
-  uint64_t v3 = UINT64_C(0x7465646279746573);
+  uint64_t v0 = 0x736f6d6570736575ULL, v1 = 0x646f72616e646f6dULL, v2 = 0x6c7967656e657261ULL, v3 = 0x7465646279746573ULL;
   uint64_t k0 = U8TO64_LE(kk);
   uint64_t k1 = U8TO64_LE(kk + 8);
   uint64_t m;
@@ -658,12 +593,9 @@ crpx_siphash_seed128 (const void *in, const size_t inlen, const void *seed, uint
   for (; ni != end; ni += 8) {
     m = U8TO64_LE(ni);
     v3 ^= m;
-    for (i = 0; i < c_rounds; ++i)
-      SIPROUND;
-
+    for (i = 0; i < c_rounds; ++i) SIPROUND;
     v0 ^= m;
   }
-
   switch (left) {
     case 7: b |= ((uint64_t)ni[6]) << 48; CRPX_attribute_FALLTHROUGH
     case 6: b |= ((uint64_t)ni[5]) << 40; CRPX_attribute_FALLTHROUGH
@@ -674,29 +606,19 @@ crpx_siphash_seed128 (const void *in, const size_t inlen, const void *seed, uint
     case 1: b |= ((uint64_t)ni[0]);  break;
     case 0: break;
   }
-
   v3 ^= b;
-  for (i = 0; i < c_rounds; ++i)
-    SIPROUND;
-
+  for (i = 0; i < c_rounds; ++i) SIPROUND;
   v0 ^= b;
   if (outlen == 16) v2 ^= 0xee;
   else              v2 ^= 0xff;
-  for (i = 0; i < d_rounds; ++i)
-    SIPROUND;
-
+  for (i = 0; i < d_rounds; ++i) SIPROUND;
   b = v0 ^ v1 ^ v2 ^ v3;
   U64TO8_LE(out, b);
-
   if (outlen == 8) return;
   v1 ^= 0xdd;
-
-  for (i = 0; i < d_rounds; ++i)
-    SIPROUND;
-
+  for (i = 0; i < d_rounds; ++i) SIPROUND;
   b = v0 ^ v1 ^ v2 ^ v3;
   U64TO8_LE(out + 8, b);
-
   return;
 }
 
@@ -820,7 +742,7 @@ crpx_rng_romu_seed128 (void *vstate) // romu_duo: 2 x uint64_t
 uint64_t
 crpx_xoro128plus_seed128 (void *vstate)
 { // https://github.com/opencoff/portable-lib/blob/master/src/xoroshiro.c
-  uint64_t *v = (uint64_t *)vstate;
+  uint64_t *v = (uint64_t *) vstate;
   uint64_t v0 = v[0], v1 = v[1];
   uint64_t  r = v[0] + v[1];
   v1 ^= v0;
@@ -832,7 +754,7 @@ crpx_xoro128plus_seed128 (void *vstate)
 uint64_t
 crpx_xs64star_seed64 (void *vstate)
 { // https://github.com/opencoff/portable-lib/blob/master/src/xorshift.c
-  uint64_t *s = (uint64_t *)vstate;
+  uint64_t *s = (uint64_t *) vstate;
   *s ^= *s >> 12;
   *s ^= *s << 25;
   *s ^= *s << 27;
@@ -842,24 +764,11 @@ crpx_xs64star_seed64 (void *vstate)
 uint64_t
 crpx_xs128plus_seed128 (void *vstate)
 { // https://github.com/opencoff/portable-lib/blob/master/src/xorshift.c
-  uint64_t *s = (uint64_t *)vstate;
+  uint64_t *s = (uint64_t *) vstate;
   uint64_t v1 = s[0], v0 = s[1];
   s[0] = v0; 
   v1 ^= (v1 << 23);
   s[1] = v1 ^ v0 ^ (v1 >> 18) ^ (v0 >> 5);
   return s[1] + v0;
 }
-
-#ifdef __not_implemented_yet_
-uint64_t xs1024star_u64(xs1024star* s) // needs a struct which contains a counter s->p
-{
-  uint64_t s0 = s->v[s->p++];
-  uint64_t s1;
-  s->p &= 15;
-  s1  = s->v[s->p];
-  s1 ^= s1 << 31;
-  s->v[s->p] = s1 ^ s0 ^ (s1 >> 11) ^ (s0 >> 30);
-  return s->v[s->p] * 1181783497276652981uLL;
-}
-#endif
 
