@@ -23,7 +23,7 @@ int main(int argc, char **argv)
   crpx_generate_bytesized_random_seeds (cglob, seed, 128);
   for (i=0; i < 16; i++) {
     seed[i] |= 1ULL; // make it odd
-    fprintf (stderr, "%16lx ", seed[i]); if (i && !(i%4)) fprintf (stderr, "\n");
+    fprintf (stderr, "%17lx ", seed[i]); if (!((i+1)%4)) fprintf (stderr, "\n");
   }
 
   sscanf (argv[1], " %hhd ", &algo);

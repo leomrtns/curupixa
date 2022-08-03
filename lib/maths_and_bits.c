@@ -37,24 +37,24 @@ crpx_next_power_of_two (uint32_t x)
  *  x = ((b >> i) ^ (b >> j)) & ((1U << n) - 1); r = b ^ ((x << i) | (x << j));
  *  swaps the n consecutive bits starting at positions i and j (from the right) */
 
-inline uint32_t 
-crpx_choose_n_k (uint32_t n, uint32_t k)
+inline int 
+crpx_choose_n_k (int n, int k)
 {
   if ((k > n) || (n > 100000)) return 0; // avoid overflow since 100000 choose 2 has more than 32 bits
   if (k * 2 > n) k = n-k;
   if (k == 0) return 1;
   /* curiosity: 512 choose 4 has almost 32 bits (thus should be a limit in quartets for instance) */
-  uint32_t result = n;
-  for (uint32_t i = 2; i <= k; ++i) { result *= (n-i+1); result /= i; }
+  int result = n;
+  for (int i = 2; i <= k; ++i) { result *= (n-i+1); result /= i; }
   return result;
 }
 
 /* order-th lexicographically ordered set of k elements out of n; output is in result (of length at least k) */
 void 
-crpx_ordered_combination_n_k (uint32_t* result, uint32_t n, uint32_t k, uint32_t order)
+crpx_ordered_combination_n_k (int* result, int n, int k, int order)
 { // https://stackoverflow.com/questions/561/how-to-use-combinations-of-sets-as-test-data#794
-  uint32_t r, j = 0, x = order+1; // order starts at zero, but lexico order starts at 1
-  for (uint32_t i = 0; i < k-1; i++) {
+  int r, j = 0, x = order+1; // order starts at zero, but lexico order starts at 1
+  for (int i = 0; i < k-1; i++) {
     result[i] = (i != 0) ? result[i-1] : 0;
     do {
       result[i]++;

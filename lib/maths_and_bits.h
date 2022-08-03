@@ -34,8 +34,8 @@ extern "C" {
 
 extern uint32_t crpx_prev_power_of_two (uint32_t x);
 extern uint32_t crpx_next_power_of_two (uint32_t x);
-extern uint32_t crpx_choose_n_k (uint32_t n, uint32_t k);
-void crpx_ordered_combination_n_k (uint32_t* result, uint32_t n, uint32_t k, uint32_t order);
+extern int crpx_choose_n_k (int n, int k);
+void crpx_ordered_combination_n_k (int* result, int n, int k, int order);
 
 #ifdef __cplusplus
 }
