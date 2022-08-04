@@ -24,8 +24,8 @@ extern "C" {
 
 #include "lowlevel.h"
 #include "maths_and_bits.h"
-#include "random_constants.h" // included in hash_functions.h
 #include "hash_functions.h"
+#include "random_number_generators.h"
 
 crpx_global_t crpx_global_init (__attribute__((unused)) uint64_t seed, uint16_t thread, const char *level_string);
 void crpx_global_finalise (crpx_global_t cglob);

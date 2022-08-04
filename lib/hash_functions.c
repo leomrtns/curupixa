@@ -12,10 +12,10 @@
 
 
 /*! \file hash_functions.c 
- *  \brief simple hash functions and random number generators from integers.
- */
+ *  \brief simple hash functions.  */
 
 #include "hash_functions.h"
+#include "random_constants.h" // not available to the user, only locally
 
 size_t
 crpx_generate_bytesized_random_seeds (crpx_global_t cglob, void *seed, size_t seed_size)
@@ -117,16 +117,7 @@ crpx_update_elapsed_time_128bits (uint64_t past[2])
   return seconds;
 }
 
-/* hash functions (differ from RNGs from being stateless) */
-
-#define ROTL64(x, b) (uint64_t)(((x) << (b)) | ((x) >> (64 - (b))))
-#define ROTR64(x, b) (uint64_t)(((x) >> (b)) | ((x) << (64 - (b))))
-#define ROTL32(x, b) (uint32_t)(((x) << (b)) | ((x) >> (32 - (b))))
-#define MIX32(a,b,c) { a -= b; a -= c; a ^= (c>>13);        \
-b -= c; b -= a; b ^= (a<<8);  c -= a; c -= b; c ^= (b>>13); \
-a -= b; a -= c; a ^= (c>>12); b -= c; b -= a; b ^= (a<<16); \
-c -= a; c -= b; c ^= (b>>5);  a -= b; a -= c; a ^= (c>>3);  \
-b -= c; b -= a; b ^= (a<<10); c -= a; c -= b; c ^= (b>>15); }
+/* hash functions */
 
 inline uint64_t
 crpx_fastmix64 (uint64_t x) // terrible dieharder properties
@@ -621,154 +612,3 @@ crpx_siphash_seed128 (const void *in, const size_t inlen, const void *seed, uint
   U64TO8_LE(out + 8, b);
   return;
 }
-
-/* random number generators (depend on current state) */
-uint64_t 
-crpx_rng_wyhash64_state64 (void *vstate)
-{  // https://github.com/lemire/testingRNG/blob/master/wyhash.c
-  uint64_t *state = (uint64_t *)vstate;
-  *state += UINT64_C(0x60bee2bee120fc15);
-  __uint128_t tmp;
-  tmp = (__uint128_t)*state * UINT64_C(0xa3b195354a39b70d);
-  uint64_t m1 = (tmp >> 64) ^ tmp;
-  tmp = (__uint128_t)m1 * UINT64_C(0x1b03738712fad5c9);
-  uint64_t m2 = (tmp >> 64) ^ tmp;
-  return m2;
-}
-
-uint64_t
-crpx_rng_splitmix64_seed64 (void *vstate)
-{ // https://github.com/lemire/testingRNG/blob/master/splitmix64.c
-  uint64_t *state = (uint64_t *) vstate;
-  uint64_t z = (*state += UINT64_C(0x9E3779B97F4A7C15));
-  z = (z ^ (z >> 30)) * UINT64_C(0xBF58476D1CE4E5B9);
-  z = (z ^ (z >> 27)) * UINT64_C(0x94D049BB133111EB);
-  return z ^ (z >> 31);
-}
-
-uint64_t
-crpx_rng_rrmixer_seed64 (void *vstate)
-{ // general hash-to-rng trick: increment state and hash it 
-  uint64_t *state = (uint64_t *) vstate;
-  uint64_t k = (*state += UINT64_C(0x2adca2f5d6da1507)); // large prime by @leomrtns
-  k ^= ROTR64(k, 49) ^ ROTR64(k, 24);
-  k *= 0x9fb21c651e98df25LL;
-  k ^= k >> 28;
-  k *= 0x9fb21c651e98df25LL;
-  return k ^ k >> 28;
-}
-
-uint64_t
-crpx_rng_moremur_seed64 (void *vstate)
-{ 
-  uint64_t *state = (uint64_t *) vstate;
-  uint64_t x = (*state += UINT64_C(0x0be40fe266ab1ec7)); // large prime by @leomrtns
-  x ^= x >> 27;
-  x *= 0x3C79AC492BA7B653UL;
-  x ^= x >> 33;
-  x *= 0x1C69B3F74AC4AE35UL;
-  x ^= x >> 27;
-  return x;
-}
-
-void
-cprx_rng_abyssinian_set_seed128 (void *vstate, uint32_t seed)
-{ // https://github.com/opencoff/portable-lib/blob/master/src/abyssinian_rand.c
-  uint64_t *state = (uint64_t *)vstate;
-  uint32_t seed_2 = seed;
-  seed += seed_2;
-  seed_2 += seed;
-  uint64_t seed_x = 0x9368e53c2f6af274ULL ^ seed;
-  uint64_t seed_y = 0x586dcd208f7cd3fdULL ^ seed_2;
-
-  seed_x *= 0xff51afd7ed558ccdULL;// Based on the mixing functions of MurmurHash3
-  seed_x ^= seed_x >> 33;
-  seed_x *= 0xc4ceb9fe1a85ec53ULL;;
-  seed_x ^= seed_x >> 33;
-
-  seed_y *= 0xff51afd7ed558ccdULL;
-  seed_y ^= seed_y >> 33;
-  seed_y *= 0xc4ceb9fe1a85ec53ULL;
-  seed_y ^= seed_y >> 33;
-  // Inlined Next(): Discard first output
-  seed_x = (uint64_t)0xfffd21a7 * (uint32_t)seed_x + (uint32_t)(seed_x >> 32);
-  seed_y = (uint64_t)0xfffd1361 * (uint32_t)seed_y + (uint32_t)(seed_y >> 32);
-  state[0] = seed_x;
-  state[1] = seed_y;
-}
-
-uint32_t
-crpx_rng_abyssinian32_seed128 (void *vstate) // 2 x uint64_t 
-{ // https://github.com/opencoff/portable-lib/blob/master/src/abyssinian_rand.c
-  uint64_t *state = (uint64_t *)vstate;
-  state[0] = (uint64_t)0xfffd21a7 * (uint32_t)state[0] + (uint32_t)(state[0] >> 32);
-  state[1] = (uint64_t)0xfffd1361 * (uint32_t)state[1] + (uint32_t)(state[1] >> 32);
-  return ROTL32((uint32_t)state[0], 7) + (uint32_t)state[1];
-}
-
-uint64_t
-crpx_rng_romu_seed256 (void *vstate) // romu_quad: 4 x uint64_t 
-{ // https://github.com/opencoff/portable-lib/blob/master/src/romu-rand.c 
-  uint64_t *r = (uint64_t *) vstate;
-  uint64_t x = r[0], y = r[1], z = r[2], w=r[3];
-  r[3] = 15241094284759029579ULL * z;
-  r[0] = z + ROTL64(w, 52);
-  r[1] = y - x;
-  r[2] = ROTL64(y+w, 19);
-  return x;
-}
-
-uint64_t
-crpx_rng_romu_seed192 (void *vstate) // romu_trio: 3 x uint64_t 
-{ // https://github.com/opencoff/portable-lib/blob/master/src/romu-rand.c 
-  uint64_t *r = (uint64_t *) vstate;
-  uint64_t x = r[0], y = r[1], z = r[2];
-  r[0] = 15241094284759029579ULL * z;
-  r[1] = ROTL64(y - x, 12);
-  r[2] = ROTL64(z - y, 44);
-  return x;
-}
-
-uint64_t
-crpx_rng_romu_seed128 (void *vstate) // romu_duo: 2 x uint64_t 
-{ // https://github.com/opencoff/portable-lib/blob/master/src/romu-rand.c 
-  uint64_t *r = (uint64_t *) vstate;
-  uint64_t x = r[0];
-  r[0] = 15241094284759029579u * r[1];
-  r[1] = ROTL64(r[1], 36) + ROTL64(r[1], 15) - x;
-  return x;
-}
-
-uint64_t
-crpx_xoro128plus_seed128 (void *vstate)
-{ // https://github.com/opencoff/portable-lib/blob/master/src/xoroshiro.c
-  uint64_t *v = (uint64_t *) vstate;
-  uint64_t v0 = v[0], v1 = v[1];
-  uint64_t  r = v[0] + v[1];
-  v1 ^= v0;
-  v[0] = ROTL64(v0, 55) ^ v1 ^ (v1 << 14);
-  v[1] = ROTL64(v1, 36);
-  return r;
-}
-
-uint64_t
-crpx_xs64star_seed64 (void *vstate)
-{ // https://github.com/opencoff/portable-lib/blob/master/src/xorshift.c
-  uint64_t *s = (uint64_t *) vstate;
-  *s ^= *s >> 12;
-  *s ^= *s << 25;
-  *s ^= *s << 27;
-  return *s * 2685821657736338717ULL;
-}
-
-uint64_t
-crpx_xs128plus_seed128 (void *vstate)
-{ // https://github.com/opencoff/portable-lib/blob/master/src/xorshift.c
-  uint64_t *s = (uint64_t *) vstate;
-  uint64_t v1 = s[0], v0 = s[1];
-  s[0] = v0; 
-  v1 ^= (v1 << 23);
-  s[1] = v1 ^ v0 ^ (v1 >> 18) ^ (v0 >> 5);
-  return s[1] + v0;
-}
-

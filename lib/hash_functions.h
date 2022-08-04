@@ -12,8 +12,7 @@
  */
 
 /*! \file hash_functions.h 
- *  \brief headers exposed to other programs
- */
+ *  \brief hash functions  */
 
 #ifndef _curupixa_hash_functions_h_ 
 #define _curupixa_hash_functions_h_
@@ -22,7 +21,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 #include "random_constants.h"
-
 
 size_t crpx_generate_bytesized_random_seeds (crpx_global_t cglob, void *seed, size_t seed_size);
 void crpx_generate_random_seed_256bits (crpx_global_t cglob, uint64_t seed[4]);
@@ -54,22 +52,8 @@ void crpx_metrohash128_v1_seed64 (const void *vkey, size_t vlen, const void *see
 void crpx_metrohash128_v2_seed64 (const void *vkey, size_t vlen, const void *seed, void *vout); // 32bits seed cast to 64bits
 void crpx_siphash_seed128 (const void *in, const size_t inlen, const void *seed, uint8_t *out, const size_t outlen); /*!< \brief outlen must be 8 or 16 (64 or 128 bits) */
 
-/* random numbers (depend on a state which is updated as new numbers are generated) */
-uint64_t crpx_rng_wyhash64_state64 (void *vstate);
-uint64_t crpx_rng_splitmix64_seed64 (void *vstate);
-uint64_t crpx_rng_rrmixer_seed64 (void *vstate);
-uint64_t crpx_rng_moremur_seed64 (void *vstate);
-void cprx_rng_abyssinian_set_seed128 (void *vstate, uint32_t seed);
-uint32_t crpx_rng_abyssinian32_seed128 (void *vstate); // 2 x uint64_t 
- 
-uint64_t crpx_rng_romu_seed256 (void *vstate); // romu_quad: 4 x uint64_t 
-uint64_t crpx_rng_romu_seed192 (void *vstate); // romu_trio: 3 x uint64_t 
-uint64_t crpx_rng_romu_seed128 (void *vstate); // romu_duo: 2 x uint64_t 
-uint64_t crpx_xoro128plus_seed128 (void *vstate);
-uint64_t crpx_xs64star_seed64 (void *vstate);
-uint64_t crpx_xs128plus_seed128 (void *vstate);
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 #endif /* if header not defined */
+

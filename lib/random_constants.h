@@ -15,7 +15,7 @@
 /*! \file random_constants.h 
  *  \brief vectors of prime numbers and random numbers used by hashes and PRNGs. Examples include the rolling
  *  hash (DNA bases mapped to a random value) and the spice (initial states used to generate several streams)
- */
+ *  These functions and macros are _not_ exposed to the user. Every calling function must include this file. */
 
 #ifndef _curupixa_random_constants_h_
 #define _curupixa_random_constants_h_
@@ -24,6 +24,15 @@ extern "C" {
 #endif /* __cplusplus */
 
 #include "lowlevel.h"
+
+#define ROTL64(x, b) (uint64_t)(((x) << (b)) | ((x) >> (64 - (b))))
+#define ROTR64(x, b) (uint64_t)(((x) >> (b)) | ((x) << (64 - (b))))
+#define ROTL32(x, b) (uint32_t)(((x) << (b)) | ((x) >> (32 - (b))))
+#define MIX32(a,b,c) { a -= b; a -= c; a ^= (c>>13);        \
+b -= c; b -= a; b ^= (a<<8);  c -= a; c -= b; c ^= (b>>13); \
+a -= b; a -= c; a ^= (c>>12); b -= c; b -= a; b ^= (a<<16); \
+c -= a; c -= b; c ^= (b>>5);  a -= b; a -= c; a ^= (c>>3);  \
+b -= c; b -= a; b ^= (a<<10); c -= a; c -= b; c ^= (b>>15); }
 
 extern uint16_t crpx_random_prime32_length;
 extern uint32_t crpx_random_prime32[];
