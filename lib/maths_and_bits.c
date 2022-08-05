@@ -33,6 +33,53 @@ crpx_next_power_of_two (uint32_t x)
   return x + 1;
 }
 
+inline uint32_t 
+crpx_reverse_bits32 (uint32_t v) 
+{ // https://graphics.stanford.edu/~seander/bithacks.html
+  v = ((v >> 1) & 0x55555555) | ((v & 0x55555555) << 1);// swap odd and even bits
+  v = ((v >> 2) & 0x33333333) | ((v & 0x33333333) << 2);// swap consecutive pairs
+  v = ((v >> 4) & 0x0F0F0F0F) | ((v & 0x0F0F0F0F) << 4);// swap nibbles ... 
+  v = ((v >> 8) & 0x00FF00FF) | ((v & 0x00FF00FF) << 8);// swap bytes
+  v = ( v >> 16             ) | ( v               << 16);// swap 2-byte long pairs
+  return v;
+}
+
+
+inline uint64_t 
+crpx_interleave_64bits (uint64_t xylo) /* [y4y3y2y1 x4x3x2x1] --> [y4x4 y3x3 y2x2 y1x1] */
+{ // https://github.com/yinqiwen/geohash-int/blob/master/geohash.c; https://graphics.stanford.edu/~seander/bithacks.html has for 32bits
+  static const uint64_t B[] = { 0x5555555555555555, 0x3333333333333333, 0x0F0F0F0F0F0F0F0F, 0x00FF00FF00FF00FF, 0x0000FFFF0000FFFF };
+  static const unsigned int S[] = { 1, 2, 4, 8, 16 };
+  uint64_t x = xylo & UINT64_C(0xFFFFFFFFFFFFFFFF);  // Interleave lower  bits of x and y, so the bits of x
+  uint64_t y = xylo << 32;// are in the even positions and bits from y in the odd; //https://graphics.stanford.edu/~seander/bithacks.html#InterleaveBMN
+
+  // x and y must initially be less than 2**32. (@leomrtns: original algo uses two uint32_t xlo and ylo)
+  x = (x | (x << S[4])) & B[4]; y = (y | (y << S[4])) & B[4];
+  x = (x | (x << S[3])) & B[3]; y = (y | (y << S[3])) & B[3];
+  x = (x | (x << S[2])) & B[2]; y = (y | (y << S[2])) & B[2];
+  x = (x | (x << S[1])) & B[1]; y = (y | (y << S[1])) & B[1];
+  x = (x | (x << S[0])) & B[0]; y = (y | (y << S[0])) & B[0];
+  return x | (y << 1);
+}
+
+inline uint64_t 
+crpx_deinterleave_64bits (uint64_t interleaved) /* [y4y3y2y1 x4x3x2x1] <-- [y4x4 y3x3 y2x2 y1x1] */
+{ // https://github.com/yinqiwen/geohash-int/blob/master/geohash.c
+  static const uint64_t B[] = { 0x5555555555555555, 0x3333333333333333, 0x0F0F0F0F0F0F0F0F, 0x00FF00FF00FF00FF, 0x0000FFFF0000FFFF, 0x00000000FFFFFFFF };
+  static const unsigned int S[] = { 0, 1, 2, 4, 8, 16 };
+  uint64_t x = interleaved; ///reverse the interleave process (http://stackoverflow.com/questions/4909263/how-to-efficiently-de-interleave-bits-inverse-morton)
+  uint64_t y = interleaved >> 1;
+  x = (x | (x >> S[0])) & B[0]; y = (y | (y >> S[0])) & B[0];
+  x = (x | (x >> S[1])) & B[1]; y = (y | (y >> S[1])) & B[1];
+  x = (x | (x >> S[2])) & B[2]; y = (y | (y >> S[2])) & B[2];
+  x = (x | (x >> S[3])) & B[3]; y = (y | (y >> S[3])) & B[3];
+  x = (x | (x >> S[4])) & B[4]; y = (y | (y >> S[4])) & B[4];
+  x = (x | (x >> S[5])) & B[5]; y = (y | (y >> S[5])) & B[5];
+  return x | (y << 32);
+}
+
+
+
 /* trick to swap a bit range within an integer, where r=swapped int; b=original int; n=length; i,j = positions to swap; x=temp var:
  *  x = ((b >> i) ^ (b >> j)) & ((1U << n) - 1); r = b ^ ((x << i) | (x << j));
  *  swaps the n consecutive bits starting at positions i and j (from the right) */
