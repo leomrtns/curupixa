@@ -118,83 +118,178 @@ crpx_hash_64_to_32 (uint64_t key)
 /* single integer hash functions */
 
 inline uint64_t
-crpx_hashint_fastmix64 (uint64_t x) // terrible dieharder properties
-{ // https://github.com/opencoff/portable-lib/blob/master/src/fasthash.c; Compression function for Merkle-Damgard construction
-  x ^= x >> 23;
-  x *= 0x2127599bf4325c37ULL;
-  x ^= x >> 47;
+crpx_hashint_splitmix64 (uint64_t x) // same as rng_splitmix with state=0; similar to hashint_staffordmix 
+{ // https://github.com/skeeto/hash-prospector 
+  x ^= x >> 30; x *= 0xbf58476d1ce4e5b9U;
+  x ^= x >> 27; x *= 0x94d049bb133111ebU; 
+  return x ^ (x >> 31); // only difference w/ staffordmix 
+}
+
+inline uint64_t
+crpx_hashint_splitmix64_inverse (uint64_t x)
+{ // https://github.com/skeeto/hash-prospector 
+  x ^= x >> 31 ^ x >> 62; x *= 0x319642b2d24d8ec3ULL;
+  x ^= x >> 27 ^ x >> 54; x *= 0x96de1b173f119089ULL; x ^= x >> 30 ^ x >> 60;
   return x;
 }
 
 inline uint64_t
-crpx_hashint_murmurmix64 (uint64_t k) // not bad dieharer properties
-{ // https://github.com/lemire/clhash/blob/master/clhash.c ; mixer for murmurhash
-  k ^= k >> 33;
-  k *= 0xff51afd7ed558ccdULL;
-  k ^= k >> 33;
-  k *= 0xc4ceb9fe1a85ec53ULL;
-  k ^= k >> 33;
+crpx_hashint_degski64 (uint64_t x)
+{ // https://github.com/skeeto/hash-prospector 
+  x ^= x >> 32; x *= 0xd6e8feb86659fd93ULL;
+  x ^= x >> 32; x *= 0xd6e8feb86659fd93ULL; x ^= x >> 32;
+  return x;
+}
+
+inline uint64_t
+crpx_hashint_degski64_inverse (uint64_t x)
+{ // https://github.com/skeeto/hash-prospector 
+  x ^= x >> 32; x *= 0xcfee444d8b59a89bULL;
+  x ^= x >> 32; x *= 0xcfee444d8b59a89bULL; x ^= x >> 32;
+  return x;
+}
+
+inline uint64_t
+crpx_hashint_fastmix64 (uint64_t x) // terrible dieharder properties
+{ // https://github.com/opencoff/portable-lib/blob/master/src/fasthash.c; Compression function for Merkle-Damgard construction
+  x ^= x >> 23; x *= 0x2127599bf4325c37ULL; x ^= x >> 47;
+  return x;
+}
+
+inline uint64_t
+crpx_hashint_murmurmix64 (uint64_t k) 
+{ // https://github.com/lemire/clhash/blob/master/clhash.c ; mixer for murmurhash finaliser 
+  k ^= k >> 33; k *= 0xff51afd7ed558ccdULL;
+  k ^= k >> 33; k *= 0xc4ceb9fe1a85ec53ULL; k ^= k >> 33;
   return k;
 }
 
 inline uint64_t 
 crpx_hashint_rrmixer64 (uint64_t x) 
 { // https://mostlymangling.blogspot.com/2018/07/
-  x ^= ROTR64(x, 49) ^ ROTR64(x, 24);
-  x *= 0x9fb21c651e98df25LL;
-  x ^= x >> 28;
-  x *= 0x9fb21c651e98df25LL;
+  x ^= ROTR64(x, 49) ^ ROTR64(x, 24); x *= 0x9fb21c651e98df25LL;
+  x ^= x >> 28; x *= 0x9fb21c651e98df25LL;
   return x ^ x >> 28;
 }
 
 inline uint64_t 
 crpx_hashint_moremur64 (uint64_t x) 
 { // https://mostlymangling.blogspot.com/2019/12/stronger-better-morer-moremur-better.html
-  x ^= x >> 27;
-  x *= 0x3C79AC492BA7B653UL;
-  x ^= x >> 33;
-  x *= 0x1C69B3F74AC4AE35UL;
-  x ^= x >> 27;
+  x ^= x >> 27; x *= 0x3C79AC492BA7B653UL;
+  x ^= x >> 33; x *= 0x1C69B3F74AC4AE35UL; x ^= x >> 27;
   return x;
 }
 
 inline uint64_t 
-crpx_hashint_staffordmix13 (uint64_t z) 
-{ // https://github.com/vigna/MRG32k3a/blob/master/MRG32k3a.c
+crpx_hashint_staffordmix64 (uint64_t z) 
+{ // biomcmc and https://github.com/vigna/MRG32k3a/blob/master/MRG32k3a.c (aka Mix13 by David Stafford see blogpost below)
 	z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9; z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
-	return (z >> 1) ^ (z >> 32);
+  z = (z >> 1) ^ (z >> 32); // only difference with hashint_splitmix64 is here 
+  return ROTL64(z, 17); // added by @leomrtns just in case it's identical to splitmix64, but makes it slower
+}
+
+inline uint64_t
+crpx_hashint_entropy (uint64_t x) 
+{ // https://zimbry.blogspot.com/2011/09/better-bit-mixing-improving-on.html (by David Stafford)
+  x ^= x >> 31; x *= 0x7fb5d329728ea185;
+  x ^= x >> 27; x *= 0x81dadef4bc2dd44d; 
+  return x ^ (x >> 33);
 }
 
 inline uint64_t
 crpx_hashint_zixmix64 (uint64_t h)
-{ // https://github.com/drobilla/zix/blob/main/src/digest.c
+{ // biomcmc and https://github.com/drobilla/zix/blob/main/src/digest.c
   h ^= h >> 23U; h *= 0x2127599BF4325C37ULL; h ^= h >> 47U;
   return h;
 }
 
 inline uint32_t
-crpx_hashint_jenkins32 (uint32_t a)
-{ // full avalanche (https://gist.github.com/badboy/6267743) (http://burtleburtle.net/bob/hash/integer.html)
+crpx_hashint_jenkins (uint32_t a) // slower than most
+{ // full avalanche (https://gist.github.com/badboy/6267743) (http://burtleburtle.net/bob/hash/integer.html) and biomcmc
   a = (a+0x7ed55d16) + (a<<12); a = (a^0xc761c23c) ^ (a>>19); a = (a+0x165667b1) + (a<<5);
   a = (a+0xd3a2646c) ^ (a<<9);  a = (a+0xfd7046c5) + (a<<3);  a = (a^0xb55a4f09) ^ (a>>16);
   return a;
 }
 
 inline uint32_t
-crpx_hashint_jenkins32_v2 (uint32_t a)
-{ // full avalanche (http://burtleburtle.net/bob/hash/integer.html)
-  a = (a+0x7fb9b1ee) + (a<<12); a = (a^0xab35dd63) ^ (a>>19); a = (a+0x41ed960d) + (a<<5);
+crpx_hashint_jenkins_v2 (uint32_t a) // slower than most
+{ // full avalanche (http://burtleburtle.net/bob/hash/integer.html) and biomcmc
+  a = (a+0x7fb9b1ee) + (a<<12); a = (a^0xab35dd63) ^ (a>>19); a = (a+0x41ed960d) + (a<<5); 
   a = (a+0xc7d0125e) ^ (a<<9);  a = (a+0x071f9f8f) + (a<<3);  a = (a^0x55ab55b9) ^ (a>>16);
   return a;
 }
 
 inline uint32_t
-crpx_hashint_avalanche (uint32_t a)
-{ // https://burtleburtle.net/bob/hash/integer.html
+crpx_hashint_avalanche (uint32_t a) // a bit slower than others
+{ // https://burtleburtle.net/bob/hash/integer.html and biomcmc
   a -= (a<<6); a ^= (a>>17); a -= (a<<9); a ^= (a<<4); a -= (a<<3); a ^= (a<<10); a ^= (a>>15);
   return a;
 }
 
+inline uint32_t
+crpx_hashint_murmurmix (uint32_t x) 
+{ // mixer for murmurhash32 finaliser
+  x ^= x >> 16; x *= 0x85ebca6bU;
+  x ^= x >> 13; x *= 0xc2b2ae35U;
+  x ^= x >> 16;
+  return x;
+}
+
+inline uint32_t
+crpx_hashint_wellons3ple (uint32_t x)
+{ // https://github.com/skeeto/hash-prospector  (minimally biased hashed by Christopher Wellons) 
+  x++; // avoid hash(0) = 0 
+  x ^= x >> 17; x *= 0xed5ad4bbU;
+  x ^= x >> 11; x *= 0xac4c1b51U;
+  x ^= x >> 15; x *= 0x31848babU;
+  x ^= x >> 14;
+  return x;
+}
+
+inline uint32_t
+crpx_hashint_wellons3ple_inverse (uint32_t x) // inverse of crpx_hashint_triple32()
+{ // https://github.com/skeeto/hash-prospector 
+  x ^= x >> 14 ^ x >> 28; x *= 0x32b21703U;
+  x ^= x >> 15 ^ x >> 30; x *= 0x469e0db1U;
+  x ^= x >> 11 ^ x >> 22; x *= 0x79a85073U;
+  x ^= x >> 17;
+  return x-1;
+}
+
+inline uint32_t
+crpx_hashint_wellons (uint32_t x)
+{ // https://github.com/skeeto/hash-prospector 
+  x ^= x >> 16; x *= 0x7feb352dU;
+  x ^= x >> 15; x *= 0x846ca68bU;
+  x ^= x >> 16;
+  return x;
+}
+
+inline uint32_t
+crpx_hashint_wellons_inverse (uint32_t x)
+{ // https://github.com/skeeto/hash-prospector 
+  x ^= x >> 16; x *= 0x43021123;
+  x ^= x >> 15 ^ x >> 30; x *= 0x1d69e2a5;
+  x ^= x >> 16;
+  return x;
+}
+
+inline uint32_t
+crpx_hashint_degski (uint32_t x)
+{ // https://github.com/skeeto/hash-prospector  and https://gist.github.com/degski/6e2069d6035ae04d5d6f64981c995ec2
+  x++; // avoid hash(0) = 0
+  x ^= x >> 16; x *= 0X45D9F3B;
+  x ^= x >> 16; x *= 0X45D9F3B; x ^= x >> 16;
+  return x;
+}
+
+inline uint32_t
+crpx_hashint_degski_inverse (uint32_t x)
+{ // https://github.com/skeeto/hash-prospector and https://gist.github.com/degski/6e2069d6035ae04d5d6f64981c995ec2
+  x ^= x >> 16; x *= 0X119DE1F3;
+  x ^= x >> 16; x *= 0X119DE1F3; x ^= x >> 16;
+  return x - 1;
+}
 
 /* from 8 bit blocks to 64 bit value */
 

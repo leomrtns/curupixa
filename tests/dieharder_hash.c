@@ -13,7 +13,7 @@
  */
 int main(int argc, char **argv)
 {
-  uint64_t i, x64, seed = 0x3581cfba5687e23ULL;
+  uint64_t i, x64, seed = 0x3581cf2a5687e23ULL;
   uint32_t x32;
   uint8_t algo;
 
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
     }
   } else if (algo == 8) {
     for (i=0; i < UINT64_MAX; i++) {
-      x64 = crpx_fasthash64_seed64 ((void*)(&i), sizeof (uint64_t), (void*)(&seed)); // OK +-
+      x64 = crpx_fasthash64_seed64 ((void*)(&i), sizeof (uint64_t), (void*)(&seed)); // OK +- // passed practrand 32bits
       fwrite (&x64, sizeof (uint64_t), 1, stdout);
     }
   } else if (algo == 9) {
@@ -84,12 +84,12 @@ int main(int argc, char **argv)
     }
   } else if (algo == 12) {
     for (i=0; i < UINT64_MAX; i++) {
-      x64 = crpx_rrmixer64 (i); // OK 
+      x64 = crpx_rrmixer64 (i); // OK // passed practrand 32bits
       fwrite (&x64, sizeof (uint64_t), 1, stdout);
     }
   } else if (algo == 13) {
     for (i=0; i < UINT64_MAX; i++) {
-      x64 = crpx_moremur64 (i); // OK
+      x64 = crpx_moremur64 (i); // OK // suspicious/unusual practrand 32bits
       fwrite (&x64, sizeof (uint64_t), 1, stdout);
     }
   } else {

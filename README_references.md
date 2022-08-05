@@ -22,6 +22,11 @@ code to the best of my recollection.
 * https://github.com/mailund/hash/ (GPL-3.0)
 * https://graphics.stanford.edu/~seander/bithacks.html (CC0)
 * https://prng.di.unimi.it (CC0)
+* https://github.com/PeterScott/murmur3 (CC0) 
+* https://github.com/wolkykim/qlibc/blob/master/src/utilities/qhash.c (BSD-like)
+* https://github.com/yinqiwen/geohash-int/blob/master/geohash.c (BSD3)
+* https://github.com/skeeto/hash-prospector (CC0)
+
 
 ## List of other libraries and algorithms 
 
@@ -36,7 +41,6 @@ which still is my main repository of code.
  * http://www.cse.yorku.ca/~oz/hash.html
  * https://lemire.me/blog/2018/08/15/fast-strongly-universal-64-bit-hashing-everywhere/
  * https://github.com/Cyan4973/smhasher
- * https://github.com/PeterScott/murmur3/ 
  * http://www.concentric.net/~Ttwang/tech/inthash.htm (now available at https://gist.github.com/badboy/6267743)
  * http://burtleburtle.net/bob/hash/integer.html
 

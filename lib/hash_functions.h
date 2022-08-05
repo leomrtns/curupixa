@@ -31,16 +31,28 @@ extern uint64_t crpx_mumhash64_mixer (uint64_t a, uint64_t b);
 extern uint64_t crpx_wyhash64_mixer (uint64_t a, uint64_t b);
 extern uint32_t crpx_hash_64_to_32 (uint64_t key);
 
+extern uint64_t crpx_hashint_splitmix64 (uint64_t x); // same as rng_splitmix with state=0; similar to hashint_staffordmix 
+extern uint64_t crpx_hashint_spitmix64_inverse (uint64_t x);
+extern uint64_t crpx_hashint_degski64 (uint64_t x);
+extern uint64_t crpx_hashint_degski64_inverse (uint64_t x);
 extern uint64_t crpx_hashint_fastmix64 (uint64_t x); /*!< \brief compression, _not_ for RNG */
 extern uint64_t crpx_hashint_murmurmix64 (uint64_t k); /*!< \brief good dieharder propeties */
 extern uint64_t crpx_hashint_rrmixer64 (uint64_t x); /*!< \brief good dieharder propeties */
 extern uint64_t crpx_hashint_moremur64 (uint64_t x); /*!< \brief good dieharder propeties */
-extern uint64_t crpx_hashint_staffordmix13 (uint64_t z);
+extern uint64_t crpx_hashint_staffordmix64 (uint64_t z);
 extern uint64_t crpx_hashint_zixmix64 (uint64_t h);
 
-extern uint32_t crpx_hashint_jenkins32 (uint32_t a);
-extern uint32_t crpx_hashint_jenkins32_v2 (uint32_t a);
+extern uint32_t crpx_hashint_jenkins (uint32_t a);
+extern uint32_t crpx_hashint_jenkins_v2 (uint32_t a);
 extern uint32_t crpx_hashint_avalanche (uint32_t a);
+
+extern uint32_t crpx_hashint_murmurmix (uint32_t x);
+extern uint32_t crpx_hashint_wellons3ple (uint32_t x);
+extern uint32_t crpx_hashint_wellons3ple_inverse (uint32_t x); // inverse of crpx_hashint_wellons3ple()
+extern uint32_t crpx_hashint_wellons (uint32_t x);
+extern uint32_t crpx_hashint_wellons_inverse (uint32_t x);
+extern uint32_t crpx_hashint_degski (uint32_t x);
+extern uint32_t crpx_hashint_degski_inverse (uint32_t x);
 
 uint64_t crpx_hash_pearson_seed2048 (const void *vkey, size_t len, const void *vseed); // seed must have >= 256 bytes
 uint32_t crpx_hash_pseudocrc32_seed8192 (const void *vkey, size_t len, const void *vseed, uint32_t crc); // seed >= 1024 bytes (256 x 32bits)
@@ -62,7 +74,7 @@ uint64_t crpx_metrohash128_v1_seed64 (const void *vkey, size_t vlen, const void 
 uint64_t crpx_metrohash128_v2_seed64 (const void *vkey, size_t vlen, const void *seed, void *out); // 32bits seed cast to 64bits; out is 128 bits
 uint64_t crpx_murmurhash3_128bits (const void *key, const size_t len, const uint32_t seed, void *out); // out[] is 128 bits
 uint32_t crpx_murmurhash3_32bits (const void *data, const size_t nbytes, const uint32_t seed);
-uint64_t crpx_siphash128_seed128 (const void *in, const size_t inlen, const void *seed, void *out);
+uint64_t crpx_siphash128_seed128 (const void *in, const size_t inlen, const void *seed, void *out); // return 64 bits is a mixer of the 128bits, for true 64 bits use siphash64
 uint64_t crpx_siphash64_seed128 (const void *in, const size_t inlen, const void *seed);
 
 #ifdef __cplusplus
