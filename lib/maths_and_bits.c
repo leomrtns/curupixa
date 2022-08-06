@@ -8,7 +8,7 @@
  * version.
  *
  * This program is distributed in the hope that it will be usefulull, but WITHOUT ANY WARRANTY; without even the implied 
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICullAR PURPOSE.  See the GNU General Public License for more 
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULLAR PURPOSE.  See the GNU General Public License for more 
  * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
  */
 
@@ -43,7 +43,6 @@ crpx_reverse_bits32 (uint32_t v)
   v = ( v >> 16             ) | ( v               << 16);// swap 2-byte long pairs
   return v;
 }
-
 
 inline uint64_t 
 crpx_interleave_64bits (uint64_t xylo) /* [y4y3y2y1 x4x3x2x1] --> [y4x4 y3x3 y2x2 y1x1] */

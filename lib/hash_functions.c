@@ -15,7 +15,7 @@
  *  \brief simple hash functions.  */
 
 #include "hash_functions.h"
-#include "random_constants.h" // not available to the user, only locally
+#include "internal_random_constants.h" // not available to the user, only locally
 
 size_t
 crpx_generate_bytesized_random_seeds (crpx_global_t cglob, void *seed, size_t seed_size)
@@ -92,7 +92,7 @@ inline uint64_t
 crpx_mumhash64_mixer (uint64_t a, uint64_t b)
 { 
   uint64_t ha = a >> 32, hb = b >> 32, la = a & 0xFFFFFFFF00000000ULL, lb = b & 0xFFFFFFFF00000000ULL;
-  uint64_t rh = ha * hb, rm_0 = ha * lb, rm_1 = hb * la, rl =  la * lb, t = rl + (rm_0<<32), c = t < rl;
+  uint64_t rh = ha * hb, rm_0 = ha * lb, rm_1 = hb * la, rl =  la * lb, t = rl + (rm_0<<32);
   a = t + (rm_1 << 32); b = rh + (rm_0 >> 32) + (rm_1 >> 32); a += b;
   return a;
 }
@@ -117,12 +117,19 @@ crpx_hash_64_to_32 (uint64_t key)
 
 /* single integer hash functions */
 
+inline uint64_t 
+crpx_hashint_staffordmix64 (uint64_t z) 
+{ // biomcmc and https://github.com/vigna/MRG32k3a/blob/master/MRG32k3a.c (aka Mix13 by David Stafford see blogpost below)
+  z += 0xbd63743fULL; // 32bit primer number added by @leomrtns; o.w. identical to splitmix64
+	z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9; z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
+  return z ^ (z >> 31);
+}
+
 inline uint64_t
-crpx_hashint_splitmix64 (uint64_t x) // same as rng_splitmix with state=0; similar to hashint_staffordmix 
+crpx_hashint_splitmix64 (uint64_t x) // same as rng_splitmix with state=0; hashint_staffordmix is this with a different state 
 { // https://github.com/skeeto/hash-prospector 
-  x ^= x >> 30; x *= 0xbf58476d1ce4e5b9U;
-  x ^= x >> 27; x *= 0x94d049bb133111ebU; 
-  return x ^ (x >> 31); // only difference w/ staffordmix 
+  x ^= x >> 30; x *= 0xbf58476d1ce4e5b9U; x ^= x >> 27; x *= 0x94d049bb133111ebU; 
+  return x ^ (x >> 31);
 }
 
 inline uint64_t
@@ -136,6 +143,7 @@ crpx_hashint_splitmix64_inverse (uint64_t x)
 inline uint64_t
 crpx_hashint_degski64 (uint64_t x)
 { // https://github.com/skeeto/hash-prospector 
+  // x ^= 0x1e018aaf2b12443ULL; // 64 bit prime number added by @leomrtns does not increase dieharder/practrand performance
   x ^= x >> 32; x *= 0xd6e8feb86659fd93ULL;
   x ^= x >> 32; x *= 0xd6e8feb86659fd93ULL; x ^= x >> 32;
   return x;
@@ -146,11 +154,12 @@ crpx_hashint_degski64_inverse (uint64_t x)
 { // https://github.com/skeeto/hash-prospector 
   x ^= x >> 32; x *= 0xcfee444d8b59a89bULL;
   x ^= x >> 32; x *= 0xcfee444d8b59a89bULL; x ^= x >> 32;
+  //  return x ^ 0x1e018aaf2b12443ULL;
   return x;
 }
 
 inline uint64_t
-crpx_hashint_fastmix64 (uint64_t x) // terrible dieharder properties
+crpx_hashint_fastmix64 (uint64_t x) // terrible dieharder properties; good for compression _not_ PRNGs
 { // https://github.com/opencoff/portable-lib/blob/master/src/fasthash.c; Compression function for Merkle-Damgard construction
   x ^= x >> 23; x *= 0x2127599bf4325c37ULL; x ^= x >> 47;
   return x;
@@ -173,6 +182,25 @@ crpx_hashint_rrmixer64 (uint64_t x)
 }
 
 inline uint64_t 
+crpx_hashint_nasam64 (uint64_t x) 
+{ // https://mostlymangling.blogspot.com/2020/01/nasam-not-another-strange-acronym-mixer.html
+  x ^= 0xb50b2ed9ebf398e9ULL; // 64 bits prime number added by @leomrtns
+  x ^= ROTR64(x, 25) ^ ROTR64(x, 47); 
+  x *= 0x9E6C63D0676A9A99UL; x ^= x >> 23 ^ x >> 51; 
+  x *= 0x9E6D62D06F6A9A9BUL; x ^= x >> 23 ^ x >> 51;
+  return x;
+}
+
+inline uint64_t
+crpx_hashint_pelican64 (uint64_t z)
+{ // https://github.com/tommyettinger/sarong/blob/master/src/main/java/sarong/PelicanRNG.java
+  z ^= 0x9b25c746f0306ff9ULL; // 64 bits prime number added by @leomrtns
+  z = (z ^ (z << 41 | z >> 23) ^ (z << 17 | z >> 47) ^ 0xD1B54A32D192ED03ULL) * 0xAEF17502108EF2D9ULL;
+  z = (z ^ z >> 43 ^ z >> 31 ^ z >> 23) * 0xDB4F0B9175AE2165ULL;
+  return z ^ z >> 28;
+}
+
+inline uint64_t 
 crpx_hashint_moremur64 (uint64_t x) 
 { // https://mostlymangling.blogspot.com/2019/12/stronger-better-morer-moremur-better.html
   x ^= x >> 27; x *= 0x3C79AC492BA7B653UL;
@@ -180,27 +208,13 @@ crpx_hashint_moremur64 (uint64_t x)
   return x;
 }
 
-inline uint64_t 
-crpx_hashint_staffordmix64 (uint64_t z) 
-{ // biomcmc and https://github.com/vigna/MRG32k3a/blob/master/MRG32k3a.c (aka Mix13 by David Stafford see blogpost below)
-	z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9; z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
-  z = (z >> 1) ^ (z >> 32); // only difference with hashint_splitmix64 is here 
-  return ROTL64(z, 17); // added by @leomrtns just in case it's identical to splitmix64, but makes it slower
-}
-
 inline uint64_t
 crpx_hashint_entropy (uint64_t x) 
 { // https://zimbry.blogspot.com/2011/09/better-bit-mixing-improving-on.html (by David Stafford)
+  x += 0x9a730fb1ULL; // 32bit primer number added by @leomrtns
   x ^= x >> 31; x *= 0x7fb5d329728ea185;
   x ^= x >> 27; x *= 0x81dadef4bc2dd44d; 
   return x ^ (x >> 33);
-}
-
-inline uint64_t
-crpx_hashint_zixmix64 (uint64_t h)
-{ // biomcmc and https://github.com/drobilla/zix/blob/main/src/digest.c
-  h ^= h >> 23U; h *= 0x2127599BF4325C37ULL; h ^= h >> 47U;
-  return h;
 }
 
 inline uint32_t
@@ -222,6 +236,7 @@ crpx_hashint_jenkins_v2 (uint32_t a) // slower than most
 inline uint32_t
 crpx_hashint_avalanche (uint32_t a) // a bit slower than others
 { // https://burtleburtle.net/bob/hash/integer.html and biomcmc
+  a ^= 0xb41bf865U; // 32bit primer number added by @leomrtns
   a -= (a<<6); a ^= (a>>17); a -= (a<<9); a ^= (a<<4); a -= (a<<3); a ^= (a<<10); a ^= (a>>15);
   return a;
 }
@@ -259,6 +274,7 @@ crpx_hashint_wellons3ple_inverse (uint32_t x) // inverse of crpx_hashint_triple3
 inline uint32_t
 crpx_hashint_wellons (uint32_t x)
 { // https://github.com/skeeto/hash-prospector 
+  x += 0x34f1U; // 16 bit prime number added by @leomrtns
   x ^= x >> 16; x *= 0x7feb352dU;
   x ^= x >> 15; x *= 0x846ca68bU;
   x ^= x >> 16;
@@ -271,13 +287,13 @@ crpx_hashint_wellons_inverse (uint32_t x)
   x ^= x >> 16; x *= 0x43021123;
   x ^= x >> 15 ^ x >> 30; x *= 0x1d69e2a5;
   x ^= x >> 16;
-  return x;
+  return x - 0x34f1U;
 }
 
 inline uint32_t
 crpx_hashint_degski (uint32_t x)
 { // https://github.com/skeeto/hash-prospector  and https://gist.github.com/degski/6e2069d6035ae04d5d6f64981c995ec2
-  x++; // avoid hash(0) = 0
+  // x ^= 0xbfcdd6dU; // 32 bit prime number added by @leomrtns to avoid hash(0) = 0 -- does not increase dieharder/pracrand performance
   x ^= x >> 16; x *= 0X45D9F3B;
   x ^= x >> 16; x *= 0X45D9F3B; x ^= x >> 16;
   return x;
@@ -288,7 +304,31 @@ crpx_hashint_degski_inverse (uint32_t x)
 { // https://github.com/skeeto/hash-prospector and https://gist.github.com/degski/6e2069d6035ae04d5d6f64981c995ec2
   x ^= x >> 16; x *= 0X119DE1F3;
   x ^= x >> 16; x *= 0X119DE1F3; x ^= x >> 16;
-  return x - 1;
+  //  return x ^ 0xbfcdd6dU; 
+  return x;
+}
+
+
+inline uint16_t 
+crpx_hashint_2xor_16bits (uint16_t x) // 2-round xorshift-multiply; bias = 0.00859
+{ // https://github.com/skeeto/hash-prospector
+  x ^= x >> 8; x *= 0x88b5U; x ^= x >> 7; x *= 0xdb2dU; x ^= x >> 9;
+  return x;
+}
+
+inline uint16_t 
+crpx_hashint_3xor_16bits (uint16_t x) // 3-round xorshift-multiply; bias = 0.00459
+{ // https://github.com/skeeto/hash-prospector
+  x ^= x >>  7; x *= 0x2993U; x ^= x >>  5; x *= 0xe877U; 
+  x ^= x >>  9; x *= 0x0235U; x ^= x >> 10;
+  return x;
+}
+
+inline uint16_t 
+crpx_hashint_noxor_16bits (uint16_t x) // No multiplication; bias = 0.02384
+{ // https://github.com/skeeto/hash-prospector
+  x += x << 7; x ^= x >> 8; x += x << 3; x ^= x >> 2; x += x << 4; x ^= x >> 8;
+  return x;
 }
 
 /* from 8 bit blocks to 64 bit value */
@@ -481,17 +521,14 @@ crpx_hash_fletcher32 (const void *vkey, size_t len) // assumes vkey has pair num
 
 uint64_t
 crpx_fasthash64_seed64 (const void *vkey, size_t len, void *vseed)
-{ // https://github.com/opencoff/portable-lib/blob/master/src/fasthash.c
-  const uint64_t    m = 0x880355f21e6d1965ULL;
+{ // https://github.com/opencoff/portable-lib/blob/master/src/fasthash.c and https://github.com/drobilla/zix/blob/main/src/digest.c
+  const uint64_t m = 0x880355f21e6d1965ULL;
   const uint64_t *pos = (const uint64_t *) vkey, *end = pos + (len << 3);
   uint64_t h = (*(uint64_t*)(vseed)) ^ (len * m);
   uint64_t v;
 
-  for (;pos < end; pos++) { // 8 bytes at a time
-    v  = *pos;
-    h ^= crpx_hashint_fastmix64 (v);
-    h *= m;
-  }
+  for (;pos < end; pos++) h = (h ^ crpx_hashint_fastmix64 (*pos)) * m; // main loop
+
   const uint8_t *pos2 = (const uint8_t *) pos;
   v = 0;
   switch (len & 7) {
@@ -825,7 +862,7 @@ crpx_siphash64_seed128 (const void *in, const size_t inlen, const void *seed)
   uint64_t v0 = 0x736f6d6570736575ULL, v1 = 0x646f72616e646f6dULL, v2 = 0x6c7967656e657261ULL, v3 = 0x7465646279746573ULL;
   uint64_t k0 = U8TO64_LE(kk);
   uint64_t k1 = U8TO64_LE(kk + 8);
-  uint64_t m, result64 = 0;
+  uint64_t m;
   uint8_t i, c_rounds = 2, d_rounds = 4; // main constants for algo, this means siphash-2-4
   const uint8_t *end = ni + inlen - (inlen % sizeof(uint64_t));
   const int left = inlen & 7;

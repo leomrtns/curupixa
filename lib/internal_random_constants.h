@@ -12,7 +12,7 @@
  * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
  */
 
-/*! \file random_constants.h 
+/*! \file internal_random_constants.h 
  *  \brief vectors of prime numbers and random numbers used by hashes and PRNGs. Examples include the rolling
  *  hash (DNA bases mapped to a random value) and the spice (initial states used to generate several streams)
  *  These functions and macros are _not_ exposed to the user. Every calling function must include this file. */

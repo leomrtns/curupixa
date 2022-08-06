@@ -20,7 +20,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include "random_constants.h"
 #include "maths_and_bits.h"
 
 size_t crpx_generate_bytesized_random_seeds (crpx_global_t cglob, void *seed, size_t seed_size);
@@ -31,28 +30,33 @@ extern uint64_t crpx_mumhash64_mixer (uint64_t a, uint64_t b);
 extern uint64_t crpx_wyhash64_mixer (uint64_t a, uint64_t b);
 extern uint32_t crpx_hash_64_to_32 (uint64_t key);
 
-extern uint64_t crpx_hashint_splitmix64 (uint64_t x); // same as rng_splitmix with state=0; similar to hashint_staffordmix 
+extern uint64_t crpx_hashint_staffordmix64 (uint64_t z); // same as hashint_splitmix64 but adds prime number as initial state
+extern uint64_t crpx_hashint_splitmix64 (uint64_t x); // same as rng_splitmix with state=0 and hashint_staffordmix without state
 extern uint64_t crpx_hashint_spitmix64_inverse (uint64_t x);
 extern uint64_t crpx_hashint_degski64 (uint64_t x);
 extern uint64_t crpx_hashint_degski64_inverse (uint64_t x);
 extern uint64_t crpx_hashint_fastmix64 (uint64_t x); /*!< \brief compression, _not_ for RNG */
-extern uint64_t crpx_hashint_murmurmix64 (uint64_t k); /*!< \brief good dieharder propeties */
-extern uint64_t crpx_hashint_rrmixer64 (uint64_t x); /*!< \brief good dieharder propeties */
-extern uint64_t crpx_hashint_moremur64 (uint64_t x); /*!< \brief good dieharder propeties */
-extern uint64_t crpx_hashint_staffordmix64 (uint64_t z);
-extern uint64_t crpx_hashint_zixmix64 (uint64_t h);
+extern uint64_t crpx_hashint_murmurmix64 (uint64_t k); 
+extern uint64_t crpx_hashint_rrmixer64 (uint64_t x); /*!< \brief good dieharder/practrand propeties */
+extern uint64_t crpx_hashint_nasam64 (uint64_t x);   /*!< \brief good dieharder/practrand propeties */
+extern uint64_t crpx_hashint_pelican64 (uint64_t z); /*!< \brief good dieharder/practrand propeties */
+extern uint64_t crpx_hashint_moremur64 (uint64_t x); /*!< \brief good dieharder/practrand propeties */
+extern uint64_t crpx_hashint_entropy (uint64_t x);
 
 extern uint32_t crpx_hashint_jenkins (uint32_t a);
 extern uint32_t crpx_hashint_jenkins_v2 (uint32_t a);
 extern uint32_t crpx_hashint_avalanche (uint32_t a);
-
 extern uint32_t crpx_hashint_murmurmix (uint32_t x);
-extern uint32_t crpx_hashint_wellons3ple (uint32_t x);
+extern uint32_t crpx_hashint_wellons3ple (uint32_t x); /*!< \brief OK dieharder/practrand propeties (not great) */
 extern uint32_t crpx_hashint_wellons3ple_inverse (uint32_t x); // inverse of crpx_hashint_wellons3ple()
-extern uint32_t crpx_hashint_wellons (uint32_t x);
+extern uint32_t crpx_hashint_wellons (uint32_t x);     /*!< \brief OK dieharder/practrand propeties (not great) */
 extern uint32_t crpx_hashint_wellons_inverse (uint32_t x);
 extern uint32_t crpx_hashint_degski (uint32_t x);
 extern uint32_t crpx_hashint_degski_inverse (uint32_t x);
+
+extern uint16_t crpx_hashint_2xor_16bits (uint16_t x); // 2-round xorshift-multiply; bias = 0.00859
+extern uint16_t crpx_hashint_3xor_16bits (uint16_t x); // 3-round xorshift-multiply; bias = 0.00459
+extern uint16_t crpx_hashint_noxor_16bits (uint16_t x); // No multiplication; bias = 0.02384
 
 uint64_t crpx_hash_pearson_seed2048 (const void *vkey, size_t len, const void *vseed); // seed must have >= 256 bytes
 uint32_t crpx_hash_pseudocrc32_seed8192 (const void *vkey, size_t len, const void *vseed, uint32_t crc); // seed >= 1024 bytes (256 x 32bits)

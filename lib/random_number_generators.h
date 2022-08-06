@@ -20,7 +20,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include "random_constants.h"
+#include "hash_functions.h" 
 
 /* random numbers (depend on a state which is updated as new numbers are generated) */
 uint64_t crpx_rng_wyhash_state64 (void *vstate);

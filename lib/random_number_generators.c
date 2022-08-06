@@ -14,7 +14,7 @@
  *  \brief 64 bits random number generators from integers. */
 
 #include "random_number_generators.h"
-#include "random_constants.h" // not available to the user, only locally
+#include "internal_random_constants.h" // not available to the user, only locally
 
 uint64_t 
 crpx_rng_wyhash_state64 (void *vstate)

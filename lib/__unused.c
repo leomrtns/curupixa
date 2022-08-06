@@ -44,3 +44,10 @@ crpx_std61_seed64 (void *vstate)
   return *v;
 }
 
+inline uint64_t
+crpx_hashint_zixmix64 (uint64_t h) // identical to fastmix64; in zix/digest it's used in word loop (as is fasthash() in curupixa)
+{ // biomcmc and https://github.com/drobilla/zix/blob/main/src/digest.c
+  h ^= h >> 23U; h *= 0x2127599BF4325C37ULL; h ^= h >> 47U;
+  return h;
+}
+

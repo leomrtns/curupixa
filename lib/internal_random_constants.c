@@ -12,8 +12,8 @@
  * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
  */
 
-/*! \file random_constants.h 
- *  \brief vectors of prime numbers and random numbers used by hashes and PRNGs. Examples include the rolling
+/*! \file internal_random_constants.h 
+ *  \brief vectors of prime numbers and random numbers used by hashes and PRNGs but not exposed to the library. Examples include the rolling
  *  hash (DNA bases mapped to a random value) and the spice (initial states used to generate several streams)
  *
  * for i in `seq 1 128`; do printf '0x%016xULL\n' `primesieve 1 ${RANDOM}${RANDOM}${RANDOM}${RANDOM} -n -p| gawk '{print $3}'`; done > primers.txt &
@@ -23,7 +23,7 @@
  * shuf primers.txt | perl -pe "s/\s//g;"  | fold -w 16 | head -128 | xargs printf '0x%sULL\n' | pr -ts", " --columns 4 | gawk '{print $0","}'
  */
 
-#include "random_constants.h"
+#include "internal_random_constants.h"
 
 uint16_t crpx_random_prime32_length = 256;
 uint32_t crpx_random_prime32[] = {
