@@ -29,22 +29,72 @@ const char *prt_col[][8]={ // 0-black   1-red   2-grn   3-yel   4-blu   5-mag   
 };
 
 
-/* error-safe memory allocation functions */
-void *
-crpx_malloc (size_t size)
+void
+crpx_free_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, void *ptr)
 {
+  if (ptr) { 
+    free (ptr); ptr = NULL; 
+  } else {
+    crpx_logger_message (CRPX_LOGLEVEL_DEBUG, c_file, c_line, cglobal, "Trying to free a NULL pointer.");
+  }
+  return;
+}
+
+void *
+crpx_malloc_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, size_t size)
+{
+  if (!size) return NULL;
   void *value = malloc (size);
-  if ((value == NULL) && (size > 0)) printf ("biomcmc_malloc error allocating %lu bites", size);
+  if (value == NULL) crpx_logger_message (CRPX_LOGLEVEL_ERROR, c_file, c_line, cglobal, 
+                                          "CRPX failed memory allocation of %lu bytes: %s. ", size, strerror (errno));
   return value;
 }
 
 void *
-crpx_realloc (void *ptr, size_t size)
+crpx_calloc_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, size_t nmemb, size_t size)
 {
-  void *value = (void *) realloc ((void *)ptr, size);
-  if ((value == NULL) && (size > 0)) printf ( "biomcmc_realloc error on pointer 0x%p of %lu bites\n", ptr, size);
+  if (!nmemb || !size) return NULL;
+  void *value = calloc (nmemb, size);
+  if (value == NULL) crpx_logger_message (CRPX_LOGLEVEL_ERROR, c_file, c_line, cglobal, 
+                                          "CRPX failed memory allocation of %lu members of %lu bytes: %s. ", nmemb, size, strerror (errno));
   return value;
 }
+// OBS: realloc() and reallocarray() do not touch ptr in case of error. 
+
+void *
+crpx_realloc_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, void *ptr, size_t size)
+{
+  if (!size) { 
+    crpx_logger_message (CRPX_LOGLEVEL_WARN, c_file, c_line, cglobal, "Memory realloc of zero bytes (equivalent to free()) requested at line %d file %s.", c_line, c_file);
+    if (ptr) free (ptr); // default behaviour of calloc(ptr, 0) is to free the pointer
+    return NULL;
+  }
+  void *value = (void *) realloc ((void *)ptr, size); // will free ptr if pointer area has moved and return pointer to new area
+  if (value == NULL) { // realloc() behaviour is to return NULL but keep ptr intact (in case of overflow user may solve by creating several vectors for instance)
+    crpx_logger_message (CRPX_LOGLEVEL_ERROR, c_file, c_line, cglobal, 
+                         "CRPX failed memory reallocation of %lu bytes: %s. ", size, strerror (errno));
+    // if (ptr) free (ptr); // alternative solution for realloc() and reallocarray(), but prevents user from realising that it failed
+  }
+  return value;
+}
+
+void *
+crpx_reallocarray_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, void *ptr, size_t nmemb, size_t size)
+{
+  if (!size || !nmemb) {
+      crpx_logger_message (CRPX_LOGLEVEL_WARN, c_file, c_line, cglobal, // c_file and c_line are _not_ printed by logger in WARNING level
+                           "Memory reallocarray of %lu members of %lu bytes (equivalent to free()) requested at line %d file %s.", nmemb, size, c_line, c_file);
+    if (ptr) free (ptr); // default behaviour of calloc(ptr, 0) is to free the pointer
+    return NULL;
+  }
+  void *value = (void *) reallocarray ((void *)ptr, nmemb, size); // will free ptr if pointer area has moved and return pointer to new area
+  if (value == NULL) {
+    crpx_logger_message (CRPX_LOGLEVEL_ERROR, c_file, c_line, cglobal, 
+                         "CRPX failed memory reallocation_array of %lu members of %lu bytes: %s. ", nmemb, size, strerror (errno));
+  }
+  return value;
+}
+
 
 void
 crpx_fprintf_colour (FILE *stream, int regular, int colour, const char *message, const char *normaltext, ...)
@@ -62,7 +112,7 @@ const char *msg_level_colours[] = {"\e[0;101m", "\e[1;31m", "\e[1;33m", "\e[1;34
 const char *msg_level_names[] = {"  FATAL", "  ERROR", "WARNING", "   INFO", "VERBOSE", "  DEBUG"};
 
 void
-crpx_logger_message (uint8_t level, const char *c_file, int c_line, crpx_global_t cglobal, const char *fmt, ...)
+crpx_logger_message (uint8_t level, const char *c_file, const int c_line, crpx_global_t cglobal, const char *fmt, ...)
 {
   if ((level > cglobal->loglevel_stderr) && (level > cglobal->loglevel_file)) return;
 
@@ -85,6 +135,9 @@ crpx_logger_message (uint8_t level, const char *c_file, int c_line, crpx_global_
     else fprintf (cglobal->logfile, "\n");
     fflush(cglobal->logfile);
   }
+  if (level == CRPX_LOGLEVEL_FATAL) cglobal->error = 2; // normal = 0; error = 1; fatal = 2
+  else if (level == CRPX_LOGLEVEL_ERROR) cglobal->error = (cglobal->error) ? cglobal->error: 1;
+
   return;
 }
 

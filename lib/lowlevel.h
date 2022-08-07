@@ -44,6 +44,7 @@ extern "C" {
 #include <libgen.h>     /* standard XPG basename() - the one provided by string.h is a GNU extension, fails on macOSX */
 #include <stdbool.h>    /* macros bool, true, and false */
 #include <limits.h>     /* UINT_MAX etc */
+#include <errno.h>      /* errno, perror(), strerror() */
 #include <assert.h>    
 
 #ifdef _OPENMP
@@ -79,6 +80,12 @@ extern "C" {
 #define crpx_logger_verbose(...) crpx_logger_message(CRPX_LOGLEVEL_VERBOSE, __FILE__, __LINE__, __VA_ARGS__)
 #define crpx_logger_debug(...)   crpx_logger_message(CRPX_LOGLEVEL_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
 
+#define crpx_free(...) crpx_free_with_errmsg(__FILE__, __LINE__, __VA_ARGS__)
+#define crpx_malloc(...) crpx_malloc_with_errmsg(__FILE__, __LINE__, __VA_ARGS__)
+#define crpx_calloc(...) crpx_calloc_with_errmsg(__FILE__, __LINE__, __VA_ARGS__)
+#define crpx_realloc(...) crpx_realloc_with_errmsg(__FILE__, __LINE__, __VA_ARGS__)
+#define crpx_reallocarray(...) crpx_reallocarray_with_errmsg(__FILE__, __LINE__, __VA_ARGS__)
+
 typedef struct {
   uint32_t id:16, loglevel_stderr:4, loglevel_file:4, error:2, sse:1, avx:1;
   uint64_t elapsed_time[2];
@@ -86,27 +93,25 @@ typedef struct {
 } crpx_global_struct, *crpx_global_t;
 
 
-/*! \brief Memory-safe malloc() function.
- *
- *  Allocates size bytes and returns a pointer to the allocated memory. An error message is thrown in case of failure.
- *  \param[in] size allocated size, in bytes
- *  \return pointer to newly allocated memory */
-void *crpx_malloc (size_t size);
+/*! \brief Memory-safe malloc() function, with default error message in case of failure. Variadic args start at cglobal */
+void *crpx_malloc_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, size_t size);
+/*! \brief Memory-safe calloc() function, with default error message in case of failure. Variadic args start at cglobal */
+void * crpx_calloc_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, size_t nmemb, size_t size);
 
-/*! \brief Memory-safe realloc() function.
- *
- * Changes the size of the memory block pointed to by ptr to size bytes. An error message is thrown in case of failure.
- * \param[in] size allocated size, in bytes
- * \param[in,out] ptr pointer to previously allocated memory
- * \return pointer to newly allocated memory */
-void *crpx_realloc (void *ptr, size_t size);
+/*! \brief Memory-safe realloc() function, with default error message in case of failure. Variadic args start at cglobal.
+ * In case of error, it does _not_ touch/free *ptr, but returns NULL; thus DO NOT "ptr = realloc (ptr)" but use a pivot/tmp pointer instead */
+void *crpx_realloc_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, void *ptr, size_t size);
+/*! \brief Memory-safe reallocarray() function, with default error message in case of failure. Variadic args start at cglobal. 
+ * In case of error, it does _not_ touch/free *ptr, but returns NULL; thus DO NOT ptr = reallocarray (ptr)  but use a pivot/tmp instead */
+void *crpx_reallocarray_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, void *ptr, size_t nmemb, size_t size);
 
 void curupixa_fprintf_colour (FILE *stream, int regular, int colour, const char *message, const char *normaltext, ...);
 
 /*! \brief Prints message to stderr,  and also to log file depending on global settings.
  * save to file not really thread safe, although we can have several FILE*s pointed to same file in append mode
- * prints to sdterr in colours and to log file in plain text, without compression. Called through macros like crpx_logger_error() etc. */
-void crpx_logger_message (uint8_t level, const char *c_file, int c_line, crpx_global_t cglobal, const char *fmt, ...);
+ * prints to sdterr in colours and to log file in plain text, without compression. 
+ * Called through macros as in crpx_logger_error(cglobal, "message") etc. variadic args start at cglobal */
+void crpx_logger_message (uint8_t level, const char *c_file, const int c_line, crpx_global_t cglobal, const char *fmt, ...);
 
 #ifdef __cplusplus
 }
