@@ -23,7 +23,7 @@ START_TEST(small_random_seeds)
   size_t i, j;
   uint64_t seed[16];
   uint8_t small[128];
-  crpx_global_t cglob = crpx_global_init (0, 0, "debug");
+  crpx_global_t cglob = crpx_global_init (0, "debug");
 
   j = crpx_generate_bytesized_random_seeds (cglob, seed, 128);
   memcpy (small, seed, 128);
@@ -41,7 +41,7 @@ START_TEST(big_random_seeds)
   uint64_t seed[10001];
   uint8_t small[80001];
   int count = 0;
-  crpx_global_t cglob = crpx_global_init (0, 0, "debug");
+  crpx_global_t cglob = crpx_global_init (0, "debug");
 
   j = crpx_generate_bytesized_random_seeds (cglob, seed, 80001);
   memcpy (small, seed, 80001);

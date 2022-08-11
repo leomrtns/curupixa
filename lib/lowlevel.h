@@ -49,7 +49,7 @@ extern "C" {
 
 #ifdef _OPENMP
 #include <omp.h>         /* OpenMP parallel threading library when available */
-  #define CRPX_THREAD_NUM omp_get_thread_num(void) /* may not be most generic approach, but useful in  get_rng (cglobal, CRPX_TRHEAD_NUM) */
+  #define CRPX_THREAD_NUM omp_get_thread_num() /* may not be most generic approach, but useful in  get_rng (cglobal, CRPX_TRHEAD_NUM) */
 #else
   #define CRPX_THREAD_NUM 0
 #endif
@@ -94,7 +94,7 @@ extern "C" {
  * Should work with nested parallelism; All functions assume single crpx_global_t is created, since we rely on omp
  * single */ 
 typedef struct {
-  uint64_t id:16, loglevel_stderr:4, loglevel_file:4, error:2, sse:1, avx:1, n_threads:12;
+  uint32_t nthreads:16, loglevel_stderr:4, loglevel_file:4, error:2, sse:1, avx:1;
   uint64_t elapsed_time[2];
   FILE *logfile;
 } crpx_global_struct, *crpx_global_t;
@@ -121,7 +121,8 @@ void curupixa_fprintf_colour (FILE *stream, int regular, int colour, const char 
  * Called through macros as in crpx_logger_error(cglobal, "message") etc. variadic args start at cglobal */
 void crpx_logger_message (uint8_t level, const char *c_file, const int c_line, crpx_global_t cglobal, const char *fmt, ...);
 void crpx_logger_set_level (crpx_global_t cglobal, uint8_t level);
-void crpx_logger_set_file (crpx_global_t cglobal, const char *filename, uint8_t level);
+void crpx_logger_set_file (crpx_global_t cglobal, const char *filename, const char *level_string);
+uint8_t crpx_get_logger_level_number (const char *level_string, char *level_stdout);
 
 #ifdef __cplusplus
 }

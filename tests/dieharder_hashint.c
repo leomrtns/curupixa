@@ -24,7 +24,7 @@ int main(int argc, char **argv)
   uint32_t (*h2)(uint32_t);
 
   if (argc == 1) return TEST_SKIPPED;
-  crpx_global_t cglob = crpx_global_init (0,0,"debug");
+  crpx_global_t cglob = crpx_global_init (0,"debug");
 
   sscanf (argv[1], " %hhd ", &algo);
 

@@ -24,7 +24,7 @@ int main(int argc, char **argv)
   char algoname[16] = {'\0'};
 
   if (argc == 1) return TEST_SKIPPED;
-  crpx_global_t cglob = crpx_global_init (0,0,"debug");
+  crpx_global_t cglob = crpx_global_init (0,"debug");
   crpx_generate_bytesized_random_seeds (cglob, seed, 128);
   sscanf (argv[1], " %hhd ", &algo);
 
