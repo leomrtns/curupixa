@@ -49,7 +49,11 @@ extern "C" {
 
 #ifdef _OPENMP
 #include <omp.h>         /* OpenMP parallel threading library when available */
+  #define CRPX_THREAD_NUM omp_get_thread_num(void) /* may not be most generic approach, but useful in  get_rng (cglobal, CRPX_TRHEAD_NUM) */
+#else
+  #define CRPX_THREAD_NUM 0
 #endif
+
 #if defined HAVE_SSE || defined HAVE_AVX /* these are defined in config.h, not __SSE2__ from gcc */
 //#if defined __SSE4_2__ || defined __AVX2__    /* we compile with -msse4.2 or -mno-sse (i.e. whole range is included or excluded) */
 #include <immintrin.h>
@@ -86,8 +90,11 @@ extern "C" {
 #define crpx_realloc(...) crpx_realloc_with_errmsg(__FILE__, __LINE__, __VA_ARGS__)
 #define crpx_reallocarray(...) crpx_reallocarray_with_errmsg(__FILE__, __LINE__, __VA_ARGS__)
 
+/*! \brief All global variables should be here; by creating several PRNG streams it's thread-safe even if user unaware of openMP; 
+ * Should work with nested parallelism; All functions assume single crpx_global_t is created, since we rely on omp
+ * single */ 
 typedef struct {
-  uint32_t id:16, loglevel_stderr:4, loglevel_file:4, error:2, sse:1, avx:1;
+  uint64_t id:16, loglevel_stderr:4, loglevel_file:4, error:2, sse:1, avx:1, n_threads:12;
   uint64_t elapsed_time[2];
   FILE *logfile;
 } crpx_global_struct, *crpx_global_t;
@@ -108,12 +115,15 @@ void *crpx_reallocarray_with_errmsg (const char *c_file, const int c_line, crpx_
 void curupixa_fprintf_colour (FILE *stream, int regular, int colour, const char *message, const char *normaltext, ...);
 
 /*! \brief Prints message to stderr,  and also to log file depending on global settings.
- * save to file not really thread safe, although we can have several FILE*s pointed to same file in append mode
- * prints to sdterr in colours and to log file in plain text, without compression. 
+ * Thread safe when all sharing same global; maybe safe even with several globals sharing file name, since we can have several FILE*s 
+ * pointed to same file in append mode.
+ * Prints to sdterr in colours and to log file in plain text, without compression (since it's lowlevel). 
  * Called through macros as in crpx_logger_error(cglobal, "message") etc. variadic args start at cglobal */
 void crpx_logger_message (uint8_t level, const char *c_file, const int c_line, crpx_global_t cglobal, const char *fmt, ...);
+void crpx_logger_set_level (crpx_global_t cglobal, uint8_t level);
+void crpx_logger_set_file (crpx_global_t cglobal, const char *filename, uint8_t level);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
-#endif /* if header not defined */
+#endif // __cplusplus 
+#endif // if header not defined 

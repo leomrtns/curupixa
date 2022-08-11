@@ -119,25 +119,27 @@ crpx_logger_message (uint8_t level, const char *c_file, const int c_line, crpx_g
   va_list ap;
   time_t t = time (NULL);
   char msg_prefix[32] = {'\0'};
-  strftime (msg_prefix, 32, "%T", localtime (&t)); // alternative is "%F %T" where %F is yyyy-mm-dd and %T is hh:mm:ss 
-  /* crpx29 refers to the 30th global variable set (in case it's multithreaded for instance); "%-3u" means to left-adjust, but notice that id can be larger than 3 digits */
-  if (level <= cglobal->loglevel_stderr) { // colour output to stderr
-    fprintf (stderr, "id%-3u %s %s%s%s ", cglobal->id, msg_prefix, msg_level_colours[level], msg_level_names[level], prt_col_reset);
-    va_start (ap, fmt); vfprintf (stderr, fmt, ap); va_end (ap); 
-    if ((level < CRPX_LOGLEVEL_WARN) || (level > CRPX_LOGLEVEL_VERBOSE)) fprintf (stderr, "  [file %s line %d]\n", c_file, c_line);
-    else fprintf (stderr, "\n");
-    fflush(stderr);
-  }
-  if ((level <= cglobal->loglevel_file) && (cglobal->logfile)) { // no colours to log file
-    fprintf (cglobal->logfile, "[id%-3u %s %s] ", cglobal->id, msg_prefix, msg_level_names[level]);
-    va_start (ap, fmt); vfprintf (cglobal->logfile, fmt, ap); va_end (ap);
-    if ((level < CRPX_LOGLEVEL_WARN) || (level > CRPX_LOGLEVEL_VERBOSE)) fprintf (cglobal->logfile, "  [file %s line %d]\n", c_file, c_line);
-    else fprintf (cglobal->logfile, "\n");
-    fflush(cglobal->logfile);
-  }
-  if (level == CRPX_LOGLEVEL_FATAL) cglobal->error = 2; // normal = 0; error = 1; fatal = 2
-  else if (level == CRPX_LOGLEVEL_ERROR) cglobal->error = (cglobal->error) ? cglobal->error: 1;
-
+  #pragma omp critical (crpx_logger_message)
+   {
+    strftime (msg_prefix, 32, "%T", localtime (&t)); // alternative is "%F %T" where %F is yyyy-mm-dd and %T is hh:mm:ss 
+    /* crpx29 refers to the 30th global variable set (in case it's multithreaded for instance); "%-3u" means to left-adjust, but notice that id can be larger than 3 digits */
+    if (level <= cglobal->loglevel_stderr) { // colour output to stderr
+      fprintf (stderr, "id%-3u %s %s%s%s ", cglobal->id, msg_prefix, msg_level_colours[level], msg_level_names[level], prt_col_reset);
+      va_start (ap, fmt); vfprintf (stderr, fmt, ap); va_end (ap); 
+      if ((level < CRPX_LOGLEVEL_WARN) || (level > CRPX_LOGLEVEL_VERBOSE)) fprintf (stderr, "  [file %s line %d]\n", c_file, c_line);
+      else fprintf (stderr, "\n");
+      fflush(stderr);
+    }
+    if ((level <= cglobal->loglevel_file) && (cglobal->logfile)) { // no colours to log file
+      fprintf (cglobal->logfile, "[id%-3u %s %s] ", cglobal->id, msg_prefix, msg_level_names[level]);
+      va_start (ap, fmt); vfprintf (cglobal->logfile, fmt, ap); va_end (ap);
+      if ((level < CRPX_LOGLEVEL_WARN) || (level > CRPX_LOGLEVEL_VERBOSE)) fprintf (cglobal->logfile, "  [file %s line %d]\n", c_file, c_line);
+      else fprintf (cglobal->logfile, "\n");
+      fflush(cglobal->logfile);
+    }
+    if (level == CRPX_LOGLEVEL_FATAL) cglobal->error = 2; // normal = 0; error = 1; fatal = 2
+    else if (level == CRPX_LOGLEVEL_ERROR) cglobal->error = (cglobal->error) ? cglobal->error: 1;
+   } // pragma omp critical 
   return;
 }
 
@@ -145,7 +147,8 @@ void
 crpx_logger_set_level (crpx_global_t cglobal, uint8_t level)
 {
   if (level > CRPX_LOGLEVEL_DEBUG) level = CRPX_LOGLEVEL_DEBUG;
-  cglobal->loglevel_stderr = level;
+  #pragma omp atomic 
+  cglobal->loglevel_stderr = level; // FIXME gcc complains since atomic can only be reduce-like (a+=b etc)
   crpx_logger_info (cglobal, "Screen log level set to %s", msg_level_names[level]);
   return;
 }
@@ -154,19 +157,22 @@ void
 crpx_logger_set_file (crpx_global_t cglobal, const char *filename, uint8_t level)
 {
   if (level > CRPX_LOGLEVEL_DEBUG) level = CRPX_LOGLEVEL_DEBUG;
-  if (cglobal->logfile) {
-    crpx_logger_warning (cglobal, "crpx_logger_set_file: log file already open, closing it and re-opening as %s", filename);
-    fclose (cglobal->logfile);
-    cglobal->logfile = NULL;
-  }
-  cglobal->logfile = fopen (filename, "a");
-  if (cglobal->logfile == NULL) {
-    crpx_logger_error (cglobal, "crpx_logger_set_file: could not open log file %s", filename);
-    return;
-  }
-  if (cglobal->id) crpx_logger_verbose (cglobal, "crpx_logger_set_file: possible multithreaded application, several threads may write to same log file.");
-  cglobal->loglevel_file = level;
-  crpx_logger_info (cglobal, "crpx_logger_set_file: file %s opened and log will be appended to it at level %s", filename, msg_level_names[level]);
+  #pragma omp single 
+   {
+    if (cglobal->logfile) {
+      crpx_logger_warning (cglobal, "crpx_logger_set_file: log file already open, closing it and re-opening as %s", filename);
+      fclose (cglobal->logfile);
+      cglobal->logfile = NULL;
+    }
+    cglobal->logfile = fopen (filename, "a");
+    if (cglobal->logfile) {
+      if (cglobal->id) crpx_logger_verbose (cglobal, "crpx_logger_set_file: possible multithreaded application, several threads may write to same log file.");
+      cglobal->loglevel_file = level;
+      crpx_logger_info (cglobal, "crpx_logger_set_file: file %s opened and log will be appended to it at level %s", filename, msg_level_names[level]);
+    } else {
+      crpx_logger_error (cglobal, "crpx_logger_set_file: could not open log file %s", filename);
+    }
+   } // pragma omp single 
   return;
 }
 
