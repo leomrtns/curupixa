@@ -18,6 +18,7 @@
 
 #ifndef _curupixa_toplevel_h_ 
 #define _curupixa_toplevel_h_
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -29,6 +30,7 @@ extern "C" {
 
 crpx_global_t crpx_global_init (__attribute__((unused)) uint64_t seed, const char *level_string);
 void crpx_global_finalise (crpx_global_t cglob);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
