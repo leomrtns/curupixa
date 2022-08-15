@@ -31,12 +31,12 @@ crpx_generate_bytesized_random_seeds (crpx_global_t cglob, void *seed, size_t se
     success = __builtin_ia32_rdrand32_step (seed_32bits + j); // 64 bits = 8 bytes thus "j+=8" "j<size-1"
     j += (success > 0); // avoid mispredicted branches 
   } // it may ends with fewer than seed_size since not always succeed (and seed%2 may be > 0)
-  j <<= 2; /* j/=4 */
+  j <<= 2; /* j*=4 */
   crpx_logger_verbose (cglob, "Random seeds produced by CPU crystal entropy (RDRAND): %lu", j);
 #endif
   first = j;
   seed_size -= j;
-  seed += j;
+  seed = ((size_t*)seed) + j;
   for (i=0; (seed_size > 0) && (i < 2); i += (success<0)) { // i increments at every failure (which is a negative success)
     j = seed_size > 256 ? 256 : seed_size; /* maximum buffer size is 256 bytes */
 #if (__GLIBC__ > 2 || __GLIBC_MINOR__ > 24)
@@ -44,7 +44,7 @@ crpx_generate_bytesized_random_seeds (crpx_global_t cglob, void *seed, size_t se
 #else
     success = syscall (SYS_getrandom, seed, j, 0);
 #endif
-    seed += j * (~success & 1);      // avoid mispredicted branches (not performance-critical here though)
+    seed = (size_t*)(seed) + (j * (~success & 1));      // avoid mispredicted branches (not performance-critical here though)
     seed_size -= j * (~success & 1); // (success==0) is a success 
   }
   if (last-first) crpx_logger_verbose (cglob, "Random seeds produced by linux random: %lu", last - first);
@@ -773,7 +773,7 @@ crpx_murmurhash3_32bits (const void *data, const size_t nbytes, const uint32_t s
   const uint32_t c2 = 0x1b873593;
   const int nblocks = nbytes / 4;
   const uint32_t *blocks = (const uint32_t *) (data);
-  const uint8_t *tail = (const uint8_t *) (data + (nblocks * 4));
+  const uint8_t *tail = (const uint8_t *)(data) + (nblocks * 4);
   uint32_t k, h = seed;
   int i;
 

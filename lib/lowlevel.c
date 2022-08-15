@@ -17,16 +17,16 @@
 
 #include "lowlevel.h"
 
-const char prt_col_reset[] = "\e[0m";
-const char *prt_col[][8]={ // 0-black   1-red   2-grn   3-yel   4-blu   5-mag   6-cyn   7-white
-   {"\e[0;30m",  "\e[0;31m",  "\e[0;32m",  "\e[0;33m",  "\e[0;34m",  "\e[0;35m",  "\e[0;36m",  "\e[0;37m"},  // 0 regular text
-   {"\e[1;30m",  "\e[1;31m",  "\e[1;32m",  "\e[1;33m",  "\e[1;34m",  "\e[1;35m",  "\e[1;36m",  "\e[1;37m"},  // 1 regular bold text
-   {"\e[4;30m",  "\e[4;31m",  "\e[4;32m",  "\e[4;33m",  "\e[4;34m",  "\e[4;35m",  "\e[4;36m",  "\e[4;37m"},  // 2 regular underline text
-   {"\e[40m",    "\e[41m",    "\e[42m",    "\e[43m",    "\e[44m",    "\e[45m",    "\e[46m",    "\e[47m"},    // 3 regular background
-   {"\e[0;100m", "\e[0;101m", "\e[0;102m", "\e[0;103m", "\e[0;104m", "\e[0;105m", "\e[0;106m", "\e[0;107m"}, // 4 high intensity underground
-   {"\e[0;90m",  "\e[0;91m",  "\e[0;92m",  "\e[0;93m",  "\e[0;94m",  "\e[0;95m",  "\e[0;96m",  "\e[0;97m"},  // 5 high intensity text 
-   {"\e[1;90m",  "\e[1;91m",  "\e[1;92m",  "\e[1;93m",  "\e[1;94m",  "\e[1;95m",  "\e[1;96m",  "\e[1;97m"}   // 6 bold high intensity text
-};
+const char prt_col_reset[] = "\033[0m";
+const char *prt_col[][8]={ // 0-black   1-red   2-grn   3-yel   4-blu   5-mag   6-cyn   7-white 
+   {"\033[0;30m",  "\033[0;31m",  "\033[0;32m",  "\033[0;33m",  "\033[0;34m",  "\033[0;35m",  "\033[0;36m",  "\033[0;37m"},  // 0 regular text
+   {"\033[1;30m",  "\033[1;31m",  "\033[1;32m",  "\033[1;33m",  "\033[1;34m",  "\033[1;35m",  "\033[1;36m",  "\033[1;37m"},  // 1 regular bold text
+   {"\033[4;30m",  "\033[4;31m",  "\033[4;32m",  "\033[4;33m",  "\033[4;34m",  "\033[4;35m",  "\033[4;36m",  "\033[4;37m"},  // 2 regular underline text
+   {"\033[40m",    "\033[41m",    "\033[42m",    "\033[43m",    "\033[44m",    "\033[45m",    "\033[46m",    "\033[47m"},    // 3 regular background
+   {"\033[0;100m", "\033[0;101m", "\033[0;102m", "\033[0;103m", "\033[0;104m", "\033[0;105m", "\033[0;106m", "\033[0;107m"}, // 4 high intensity underground
+   {"\033[0;90m",  "\033[0;91m",  "\033[0;92m",  "\033[0;93m",  "\033[0;94m",  "\033[0;95m",  "\033[0;96m",  "\033[0;97m"},  // 5 high intensity text 
+   {"\033[1;90m",  "\033[1;91m",  "\033[1;92m",  "\033[1;93m",  "\033[1;94m",  "\033[1;95m",  "\033[1;96m",  "\033[1;97m"}   // 6 bold high intensity text
+}; // OBS: '\e' is GNU only; '\033' is pedantic
 
 
 void
@@ -108,7 +108,7 @@ crpx_fprintf_colour (FILE *stream, int regular, int colour, const char *message,
   va_end (ap);
 }
 
-const char *msg_level_colours[] = {"\e[0;101m", "\e[1;31m", "\e[1;33m", "\e[1;34m", "\e[1;32m", "\e[1;37m"};
+const char *msg_level_colours[] = {"\033[0;101m", "\033[1;31m", "\033[1;33m", "\033[1;34m", "\033[1;32m", "\033[1;37m"};
 const char *msg_level_names[] = {"  FATAL", "  ERROR", "WARNING", "   INFO", "VERBOSE", "  DEBUG"};
 
 void

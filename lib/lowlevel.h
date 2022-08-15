@@ -22,6 +22,15 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+  #pragma message  "Compiling for a Windows environment" 
+#elif defined(__linux__) || defined(__unix__) || defined(_POSIX_VERSION)
+  #pragma message  "Compiling for a Unix environment" 
+#elif __APPLE__
+  #pragma message  "Compiling for an Apple environment" 
+#else
+#error "Unknown compiler"
+#endif
 
 #include "config.h"
 

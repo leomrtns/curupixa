@@ -105,11 +105,11 @@ AC_ARG_ENABLE([debug],
     [debugit="$enableval"], [debugit=no])
 AC_MSG_RESULT([$debugit])
 if test x"$debugit" = x"yes"; then
-    AC_DEFINE([CURUPIXA_DEBUG],[],[Debug Mode, with assert()-like error checking])
-    AX_APPEND_COMPILE_FLAGS([-g -pg -W -Wall -Werror -Wno-uninitialized -O0 -fsanitize=undefined -fsanitize=address -fno-omit-frame-pointer], [AM_CFLAGS])
+    AC_DEFINE([CURUPIXA_DEBUG],[],[Debug Mode, with assert()-like error checking and assuming GCC17])
+    AX_APPEND_COMPILE_FLAGS([-g -std=c17 -pedantic -pg -W -Wall -Wextra -Werror -Wno-uninitialized -O0 -fsanitize=undefined -fsanitize=address -fno-omit-frame-pointer], [AM_CFLAGS])
 else
     AC_DEFINE([NDEBUG],[],[not in debug mode, disabling all assert() macros])
-    AX_APPEND_COMPILE_FLAGS([-funroll-loops -fomit-frame-pointer -finline-functions -O3], [AM_CFLAGS])
+    AX_APPEND_COMPILE_FLAGS([-funroll-loops -std=c17 -fomit-frame-pointer -finline-functions -O3], [AM_CFLAGS])
 fi
 
 AC_MSG_CHECKING([whether you want static binaries (not the library, but the executables)])
