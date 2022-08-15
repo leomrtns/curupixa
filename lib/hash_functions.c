@@ -17,6 +17,10 @@
 #include "hash_functions.h"
 #include "internal_random_constants.h" // not available to the user, only locally
 
+#ifdef CRPX_OS_WINDOWS
+int windows_getentropy (void* buf, size_t n);
+#endif
+
 size_t
 crpx_generate_bytesized_random_seeds (crpx_global_t cglob, void *seed, size_t seed_size)
 {
@@ -41,15 +45,41 @@ crpx_generate_bytesized_random_seeds (crpx_global_t cglob, void *seed, size_t se
     j = seed_size > 256 ? 256 : seed_size; /* maximum buffer size is 256 bytes */
 #if (__GLIBC__ > 2 || __GLIBC_MINOR__ > 24)
     success = getentropy (seed, j);
-#else
+#elif defined (CRPX_OS_LINUX) || defined (CRPX_OS_MACOS)
     success = syscall (SYS_getrandom, seed, j, 0);
-#endif
+#else // windows
+    success = windows_getentropy (seed, j);
+#endif 
     seed = (size_t*)(seed) + (j * (~success & 1));      // avoid mispredicted branches (not performance-critical here though)
     seed_size -= j * (~success & 1); // (success==0) is a success 
   }
   if (last-first) crpx_logger_verbose (cglob, "Random seeds produced by linux random: %lu", last - first);
   return last - seed_size;
 }
+
+#ifdef CRPX_OS_WINDOWS
+int 
+windows_getentropy (void* buf, size_t n)
+{ // https://github.com/dsprenkels/randombytes
+	HCRYPTPROV ctx;
+	BOOL success;
+	DWORD to_read = 0;
+	const size_t MAX_DWORD = 0xFFFFFFFF;
+	success = CryptAcquireContext(&ctx, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT);
+	if (success == FALSE) return -1;
+
+	while (n > 0) {
+		to_read = (DWORD)(n < MAX_DWORD ? n : MAX_DWORD);
+		success = CryptGenRandom(ctx, to_read, (BYTE*) buf);
+		if (success == FALSE) return -1;
+		buf = ((char*)buf) + to_read;
+		n -= to_read;
+	}
+	success = CryptReleaseContext(ctx, 0);
+	if (success == FALSE) return -1;
+	return 0;
+}
+#endif
 
 /* time functions */
 void

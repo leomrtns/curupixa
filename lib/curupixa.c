@@ -70,7 +70,7 @@ global_init_threads_rng (crpx_global_t cglob, __attribute__((unused)) uint64_t s
 {
 #ifdef _OPENMP
   cglob->nthreads = omp_get_max_threads(); // this is set even if user/program does not use threads
-  crpx_logger_verbose (cglob, "Multithreading available, which will lead to %u independent random streams", cglob->nthreads);
+  crpx_logger_verbose (cglob, "Multithreading: %u cores available. Software may use less than this number.", cglob->nthreads);
 #else
   cglob->nthreads = 1;
   crpx_logger_verbose (cglob, "Compiled without multithread support");

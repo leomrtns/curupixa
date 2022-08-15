@@ -87,7 +87,14 @@ crpx_reallocarray_with_errmsg (const char *c_file, const int c_line, crpx_global
     if (ptr) free (ptr); // default behaviour of calloc(ptr, 0) is to free the pointer
     return NULL;
   }
+#ifndef CRPX_OS_WINDOWS
   void *value = (void *) reallocarray ((void *)ptr, nmemb, size); // will free ptr if pointer area has moved and return pointer to new area
+#else
+  #define MUL_NO_OVERFLOW ((size_t)1 << (sizeof(size_t) * 4))
+  void *value = NULL;
+  if ((nmemb >= MUL_NO_OVERFLOW || size >= MUL_NO_OVERFLOW) && (UINTPTR_MAX / nmemb) < size) { errno = ENOMEM; } 
+  else {  value = (void *) realloc ((void *)ptr, nmemb * size); }
+#endif  // windows
   if (value == NULL) {
     crpx_logger_message (CRPX_LOGLEVEL_ERROR, c_file, c_line, cglobal, 
                          "CRPX failed memory reallocation_array of %lu members of %lu bytes: %s. ", nmemb, size, strerror (errno));
@@ -122,7 +129,11 @@ crpx_logger_message (uint8_t level, const char *c_file, const int c_line, crpx_g
   char msg_prefix[32] = {'\0'};
   #pragma omp critical (crpx_logger_message)
    {
+#ifdef CRPX_OS_WINDOWS
+    strftime (msg_prefix, 32, "%H:%M:%S", localtime (&t)); // mingw doesn't accept %T but it's identical  
+#else
     strftime (msg_prefix, 32, "%T", localtime (&t)); // alternative is "%F %T" where %F is yyyy-mm-dd and %T is hh:mm:ss 
+#endif
     /*  "%-3u" means to left-adjust, but notice that thread id can be larger than 3 digits */
     if (level <= cglobal->loglevel_stderr) { // colour output to stderr
       fprintf (stderr, "tid%-3u %s %s%s%s ", tid, msg_prefix, msg_level_colours[level], msg_level_names[level], prt_col_reset);

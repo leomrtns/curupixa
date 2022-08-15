@@ -24,10 +24,13 @@ extern "C" {
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
   #pragma message  "Compiling for a Windows environment" 
+  #define CRPX_OS_WINDOWS
 #elif defined(__linux__) || defined(__unix__) || defined(_POSIX_VERSION)
   #pragma message  "Compiling for a Unix environment" 
-#elif __APPLE__
-  #pragma message  "Compiling for an Apple environment" 
+  #define CRPX_OS_UNIX
+#elif defined (__APPLE__) || defined(__MACH__)
+  #pragma message  "Compiling for an MacOS environment" 
+  #define CRPX_OS_MACOS
 #else
 #error "Unknown compiler"
 #endif
@@ -45,9 +48,7 @@ extern "C" {
 #include <time.h>       /* speed profiling(e.g. clock(), clock_gettime(), struct timespec ) */
 #include <unistd.h>     /* sysconf(), getrandom() getentropy(), and getpid() function, used together with sys/types.h */
 #include <sys/time.h>   /* random seed (e.g. gettimeofday(), struct timeval) */
-#include <sys/times.h>  /* speed profiling in clock ticks (e.g. times() ) */ 
 #include <sys/types.h>  /* pid_t for process ID, used together with unistd.h */
-#include <sys/syscall.h>/* system calls like syscall(SYS_getrandom, buf, buflen, 0) for random noise */
 #include <fcntl.h>      /* open() read() close() for /dev/urandom */
 #include <sys/stat.h>   /* mkdir(); returns EEXIST from sys/types.h if dir already exist (as dir or not) */ 
 #include <libgen.h>     /* standard XPG basename() - the one provided by string.h is a GNU extension, fails on macOSX */
@@ -55,6 +56,15 @@ extern "C" {
 #include <limits.h>     /* UINT_MAX etc */
 #include <errno.h>      /* errno, perror(), strerror() */
 #include <assert.h>    
+
+#ifdef CRPX_OS_WINDOWS
+  #include <windows.h>    /* GetTickCount() */
+  #include <wincrypt.h>   /* CryptAcquireContext() CryptGenRandom() */
+  #include <crtdefs.h>    /* size_t in windows, mingw */
+#else
+//  #include <sys/times.h>  /* speed profiling in clock ticks (e.g. times() ) */ // unused at the moment
+  #include <sys/syscall.h>/* system calls like syscall(SYS_getrandom, buf, buflen, 0) for random noise */
+#endif
 
 #ifdef _OPENMP
 #include <omp.h>         /* OpenMP parallel threading library when available */
