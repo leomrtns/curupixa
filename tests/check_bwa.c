@@ -7,12 +7,9 @@
 #define TEST_SKIPPED 77
 #define TEST_HARDERROR 99
 
-#ifndef TEST_FILE_DIR
-#define TEST_FILE_DIR "./files/"
-#endif
 // use it like memcpy(filename + prefix_size, "bacteria_riboprot.fasta", 23);
-char filename[2048] = TEST_FILE_DIR; // now we can memcpy() file names _after_ prefix_size
-size_t prefix_size = strlen(TEST_FILE_DIR); // all modifications to filename[] come after prefix_size
+char filename[2048] = "./files/"; // now we can memcpy() file names _after_ prefix_size
+size_t prefix_size = 8; // all modifications to filename[] come after prefix_size
 
 START_TEST(bwa_aln_bwase_function)
 {
