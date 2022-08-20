@@ -11,24 +11,21 @@
  * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
  */
 
-/*! \file hash_functions.h 
- *  \brief higher level hash functions (use curupixa_global_t etc.) */
+/*! \file random_number.h
+ *  \brief high-level PRNGs: depend on crpx_global_t, and know about multithreading  
+ *  idea not implemented here: MPI can rely on common stream, based on global_t boolean */
 
-#ifndef _curupixa_hash_functions_h_ 
-#define _curupixa_hash_functions_h_
+#ifndef _curupixa_random_number_h_
+#define _curupixa_random_number_h_
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-#include "hash_functions_generators.h"
+#include "random_number_generators.h" 
 
-size_t crpx_generate_bytesized_random_seeds_from_cpu  (crpx_global_t cglob, void *seed, size_t seed_size);
-void   crpx_generate_bytesized_random_seeds_from_seed (crpx_global_t cglob, void *seed, size_t seed_size, uint64_t initial_seed);
-
-void crpx_get_time_128bits (uint64_t time[2]);
-double crpx_update_elapsed_time_128bits (uint64_t past[2]);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 #endif /* if header not defined */
+

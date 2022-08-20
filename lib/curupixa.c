@@ -27,6 +27,7 @@ crpx_global_init (__attribute__((unused)) uint64_t seed, const char *level_strin
   crpx_global_t cglob = (crpx_global_t) malloc (sizeof (crpx_global_struct));
   if (cglob == NULL) {  fprintf (stderr, "toplevel FATAL ERROR: could not allocate memory for crpx_global_t\n");  return NULL; }
   cglob->error = false;
+  cglob->seed_vector = NULL;
   crpx_get_time_128bits (cglob->elapsed_time);
 
   global_init_logger (cglob, level_string);
@@ -75,6 +76,13 @@ global_init_threads_rng (crpx_global_t cglob, __attribute__((unused)) uint64_t s
   cglob->nthreads = 1;
   crpx_logger_verbose (cglob, "Compiled without multithread support");
 #endif
+  size_t n_bytes = 4 * cglob->nthreads * sizeof (uint64_t), success_bytes = 0;
+  cglob->seed_vector = (uint64_t *) malloc (n_bytes);
+  uint8_t *seed_vector_bytes = (uint8_t *) cglob->seed_vector;
+  if (!seed) success_bytes = crpx_generate_bytesized_random_seeds_from_cpu (cglob, cglob->seed_vector, n_bytes);
+  if (success_bytes < n_bytes)  // or seed==0 or cpu random was not successful
+    crpx_generate_bytesized_random_seeds_from_seed (cglob, seed_vector_bytes + success_bytes, n_bytes - success_bytes, seed);
+
   return;
 }
 
@@ -84,6 +92,7 @@ crpx_global_finalise (crpx_global_t cglob)
   if (cglob) {
     if (cglob->logfile) { fclose (cglob->logfile); cglob->logfile = NULL; cglob->loglevel_file = CRPX_LOGLEVEL_DEBUG + 1; }
     crpx_logger_verbose (cglob, "Finalising global variables, program finished in %lf seconds.", crpx_update_elapsed_time_128bits (cglob->elapsed_time));
+    if (cglob->seed_vector) { free (cglob->seed_vector); cglob->seed_vector = NULL; }
     free (cglob);
   }
 }

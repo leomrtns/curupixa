@@ -22,7 +22,7 @@ START_TEST(small_random_seeds)
   uint8_t small[128];
   crpx_global_t cglob = crpx_global_init (0, "debug");
 
-  j = crpx_generate_bytesized_random_seeds (cglob, seed, 128);
+  j = crpx_generate_bytesized_random_seeds_from_cpu (cglob, seed, 128);
   memcpy (small, seed, 128);
   printf ("list of 8bit 'truely' random numbers:\n");
   for (i=0; i<j;i++) { printf ("%5hhu ", small[i]); if (i && !((i+1)%16)) printf ("\n"); }
@@ -40,7 +40,7 @@ START_TEST(big_random_seeds)
   int count = 0;
   crpx_global_t cglob = crpx_global_init (0, "debug");
 
-  j = crpx_generate_bytesized_random_seeds (cglob, seed, 80001);
+  j = crpx_generate_bytesized_random_seeds_from_cpu (cglob, seed, 80001);
   memcpy (small, seed, 80001);
   for (i=0; i < j;i++) count += (small[i] == 0);
   printf ("number of 8bit zeroes = %d out of %lu\n", count, j);

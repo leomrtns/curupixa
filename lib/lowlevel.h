@@ -111,14 +111,17 @@ extern "C" {
 #define crpx_realloc(...) crpx_realloc_with_errmsg(__FILE__, __LINE__, __VA_ARGS__)
 #define crpx_reallocarray(...) crpx_reallocarray_with_errmsg(__FILE__, __LINE__, __VA_ARGS__)
 
+
 /*! \brief All global variables should be here; by creating several PRNG streams it's thread-safe even if user unaware of openMP; 
  * Should work with nested parallelism; All functions assume single crpx_global_t is created, since we rely on omp
  * single */ 
 typedef struct {
   uint32_t nthreads:16, loglevel_stderr:4, loglevel_file:4, error:2, sse:1, avx:1;
   uint64_t elapsed_time[2];
+  uint64_t *seed_vector;
   FILE *logfile;
 } crpx_global_struct, *crpx_global_t;
+
 
 
 /*! \brief Memory-safe malloc() function, with default error message in case of failure. Variadic args start at cglobal */

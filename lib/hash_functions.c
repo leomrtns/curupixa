@@ -22,7 +22,7 @@ int windows_getentropy (void* buf, size_t n);
 #endif
 
 size_t
-crpx_generate_bytesized_random_seeds (crpx_global_t cglob, void *seed, size_t seed_size)
+crpx_generate_bytesized_random_seeds_from_cpu (crpx_global_t cglob, void *seed, size_t seed_size)
 {
   size_t i = 0, j = 0, last = seed_size, first = 0;
   int success = 0; // gententropy() and syscall() return 0 on success and negative in failure (syscall returns errno)
@@ -36,7 +36,7 @@ crpx_generate_bytesized_random_seeds (crpx_global_t cglob, void *seed, size_t se
     j += (success > 0); // avoid mispredicted branches 
   } // it may ends with fewer than seed_size since not always succeed (and seed%2 may be > 0)
   j <<= 2; /* j*=4 */
-  crpx_logger_verbose (cglob, "Random seeds produced by CPU crystal entropy (RDRAND): %lu", j);
+  crpx_logger_verbose (cglob, "Number of random bytes produced by CPU crystal entropy (RDRAND): %lu", j);
 #endif
   first = j;
   seed_size -= j;
@@ -53,7 +53,7 @@ crpx_generate_bytesized_random_seeds (crpx_global_t cglob, void *seed, size_t se
     seed = (size_t*)(seed) + (j * (~success & 1));      // avoid mispredicted branches (not performance-critical here though)
     seed_size -= j * (~success & 1); // (success==0) is a success 
   }
-  if (last-first) crpx_logger_verbose (cglob, "Random seeds produced by linux random: %lu", last - first);
+  if (last-first) crpx_logger_verbose (cglob, "Number of random bytes produced by OS entropy: %lu", last - first);
   return last - seed_size;
 }
 
@@ -80,6 +80,32 @@ windows_getentropy (void* buf, size_t n)
 	return 0;
 }
 #endif
+
+void
+crpx_generate_bytesized_random_seeds_from_seed (crpx_global_t cglob, void *seed, size_t seed_size, uint64_t initial_seed)
+{
+  size_t len = seed_size >> 3, rem = seed_size & 7; // len = seed_size%8, rem is remainder
+  uint64_t *seed64 = (uint64_t *)seed;
+  crpx_logger_verbose (cglob, "Number of random bytes to be produced by seed %lu: %lu", initial_seed, seed_size);
+  for (size_t i = 0; i < len; i++) {
+    initial_seed += UINT64_C(0x171924dc8e5); // 48bit prime number added by @leomrtns
+    seed64[i] = initial_seed = crpx_hashint_moremur64 (initial_seed);
+  }
+  if (!rem) return;
+
+  initial_seed  = crpx_hashint_moremur64 (initial_seed);
+  uint8_t *seed8 = (uint8_t *)(seed);
+  seed8 += len << 3;
+  switch (rem & 7) {
+    case 7: seed8[6] = (uint8_t) (initial_seed >> 48); CRPX_attribute_FALLTHROUGH 
+    case 6: seed8[5] = (uint8_t) (initial_seed >> 40); CRPX_attribute_FALLTHROUGH
+    case 5: seed8[4] = (uint8_t) (initial_seed >> 32); CRPX_attribute_FALLTHROUGH
+    case 4: seed8[3] = (uint8_t) (initial_seed >> 24); CRPX_attribute_FALLTHROUGH
+    case 3: seed8[2] = (uint8_t) (initial_seed >> 16); CRPX_attribute_FALLTHROUGH
+    case 2: seed8[1] = (uint8_t) (initial_seed >> 8);  CRPX_attribute_FALLTHROUGH
+    case 1: seed8[0] = (uint8_t) initial_seed;
+  }
+}
 
 /* time functions */
 void
