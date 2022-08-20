@@ -270,6 +270,36 @@ crpx_rng_jenkins13_seed128 (void *vstate) // 13 bits of avalanche
   return s[3];
 }
 
+uint64_t
+crpx_rng_mt19937_seed2504 (void *state) // needs 312 uint64_t for random state and last one is a counter
+{ // adapted from biomcmc
+  static const uint64_t mag01[2]={ 0ULL, 0xB5026F5AA96619E9ULL}; /* this is magic vector, don't change */
+  uint64_t *r = (uint64_t *) state;
+  uint64_t x;
+
+  if (r[312] >= 312) { /* generate all 312 words at once; r[312] is counter */
+    int i;
+    for (i = 0; i < 156; i++) {
+      x = (r[i] & 0xFFFFFFFF80000000ULL)| (r[i+1] & 0x7FFFFFFFULL);
+      r[i] = r[i+156] ^ (x >> 1) ^ mag01[(int)(x & 1ULL)];
+    }
+    for (; i < 311; i++) {
+      x = (r[i] & 0xFFFFFFFF80000000ULL) | (r[i+1] & 0x7FFFFFFFULL);
+      r[i] = r[i-156] ^ (x >> 1) ^ mag01[(int)(x & 1ULL)];
+    }
+    x = (r[311] & 0xFFFFFFFF80000000ULL) | (r[0] & 0x7FFFFFFFULL);
+    r[311] = r[155] ^ (x >> 1) ^ mag01[(int)(x & 1ULL)];
+    r[312] = 0; // zero counter
+  }
+
+  x = r[ r[312]++ ];
+  x ^= (x >> 29) & 0x5555555555555555ULL;
+  x ^= (x << 17) & 0x71D67FFFEDA60000ULL;
+  x ^= (x << 37) & 0xFFF7EEE000000000ULL;
+  x ^= (x >> 43);
+  return x;
+}
+
 
 /* Generation of seeds */ 
 
@@ -277,7 +307,8 @@ void
 crpx_pcg_set_seed256 (void *vstate, uint64_t seed)
 { // https://github.com/lemire/testingRNG/blob/master/source/pcg64.h
   uint64_t *s = (uint64_t *) vstate;
-  uint64_t s0 = seed;
+  uint64_t s0 = seed; // will modify seed's state so we use a copy
+  if (!s0) s0 = 0x1576359c7fcbd9dfULL; // arbitrary prime number by @leomrtns
   __uint128_t initstate, initseq;
   s[0] = crpx_rng_splitmix_seed64 (&s0); s0++;
   s[1] = crpx_rng_splitmix_seed64 (&s0); s0++;
@@ -296,6 +327,7 @@ void
 cprx_rng_abyssinian_set_seed128 (void *vstate, uint32_t seed)
 { // https://github.com/opencoff/portable-lib/blob/master/src/abyssinian_rand.c
   uint64_t *state = (uint64_t *)vstate;
+  if (!seed) seed = 0xc3fdc7fU; // arbitrary prime number by @leomrtns
   uint32_t seed_2 = seed;
   seed += seed_2;
   seed_2 += seed;
@@ -317,3 +349,15 @@ cprx_rng_abyssinian_set_seed128 (void *vstate, uint32_t seed)
   state[0] = seed_x;
   state[1] = seed_y;
 }
+
+void
+crpx_rng_mt19937_set_seed2504 (void *state, uint64_t seed)
+{ // adapted from biomcmc
+  uint64_t *r = (uint64_t *) state;
+  uint64_t s0 = seed; // will modify seed's state so we use a copy
+  if (!s0) s0 = 0x8fc18365c966079ULL; // arbitrary prime number by @leomrtns
+  r[312] = 313; // counter, forcing generation of 312 words at first call
+
+  for (int i = 0; i < 312; i++) r[i] = crpx_rng_splitmix_seed64 (&s0);
+}
+

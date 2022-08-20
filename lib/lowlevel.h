@@ -57,6 +57,8 @@ extern "C" {
 #include <errno.h>      /* errno, perror(), strerror() */
 #include <assert.h>    
 
+// errno.h, sys/time.h, and time.h may be wing64 extensions so will work only on "unix-aware" Windows systems
+
 #ifdef CRPX_OS_WINDOWS
   #include <windows.h>    /* GetTickCount() */
   #include <wincrypt.h>   /* CryptAcquireContext() CryptGenRandom() */
