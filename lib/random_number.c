@@ -35,6 +35,15 @@ biomcmc_rng_snorm (void)
   return v * s;
 }
 
+/* in other places they use 
+ * (genrand64_int64(context) >> 11) * (1.0/9007199254740991.0);         // [0,1]
+ * (genrand64_int64(context) >> 11) * (1.0/9007199254740992.0);         // [0,1)
+ * ((genrand64_int64(context) >> 12) + 0.5) * (1.0/4503599627370496.0); // (0,1)
+ * in https://lemire.me/blog/2017/02/28/how-many-floating-point-numbers-are-in-the-interval-01/ he mentions 
+ *    mantissa = 52 (23 for 32bits)  -->  random(0,2^53)/2^53 = [0,1) --> rnd() >> 11 / 9007199254740992
+ *    and that rnd(0,1) * N is uniform(0,N) only for N < 2^53 
+ */   
+
 inline double
 biomcmc_rng_unif (void)
 {
