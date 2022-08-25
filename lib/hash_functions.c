@@ -86,6 +86,7 @@ crpx_generate_bytesized_random_seeds_from_seed (crpx_global_t cglob, void *seed,
 {
   size_t len = seed_size >> 3, rem = seed_size & 7; // len = seed_size%8, rem is remainder
   uint64_t *seed64 = (uint64_t *)seed;
+  if (!initial_seed) initial_seed = crpx_list_of_128_random64[ CRPX_THREAD_NUM & 127 ]; // each thread will have its seed
   crpx_logger_verbose (cglob, "Number of random bytes to be produced by seed %lu: %lu", initial_seed, seed_size);
   for (size_t i = 0; i < len; i++) {
     initial_seed += UINT64_C(0x171924dc8e5); // 48bit prime number added by @leomrtns

@@ -354,7 +354,7 @@ void
 crpx_rng_mt19937_set_seed2504 (void *state, uint64_t seed)
 { // adapted from biomcmc
   uint64_t *r = (uint64_t *) state;
-  uint64_t s0 = seed; // will modify seed's state so we use a copy
+  uint64_t s0 = seed; 
   if (!s0) s0 = 0x8fc18365c966079ULL; // arbitrary prime number by @leomrtns
   r[312] = 313; // counter, forcing generation of 312 words at first call
 

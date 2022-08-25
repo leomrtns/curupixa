@@ -25,8 +25,7 @@
 
 #include "internal_random_constants.h"
 
-uint16_t crpx_random_prime32_length = 256;
-uint32_t crpx_random_prime32[] = {
+uint32_t crpx_list_of_256_random_prime32[] = {
   0xb9b02cd1U, 0x0029b27fU, 0x00e3c465U, 0x0a8c60cbU, 0x0e6269f7U, 0x075b2f97U, 0x84176d49U, 0x0689e1adU,
   0xb9c6ea75U, 0x7d0889b5U, 0x822c173bU, 0xaee923c7U, 0x42c245c3U, 0x0779bfdfU, 0x7f235045U, 0x09274207U,
   0x3055980bU, 0x1d7cc5efU, 0x00895849U, 0x065c88c7U, 0x21509c9fU, 0x6df8a9fdU, 0x2cf46e65U, 0x0baf6073U,
@@ -61,8 +60,7 @@ uint32_t crpx_random_prime32[] = {
   0x0190ab57U, 0x0f029251U, 0x010d62f9U, 0x18d3850fU, 0x000c75afU, 0x0343e5c3U, 0x6078ac09U, 0x7d76674bU
 };
 
-uint16_t crpx_random_prime64_length = 128;
-uint64_t crpx_random_prime64[] = {
+uint64_t crpx_list_of_128_random_prime64[] = {
   0x9f36b09a99a2e933ULL, 0x5f2e1fb611d71e9dULL, 0x745a69b268ac7f63ULL, 0x000d8668011421e7ULL,
   0x076b2c0d8acaa747ULL, 0x048bb210755358e5ULL, 0x03b85028aa56fea5ULL, 0x024af5d1a5d24737ULL,
   0x7060579569e8fd9fULL, 0x01273d32bb0b10c9ULL, 0x182f2a2c9f6ce99bULL, 0x2c6e6a78d52e8c1dULL,
@@ -97,8 +95,7 @@ uint64_t crpx_random_prime64[] = {
   0x24d09ef6ad1874d9ULL, 0x37e6e3deb5f8c237ULL, 0x5ad4f9d30986c0bdULL, 0x237e79a18ac0283dULL
 };
 
-uint16_t crpx_random64_length = 128;
-uint64_t crpx_random64[] = {
+uint64_t crpx_list_of_128_random64[] = {
   0x2e0d9b9491477eeeULL, 0x6d45e183fef5cf11ULL, 0x8491857cfb680923ULL, 0x731a3889b48defb6ULL,
   0x48b183b4aa8e3c74ULL, 0x8710c1f1f5e99db1ULL, 0xf9e4c86bd13071b0ULL, 0xa0abda19293be9eaULL,
   0xd49c894c7f414ff7ULL, 0xb8a4be63f0fcb0c3ULL, 0x55e636a8ef7b6664ULL, 0xc9c072ba08a6cf59ULL,
