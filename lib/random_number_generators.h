@@ -25,8 +25,8 @@ extern "C" {
 /* random numbers (depend on a state which is updated as new numbers are generated) */
 uint64_t crpx_rng_wyhash_state64 (void *vstate);
 uint64_t crpx_rng_splitmix_seed64 (void *vstate);
-uint64_t crpx_lehmer_seed128 (void *vstate);
-uint64_t crpx_wyrand_seed64 (void *vstate);
+uint64_t crpx_rng_lehmer_seed128 (void *vstate);
+uint64_t crpx_rng_wyrand_seed64 (void *vstate);
 uint64_t crpx_rng_jenkins13_seed256 (void *vstate); // 13 bits of avalanche
 uint64_t crpx_rng_jenkins19_seed256 (void *vstate); // 18.4 bits of avalanche (preferred to 13 bits)
 
@@ -42,9 +42,10 @@ uint64_t crpx_xoroshiro_pp_seed128 (void *vstate); // 128++
 uint64_t crpx_xoroshiro_pp_seed256 (void *vstate); 
 uint64_t crpx_xoroshiro_star_seed256 (void *vstate); 
 
-uint64_t crpx_xorshift_star_seed64 (void *vstate);
-uint64_t crpx_xorshift_p_seed128 (void *vstate);
-uint64_t crpx_pcg_seed256 (void *vstate);
+uint64_t crpx_rng_xorshift_star_seed64 (void *vstate);
+uint64_t crpx_rng_xorshift_p_seed128 (void *vstate);
+uint64_t crpx_rng_pcg_seed256 (void *vstate);
+uint64_t crpx_rng_mt19937_seed2504 (void *state); // needs 312 uint64_t for random state and last one is a counter
 
 /* 32 bits */ 
 uint32_t crpx_rng_abyssinian_seed128 (void *vstate); // 2 x uint64_t 
@@ -53,8 +54,9 @@ uint32_t crpx_rng_jenkins8_seed128 (void *vstate); // 8 bits of avalanche (caref
 uint32_t crpx_rng_jenkins13_seed128 (void *vstate); // 13 bits of avalanche (careful with similarly named 64 bits)
 
 /* seed generation */
-void crpx_pcg_set_seed256 (void *vstate, uint64_t seed);
+void crpx_rng_pcg_set_seed256 (void *vstate, uint64_t seed);
 void cprx_rng_abyssinian_set_seed128 (void *vstate, uint32_t seed);
+void crpx_rng_mt19937_set_seed2504 (void *state, uint64_t seed);
 
 #ifdef __cplusplus
 }

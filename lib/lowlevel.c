@@ -29,7 +29,7 @@ const char *prt_col[][8]={ // 0-black   1-red   2-grn   3-yel   4-blu   5-mag   
 }; // OBS: '\e' is GNU only; '\033' is pedantic
 
 
-void
+void // used through a macro (without error message)
 crpx_free_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, void *ptr)
 {
   if (ptr) { 
@@ -149,6 +149,7 @@ crpx_logger_message (uint8_t level, const char *c_file, const int c_line, crpx_g
       else fprintf (cglobal->logfile, "\n");
       fflush(cglobal->logfile);
     }
+
     if (level == CRPX_LOGLEVEL_FATAL) cglobal->error = 2; // normal = 0; error = 1; fatal = 2
     else if (level == CRPX_LOGLEVEL_ERROR) cglobal->error = (cglobal->error) ? cglobal->error: 1;
    } // pragma omp critical 

@@ -40,7 +40,7 @@ crpx_rng_splitmix_seed64 (void *vstate)
 }
 
 uint64_t 
-crpx_lehmer_seed128 (void *vstate)
+crpx_rng_lehmer_seed128 (void *vstate)
 { // https://github.com/lemire/testingRNG/blob/master/source/lehmer64.h
   __uint128_t *state = (__uint128_t *) vstate;
   *state *= UINT64_C(0xda942042e4dd58b5);
@@ -48,7 +48,7 @@ crpx_lehmer_seed128 (void *vstate)
 }
 
 uint64_t 
-crpx_wyrand_seed64 (void *vstate)
+crpx_rng_wyrand_seed64 (void *vstate)
 { // https://github.com/lemire/testingRNG/blob/master/source/wyrand.h
   uint64_t *state = (uint64_t *) vstate;
   *state += UINT64_C(0xa0761d6478bd642f);
@@ -191,7 +191,7 @@ crpx_xoroshiro_star_seed256 (void *vstate)
 }
 
 uint64_t
-crpx_xorshift_star_seed64 (void *vstate)
+crpx_rng_xorshift_star_seed64 (void *vstate)
 { // https://github.com/opencoff/portable-lib/blob/master/src/xorshift.c
   uint64_t *s = (uint64_t *) vstate;  
   *s ^= *s >> 12; *s ^= *s << 25; *s ^= *s << 27;
@@ -199,7 +199,7 @@ crpx_xorshift_star_seed64 (void *vstate)
 }
 
 uint64_t
-crpx_xorshift_p_seed128 (void *vstate)
+crpx_rng_xorshift_p_seed128 (void *vstate)
 { // https://github.com/opencoff/portable-lib/blob/master/src/xorshift.c
   uint64_t *s = (uint64_t *) vstate;
   uint64_t v1 = s[0], v0 = s[1];
@@ -211,7 +211,7 @@ crpx_xorshift_p_seed128 (void *vstate)
 
 #define PCG_DEFAULT_MULTIPLIER_128 ((((__uint128_t)2549297995355413924ULL) << 64) + 4865540595714422341ULL)
 uint64_t
-crpx_pcg_seed256 (void *vstate)
+crpx_rng_pcg_seed256 (void *vstate)
 { // https://github.com/lemire/testingRNG/blob/master/source/pcg64.h
   __uint128_t *s = (__uint128_t *) vstate;
   uint64_t value;
@@ -220,6 +220,36 @@ crpx_pcg_seed256 (void *vstate)
   value = ((uint64_t)(s[0] >> 64u)) ^ (uint64_t) s[0];
   rot = s[0] >> 122u;
   return (value >> rot) | (value << ((-rot) & 63));
+}
+
+uint64_t
+crpx_rng_mt19937_seed2504 (void *state) // needs 312 uint64_t for random state and last one is a counter
+{ // adapted from biomcmc
+  static const uint64_t mag01[2]={ 0ULL, 0xB5026F5AA96619E9ULL}; /* this is magic vector, don't change */
+  uint64_t *r = (uint64_t *) state;
+  uint64_t x;
+
+  if (r[312] >= 312) { /* generate all 312 words at once; r[312] is counter */
+    int i;
+    for (i = 0; i < 156; i++) {
+      x = (r[i] & 0xFFFFFFFF80000000ULL)| (r[i+1] & 0x7FFFFFFFULL);
+      r[i] = r[i+156] ^ (x >> 1) ^ mag01[(int)(x & 1ULL)];
+    }
+    for (; i < 311; i++) {
+      x = (r[i] & 0xFFFFFFFF80000000ULL) | (r[i+1] & 0x7FFFFFFFULL);
+      r[i] = r[i-156] ^ (x >> 1) ^ mag01[(int)(x & 1ULL)];
+    }
+    x = (r[311] & 0xFFFFFFFF80000000ULL) | (r[0] & 0x7FFFFFFFULL);
+    r[311] = r[155] ^ (x >> 1) ^ mag01[(int)(x & 1ULL)];
+    r[312] = 0; // zero counter
+  }
+
+  x = r[ r[312]++ ];
+  x ^= (x >> 29) & 0x5555555555555555ULL;
+  x ^= (x << 17) & 0x71D67FFFEDA60000ULL;
+  x ^= (x << 37) & 0xFFF7EEE000000000ULL;
+  x ^= (x >> 43);
+  return x;
 }
 
 /* 32 bits */
@@ -270,41 +300,11 @@ crpx_rng_jenkins13_seed128 (void *vstate) // 13 bits of avalanche
   return s[3];
 }
 
-uint64_t
-crpx_rng_mt19937_seed2504 (void *state) // needs 312 uint64_t for random state and last one is a counter
-{ // adapted from biomcmc
-  static const uint64_t mag01[2]={ 0ULL, 0xB5026F5AA96619E9ULL}; /* this is magic vector, don't change */
-  uint64_t *r = (uint64_t *) state;
-  uint64_t x;
-
-  if (r[312] >= 312) { /* generate all 312 words at once; r[312] is counter */
-    int i;
-    for (i = 0; i < 156; i++) {
-      x = (r[i] & 0xFFFFFFFF80000000ULL)| (r[i+1] & 0x7FFFFFFFULL);
-      r[i] = r[i+156] ^ (x >> 1) ^ mag01[(int)(x & 1ULL)];
-    }
-    for (; i < 311; i++) {
-      x = (r[i] & 0xFFFFFFFF80000000ULL) | (r[i+1] & 0x7FFFFFFFULL);
-      r[i] = r[i-156] ^ (x >> 1) ^ mag01[(int)(x & 1ULL)];
-    }
-    x = (r[311] & 0xFFFFFFFF80000000ULL) | (r[0] & 0x7FFFFFFFULL);
-    r[311] = r[155] ^ (x >> 1) ^ mag01[(int)(x & 1ULL)];
-    r[312] = 0; // zero counter
-  }
-
-  x = r[ r[312]++ ];
-  x ^= (x >> 29) & 0x5555555555555555ULL;
-  x ^= (x << 17) & 0x71D67FFFEDA60000ULL;
-  x ^= (x << 37) & 0xFFF7EEE000000000ULL;
-  x ^= (x >> 43);
-  return x;
-}
-
 
 /* Generation of seeds */ 
 
 void 
-crpx_pcg_set_seed256 (void *vstate, uint64_t seed)
+crpx_rng_pcg_set_seed256 (void *vstate, uint64_t seed)
 { // https://github.com/lemire/testingRNG/blob/master/source/pcg64.h
   uint64_t *s = (uint64_t *) vstate;
   uint64_t s0 = seed; // will modify seed's state so we use a copy

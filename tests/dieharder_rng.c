@@ -45,12 +45,12 @@ int main(int argc, char **argv)
       case 11: rng = &crpx_rng_splitmix_seed64; strcpy (algoname, "splitmi"); break; // excellent // normal
       case 12: rng = &crpx_rng_rrmixer_seed64;  strcpy (algoname, "rrmixer"); break; // OK // normal
       case 13: rng = &crpx_rng_moremur_seed64;  strcpy (algoname, "moremur"); break; // excellent // normal
-      case 14: rng = &crpx_lehmer_seed128;      strcpy (algoname, "lehmer "); break; // excellent // fast+-
-      case 15: rng = &crpx_wyrand_seed64;       strcpy (algoname, "wyrand "); break; // +- // fastest
-      case 16: rng = &crpx_pcg_seed256;           strcpy (algoname, "pcg    "); break; // OK (depends on seed) // slow
+      case 14: rng = &crpx_rng_lehmer_seed128;  strcpy (algoname, "lehmer "); break; // excellent // fast+-
+      case 15: rng = &crpx_rng_wyrand_seed64;   strcpy (algoname, "wyrand "); break; // +- // fastest
+      case 16: rng = &crpx_rng_pcg_seed256;     strcpy (algoname, "pcg    "); break; // OK (depends on seed) // slow
       case 17: rng = &crpx_rng_jenkins13_seed256; strcpy (algoname, "64jen13"); break; // excellent // normal
       case 18: rng = &crpx_rng_jenkins19_seed256; strcpy (algoname, "64jen19"); break; // excellent // normal
-      default: rng = &crpx_wyrand_seed64;       strcpy (algoname, "wyrand "); break; 
+      default: rng = &crpx_rng_wyrand_seed64;   strcpy (algoname, "wyrand "); break; 
     }
   } else {
     switch (algo) { // speed is comparable to 64bits (500mi~440mi numbers/second), which means half the throughput
