@@ -116,12 +116,12 @@ extern "C" {
  * Should work with nested parallelism; All functions assume single crpx_global_t is created, since we rely on omp
  * single */ 
 typedef struct {
-  uint32_t nthreads:16, loglevel_stderr:4, loglevel_file:4, error:2, sse:1, avx:1;
+  uint64_t nthreads:16, loglevel_stderr:4, loglevel_file:4, error:2, sse:1, avx:1, rng_size:9;
   uint64_t elapsed_time[2];
-  uint64_t *seed_vector;
+  uint64_t *rng_seed_vector;
+  uint64_t (*rng_get)(void*);
   FILE *logfile;
 } crpx_global_struct, *crpx_global_t;
-
 
 
 /*! \brief Memory-safe malloc() function, with default error message in case of failure. Variadic args start at cglobal */

@@ -30,16 +30,16 @@ int main(int argc, char **argv)
 
   if (algo < 32) {  
     switch (algo) { 
-      case 0: rng = &crpx_rng_romu_seed256;       strcpy (algoname, "romu256"); break; // OK // fast+-
-      case 1: rng = &crpx_rng_romu_seed192;       strcpy (algoname, "romu192"); break; // OK // fast
-      case 2: rng = &crpx_rng_romu_seed128;       strcpy (algoname, "romu128"); break; // excellent // normal
-      case 3: rng = &crpx_xoroshiro_pv6_seed128;  strcpy (algoname, "xoropv6"); break; // OK // fast  
-      case 4: rng = &crpx_xoroshiro_pv8_seed128;  strcpy (algoname, "xoropv8"); break; // Ok // fast
-      case 5: rng = &crpx_xoroshiro_pp_seed128;   strcpy (algoname, "xoropp1"); break; // OK // normal
-      case 6: rng = &crpx_xoroshiro_pp_seed256;   strcpy (algoname, "xoropp2"); break; // +- // normal
-      case 7: rng = &crpx_xoroshiro_star_seed256; strcpy (algoname, "xorost2"); break; // OK // normal
-      case 8: rng = &crpx_xorshift_star_seed64;   strcpy (algoname, "shif64 "); break; // excellent // slow 
-      case 9: rng = &crpx_xorshift_p_seed128;     strcpy (algoname, "shif128"); break; // OK // fast+-
+      case 0: rng = &crpx_rng_romu_seed256;         strcpy (algoname, "romu256"); break; // OK // fast+-
+      case 1: rng = &crpx_rng_romu_seed192;         strcpy (algoname, "romu192"); break; // OK // fast
+      case 2: rng = &crpx_rng_romu_seed128;         strcpy (algoname, "romu128"); break; // excellent // normal
+      case 3: rng = &crpx_xoroshiro_pv6_seed128;    strcpy (algoname, "xoropv6"); break; // OK // fast  
+      case 4: rng = &crpx_xoroshiro_pv8_seed128;    strcpy (algoname, "xoropv8"); break; // Ok // fast
+      case 5: rng = &crpx_xoroshiro_pp_seed128;     strcpy (algoname, "xoropp1"); break; // OK // normal
+      case 6: rng = &crpx_xoroshiro_pp_seed256;     strcpy (algoname, "xoropp2"); break; // +- // normal
+      case 7: rng = &crpx_xoroshiro_star_seed256;   strcpy (algoname, "xorost2"); break; // OK // normal
+      case 8: rng = &crpx_rng_xorshift_star_seed64; strcpy (algoname, "shif64 "); break; // excellent // slow 
+      case 9: rng = &crpx_rng_xorshift_p_seed128;   strcpy (algoname, "shif128"); break; // OK // fast+-
 
       case 10: rng = &crpx_rng_wyhash_state64;  strcpy (algoname, "wyhash "); break; // excellent // fast+-
       case 11: rng = &crpx_rng_splitmix_seed64; strcpy (algoname, "splitmi"); break; // excellent // normal

@@ -43,7 +43,7 @@ crpx_set_random_generator (crpx_global_t cglob, uint8_t rng_id, uint64_t seed)
   }
   
   size_t n_bytes = cglob->rng_size * cglob->nthreads * sizeof (uint64_t), success_bytes = 0;
-  cglob->rng_seed_vector = (uint64_t *) crpx_realloc (n_bytes); // malloc() if first time; we neglect current contents of the vector
+  cglob->rng_seed_vector = (uint64_t *) crpx_realloc (cglob, cglob->rng_seed_vector, n_bytes); // malloc() if first time; we neglect current contents of the vector
   uint8_t *seed_vector_bytes = (uint8_t *) cglob->rng_seed_vector;
   if (!seed) success_bytes = crpx_generate_bytesized_random_seeds_from_cpu (cglob, cglob->rng_seed_vector, n_bytes);
   if (success_bytes < n_bytes)  // or seed==0 or cpu random was not successful
@@ -63,6 +63,14 @@ crpx_random_32bits (crpx_global_t cglob)
 {
   uint64_t h = crpx_random_64bits (cglob);
   return (uint32_t)(0xffffffff & (h - (h >> 32))); // Fermat residue (https://github.com/opencoff/portable-lib/blob/master/src/fasthash.c)
+}
+
+inline uint32_t
+crpx_random_32bits_extra (crpx_global_t cglob, uint32_t *extra_result)
+{
+  uint64_t h = crpx_random_64bits (cglob);
+  (*extra_result) = h >> 32;
+  return (uint32_t)(0xffffffff & h);
 }
 
 inline uint64_t
@@ -100,6 +108,7 @@ crpx_random_double_positive (crpx_global_t cglob) // (0,1)
   double x;
   do { x = (crpx_random_64bits(cglob) >> 11) / 9007199254740992.0; } while (x < 2 * DBL_MIN);
  // return ((double)(genrand64_int64(context) >> 12) + 0.5) / 4503599627370496.0; // alternative 
+ return x;
 }
 
 inline double
@@ -107,6 +116,7 @@ crpx_random_double_positive_include_one (crpx_global_t cglob) // (0,1]
 {
   double x;
   do { x = (crpx_random_64bits(cglob) >> 11) / 9007199254740991.0; } while (x < 2 * DBL_MIN);
+ return x;
 }
 
 inline double
@@ -117,6 +127,22 @@ crpx_random_normal (crpx_global_t cglob, double *extra_result) // generates _2_ 
     /*    u and v are between -1 and +1 => -1 + 2 * U       */
     u = -1. + 2. * ((double)(crpx_random_64bits (cglob) >> 11) / 9007199254740991.0); /* (2^53) - 1 => 1 included */
     v = -1. + 2. * ((double)(crpx_random_64bits (cglob) >> 11) / 9007199254740991.0); /* (2^53) - 1 => 1 included */
+    s = (u*u) + (v*v);
+  } while ((s <= 0.) || (s >= 1.));
+  s = sqrt (-2. * log (s)/s);
+  (*extra_result) = u * s;
+  return v * s;
+}
+
+inline double
+crpx_random_normal_fast (crpx_global_t cglob, double *extra_result) // generates _2_ random numbers, one is stored in extra_result 
+{ // from biomcmc (using 32 bits instead of 53)
+  double s, u, v; /* u and v are U(-1,1) = -1 + 2 * U(0,1) */
+  uint32_t res2;
+  do { /* Marsaglia's Polar method; runs, on average, 1.2732 times */
+    /*    u and v are between -1 and +1 => -1 + 2 * U       */
+    u = -1. + 2. * ((double)(crpx_random_32bits_extra (cglob, &res2)) / 4294967295.0); /* (2^32) - 1 => 1 included */
+    v = -1. + 2. * ((double)(res2) / 4294967295.0); /* (2^32) - 1 => 1 included */
     s = (u*u) + (v*v);
   } while ((s <= 0.) || (s >= 1.));
   s = sqrt (-2. * log (s)/s);
