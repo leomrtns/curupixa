@@ -27,13 +27,19 @@ crpx_global_init (__attribute__((unused)) uint64_t seed, const char *level_strin
   crpx_global_t cglob = (crpx_global_t) malloc (sizeof (crpx_global_struct));
   if (cglob == NULL) {  fprintf (stderr, "toplevel FATAL ERROR: could not allocate memory for crpx_global_t\n");  return NULL; }
   cglob->error = false;
-  cglob->rng_seed_vector = NULL;
+  cglob->rng_seed_vector = NULL; // will be initialized by crpx_global_init_threads_rng() o.w. should return failure 
+  cglob->rng_get = NULL;
+
   crpx_get_time_128bits (cglob->elapsed_time);
 
   global_init_logger (cglob, level_string);
   global_init_simd_instructions (cglob);
   global_init_threads_rng (cglob, seed);
 
+  if ((!cglob->rng_seed_vector) || (!cglob->rng_get)) {
+    crpx_logger_fatal (cglob, "Could not initialize PRNG, which is a symptom of a more serious memory issue; proceed at your own risk\n");
+    // crpx_glob_finalize (cglob); exit (EXIT_FAILURE);
+  }
   return cglob;
 }
 

@@ -45,6 +45,10 @@ crpx_set_random_generator (crpx_global_t cglob, uint8_t rng_id, uint64_t seed)
   
   size_t n_bytes = cglob->rng_size * cglob->nthreads * sizeof (uint64_t), success_bytes = 0;
   cglob->rng_seed_vector = (uint64_t *) crpx_realloc (cglob, cglob->rng_seed_vector, n_bytes); // malloc() if first time; we neglect current contents of the vector
+  if (cglob->rng_seed_vector == NULL) {
+    crpx_logger_error ("crpx_set_random_generator: failed to allocate %zu bytes for seed vector\n", n_bytes);
+    return;
+  }
   uint8_t *seed_vector_bytes = (uint8_t *) cglob->rng_seed_vector;
   if (!seed) success_bytes = crpx_generate_bytesized_random_seeds_from_cpu (cglob, cglob->rng_seed_vector, n_bytes);
   if (success_bytes < n_bytes)  // or seed==0 or cpu random was not successful
