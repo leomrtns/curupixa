@@ -18,28 +18,29 @@
 void
 crpx_set_random_generator (crpx_global_t cglob, uint8_t rng_id, uint64_t seed)
 {
-  char rname[32] = {'\0'};
+  unsigned int i, j;
   switch (rng_id) {
-    case 0:  cglob->rng_get = &crpx_rng_wyhash_state64;       cglob->rng_size = 1; strcpy (rname, "wyhash_64"); break;
-    case 1:  cglob->rng_get = &crpx_rng_lehmer_seed128;       cglob->rng_size = 2; strcpy (rname, "lehmer_64"); break;
-    case 2:  cglob->rng_get = &crpx_rng_moremur_seed64;       cglob->rng_size = 1; strcpy (rname, "moremur_64"); break;
-    case 3:  cglob->rng_get = &crpx_rng_splitmix_seed64;      cglob->rng_size = 1; strcpy (rname, "splitmix_64"); break;
-    case 4:  cglob->rng_get = &crpx_rng_romu_seed128;         cglob->rng_size = 2; strcpy (rname, "romu_128"); break;
-    case 5:  cglob->rng_get = &crpx_rng_jenkins13_seed256;    cglob->rng_size = 4; strcpy (rname, "jenkins13_256"); break;
-    case 6:  cglob->rng_get = &crpx_rng_jenkins19_seed256;    cglob->rng_size = 4; strcpy (rname, "jenkins19_256"); break;
-    case 7:  cglob->rng_get = &crpx_rng_xorshift_star_seed64; cglob->rng_size = 1; strcpy (rname, "xorshift_s_64"); break;
-    case 8:  cglob->rng_get = &crpx_rng_romu_seed192;         cglob->rng_size = 3; strcpy (rname, "romu_192"); break;
-    case 9:  cglob->rng_get = &crpx_xoroshiro_pv6_seed128;    cglob->rng_size = 2; strcpy (rname, "xoro_pv6_128"); break;
-    case 10: cglob->rng_get = &crpx_xoroshiro_pv8_seed128;    cglob->rng_size = 2; strcpy (rname, "xoro_pv8_128"); break;
-    case 11: cglob->rng_get = &crpx_rng_romu_seed256;         cglob->rng_size = 4; strcpy (rname, "romu_256"); break;
-    case 12: cglob->rng_get = &crpx_rng_xorshift_p_seed128;   cglob->rng_size = 2; strcpy (rname, "xorshift_p_128"); break;
-    case 13: cglob->rng_get = &crpx_rng_rrmixer_seed64;       cglob->rng_size = 1; strcpy (rname, "rrmixer_64"); break;
-    case 14: cglob->rng_get = &crpx_xoroshiro_pp_seed128;     cglob->rng_size = 2; strcpy (rname, "xoro_pp_128"); break;
-    case 15: cglob->rng_get = &crpx_xoroshiro_star_seed256;   cglob->rng_size = 4; strcpy (rname, "xoro_s_256"); break;
-    case 16: cglob->rng_get = &crpx_rng_wyrand_seed64;        cglob->rng_size = 1; strcpy (rname, "wyrand_64"); break;
-    case 17: cglob->rng_get = &crpx_xoroshiro_pp_seed256;     cglob->rng_size = 4; strcpy (rname, "xoro_pp_256"); break;
-    case 18: cglob->rng_get = &crpx_rng_pcg_seed256;          cglob->rng_size = 4; strcpy (rname, "pcg_256"); break;
-    default: cglob->rng_get = &crpx_rng_mt19937_seed2504;   cglob->rng_size = 313; strcpy (rname, "mt19937"); break;
+    case 0:  cglob->rng_get = &crpx_rng_wyhash_state64;       cglob->rng_size = 1; strcpy (cglob->rng_name, "0.wyhash_64"); break;
+    case 1:  cglob->rng_get = &crpx_rng_lehmer_seed128;       cglob->rng_size = 2; strcpy (cglob->rng_name, "1.lehmer_64"); break;
+    case 2:  cglob->rng_get = &crpx_rng_moremur_seed64;       cglob->rng_size = 1; strcpy (cglob->rng_name, "2.moremur_64"); break;
+    case 3:  cglob->rng_get = &crpx_rng_splitmix_seed64;      cglob->rng_size = 1; strcpy (cglob->rng_name, "3.splitmix_64"); break;
+    case 4:  cglob->rng_get = &crpx_rng_romu_seed128;         cglob->rng_size = 2; strcpy (cglob->rng_name, "4.romu_128"); break;
+    case 5:  cglob->rng_get = &crpx_rng_jenkins13_seed256;    cglob->rng_size = 4; strcpy (cglob->rng_name, "5.jenkins13_256"); break;
+    case 6:  cglob->rng_get = &crpx_rng_jenkins19_seed256;    cglob->rng_size = 4; strcpy (cglob->rng_name, "6.jenkins19_256"); break;
+    case 7:  cglob->rng_get = &crpx_rng_xorshift_star_seed64; cglob->rng_size = 1; strcpy (cglob->rng_name, "7.xorshift_s_64"); break;
+    case 8:  cglob->rng_get = &crpx_rng_romu_seed192;         cglob->rng_size = 3; strcpy (cglob->rng_name, "8.romu_192"); break;
+    case 9:  cglob->rng_get = &crpx_xoroshiro_pv6_seed128;    cglob->rng_size = 2; strcpy (cglob->rng_name, "9.xoroshiro_pv6_128"); break;
+    case 10: cglob->rng_get = &crpx_xoroshiro_pv8_seed128;    cglob->rng_size = 2; strcpy (cglob->rng_name, "10.xoroshiro_pv8_128"); break;
+    case 11: cglob->rng_get = &crpx_rng_romu_seed256;         cglob->rng_size = 4; strcpy (cglob->rng_name, "11.romu_256"); break;
+    case 12: cglob->rng_get = &crpx_rng_xorshift_p_seed128;   cglob->rng_size = 2; strcpy (cglob->rng_name, "12.xorshift_p_128"); break;
+    case 13: cglob->rng_get = &crpx_rng_rrmixer_seed64;       cglob->rng_size = 1; strcpy (cglob->rng_name, "13.rrmixer_64"); break;
+    case 14: cglob->rng_get = &crpx_xoroshiro_pp_seed128;     cglob->rng_size = 2; strcpy (cglob->rng_name, "14.xoroshiro_pp_128"); break;
+    case 15: cglob->rng_get = &crpx_xoroshiro_star_seed256;   cglob->rng_size = 4; strcpy (cglob->rng_name, "15.xoroshiro_s_256"); break;
+    case 16: cglob->rng_get = &crpx_rng_wyrand_seed64;        cglob->rng_size = 1; strcpy (cglob->rng_name, "16.wyrand_64"); break;
+    case 17: cglob->rng_get = &crpx_xoroshiro_pp_seed256;     cglob->rng_size = 4; strcpy (cglob->rng_name, "17.xoroshiro_pp_256"); break;
+    case 18: cglob->rng_get = &crpx_rng_pcg_seed256;          cglob->rng_size = 4; strcpy (cglob->rng_name, "18.pcg_256"); break;
+    case 19: cglob->rng_get = &crpx_rng_xorshift_seed528;    cglob->rng_size = 66; strcpy (cglob->rng_name, "19.xorshift_528"); break;
+    default: cglob->rng_get = &crpx_rng_mt19937_seed2504;   cglob->rng_size = 313; strcpy (cglob->rng_name, "20.mt19937"); break;
   }
   
   size_t n_bytes = cglob->rng_size * cglob->nthreads * sizeof (uint64_t), success_bytes = 0;
@@ -49,7 +50,13 @@ crpx_set_random_generator (crpx_global_t cglob, uint8_t rng_id, uint64_t seed)
   if (success_bytes < n_bytes)  // or seed==0 or cpu random was not successful
     crpx_generate_bytesized_random_seeds_from_seed (cglob, seed_vector_bytes + success_bytes, n_bytes - success_bytes, seed);
 
-  crpx_logger_verbose (cglob, "Random number generator set to '%s' (using %u bytes of state)", rname, cglob->rng_size * sizeof (uint64_t));
+  for (i = 0; i < cglob->rng_size * cglob->nthreads; i++) cglob->rng_seed_vector[i] |= 1ULL; // some generators assume odd seeds
+  // warm up the random number generator (mt19937 and xorshift528 need a counter reset)
+  for (i = 0; i < cglob->nthreads; i++) for (j = 0; j < cglob->rng_size; j++) { 
+    cglob->rng_get (cglob->rng_seed_vector + i * cglob->rng_size);// j is a counter, while i is a thread index
+  }
+
+  crpx_logger_verbose (cglob, "Random number generator set to '%s' (using %u bytes of state)", cglob->rng_name, cglob->rng_size * sizeof (uint64_t));
 }
 
 inline uint64_t

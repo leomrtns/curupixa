@@ -252,6 +252,26 @@ crpx_rng_mt19937_seed2504 (void *state) // needs 312 uint64_t for random state a
   return x;
 }
 
+uint64_t
+crpx_rng_xorshift_seed528 (void *state)
+{ /* x[66], with 64 states + x[64] aux variable and x[65] counter ; from biomcmc */
+  uint64_t *x = (uint64_t *) state;
+  uint64_t t, v;
+  uint8_t i;
+
+  x[65] = (x[65] + 1) & UINT64_C(63); // counter from 0-63
+  i = (uint8_t)(x[65]);
+  t = x[i];
+  v = x[(i+11) & 63];     /* Index is (i-53) mod 64 */
+  t ^= t << 33;  t ^= t >> 26; /* (I + L^a)(I + R^b) */
+  v ^= v << 27;  v ^= v >> 29; /* (I + L^c)(I + R^d) */
+  x[i] = (v ^= t) & 0xffffffffffffffffULL; /* Update circular array */
+  /* 0x61c8864680b583ebULL = odd approximation to 2**64*(3-sqrt(5))/2. */
+  x[64] += 0x61c8864680b583ebULL;/* Update Weyl generator */
+
+  return (v + (x[64] ^ (x[64] >> 27))) & 0xffffffffffffffffULL;
+}
+
 /* 32 bits */
 
 uint32_t
@@ -299,7 +319,6 @@ crpx_rng_jenkins13_seed128 (void *vstate) // 13 bits of avalanche
   s[3] = e + s[0];
   return s[3];
 }
-
 
 /* Generation of seeds */ 
 
@@ -354,10 +373,36 @@ void
 crpx_rng_mt19937_set_seed2504 (void *state, uint64_t seed)
 { // adapted from biomcmc
   uint64_t *r = (uint64_t *) state;
-  uint64_t s0 = seed; 
-  if (!s0) s0 = 0x8fc18365c966079ULL; // arbitrary prime number by @leomrtns
+  if (!seed) seed = 0x8fc18365c966079ULL; // arbitrary prime number by @leomrtns
   r[312] = 313; // counter, forcing generation of 312 words at first call
 
-  for (int i = 0; i < 312; i++) r[i] = crpx_rng_splitmix_seed64 (&s0);
+  for (int i = 0; i < 312; i++) r[i] = crpx_rng_splitmix_seed64 (&seed);
 }
 
+void
+crpx_rng_xorshift_set_seed528 (void *state, uint64_t seed)
+{ /* x[66], with 64 states + x[64] aux variable and x[65] counter */
+  uint64_t *x = (uint64_t *) state;
+  int i, j;
+  uint64_t t;
+
+  if (!seed) seed = 0x1db9b83a20cc6503ULL; 
+  for (int i = 0; i < 64; i++) x[i] = crpx_rng_splitmix_seed64 (&seed);
+
+  /* Avoid correlations for close seeds; Recurrence has period 2**64-1 */
+  for (x[64] = seed, i = 0; i < 64; i++) { /* Initialise circular array */
+    seed = crpx_hashint_pelican64 (seed);
+    x[i] = (x[i] ^ seed) + (x[64] += 0x61c8864680b583ebULL);
+  }
+
+  for (i = 63, j = 0; j < 256; j++) { /* Discard first 256 results */
+    i = (i+1) & 63;
+    t = x[i];
+    seed = x[(i+11) & 63];               /* Index is (i-53) mod 64 */
+    t ^= t << 33; t ^= t >> 26;             /* (I + L^a)(I + R^b) */
+    seed ^= seed << 27; seed ^= seed >> 29; /* (I + L^c)(I + R^d) */
+    x[i] = (seed ^ t) & 0xffffffffffffffffULL; /* Update circular array */
+  }
+  x[65] = (uint64_t)(i);
+  return;
+}

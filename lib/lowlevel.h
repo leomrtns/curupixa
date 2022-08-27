@@ -113,13 +113,17 @@ extern "C" {
 
 
 /*! \brief All global variables should be here; by creating several PRNG streams it's thread-safe even if user unaware of openMP; 
- * Should work with nested parallelism; All functions assume single crpx_global_t is created, since we rely on omp
- * single */ 
+ * Should work with nested parallelism; All functions assume single crpx_global_t is created, since we rely on omp single */ 
 typedef struct {
-  uint64_t nthreads:16, loglevel_stderr:4, loglevel_file:4, error:2, sse:1, avx:1, rng_size:9;
+  uint64_t nthreads:16, 
+           loglevel_stderr:4, loglevel_file:4, 
+           error:2,      /*!< set by crpx_logger(): 0 - no error, 1 - error (may continue), 2 - fatal (must halt) */
+           sse:1, avx:1, /*!< checked at _runtime_ (if host CPU allows, irrespective of being build with support or not) */
+           rng_size:9;   /*!< each PRNG function relies on state sets of different lengths; largest is 313 (for mt19937) */
   uint64_t elapsed_time[2];
   uint64_t *rng_seed_vector;
   uint64_t (*rng_get)(void*);
+  char rng_name[32];
   FILE *logfile;
 } crpx_global_struct, *crpx_global_t;
 

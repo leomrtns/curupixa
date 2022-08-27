@@ -79,7 +79,6 @@ global_init_threads_rng (crpx_global_t cglob, __attribute__((unused)) uint64_t s
   cglob->rng_get = NULL;
   cglob->rng_size = 0;
   crpx_set_random_generator (cglob, seed, 0); // 0=wyhash, 1=lehmer, etc.
-
   return;
 }
 

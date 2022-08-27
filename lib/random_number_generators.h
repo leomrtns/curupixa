@@ -46,6 +46,7 @@ uint64_t crpx_rng_xorshift_star_seed64 (void *vstate);
 uint64_t crpx_rng_xorshift_p_seed128 (void *vstate);
 uint64_t crpx_rng_pcg_seed256 (void *vstate);
 uint64_t crpx_rng_mt19937_seed2504 (void *state); // needs 312 uint64_t for random state and last one is a counter
+uint64_t crpx_rng_xorshift_seed528 (void *state); // needs 64 uint64_t for random state and two for extra vars
 
 /* 32 bits */ 
 uint32_t crpx_rng_abyssinian_seed128 (void *vstate); // 2 x uint64_t 
@@ -57,6 +58,7 @@ uint32_t crpx_rng_jenkins13_seed128 (void *vstate); // 13 bits of avalanche (car
 void crpx_rng_pcg_set_seed256 (void *vstate, uint64_t seed);
 void cprx_rng_abyssinian_set_seed128 (void *vstate, uint32_t seed);
 void crpx_rng_mt19937_set_seed2504 (void *state, uint64_t seed);
+void crpx_rng_xorshift_set_seed528 (void *state, uint64_t seed);
 
 #ifdef __cplusplus
 }
