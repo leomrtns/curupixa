@@ -102,6 +102,13 @@ crpx_reallocarray_with_errmsg (const char *c_file, const int c_line, crpx_global
   return value;
 }
 
+void
+crpx_link_add_global_pointer (crpx_global_t original, crpx_global_t new)
+{
+  new = original;
+  #pragma omp atomic 
+  new->ref_counter++; // omp atomic is a lightweight critical for increment and a few other atomic operations
+}
 
 void
 crpx_fprintf_colour (FILE *stream, int regular, int colour, const char *message, const char *normaltext, ...)

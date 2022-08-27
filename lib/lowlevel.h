@@ -121,6 +121,7 @@ typedef struct {
            sse:1, avx:1, /*!< checked at _runtime_ (if host CPU allows, irrespective of being build with support or not) */
            rng_size:9;   /*!< each PRNG function relies on state sets of different lengths; largest is 313 (for mt19937) */
   uint64_t elapsed_time[2];
+  int ref_counter; /*!< how many structs have a ptr to the global structure; freed only if ref_counter <=0 (should be == 0) */
   uint64_t *rng_seed_vector;
   uint64_t (*rng_get)(void*);
   char rng_name[32];
@@ -139,6 +140,8 @@ void *crpx_realloc_with_errmsg (const char *c_file, const int c_line, crpx_globa
 /*! \brief Memory-safe reallocarray() function, with default error message in case of failure. Variadic args start at cglobal. 
  * In case of error, it does _not_ touch/free *ptr, but returns NULL; thus DO NOT ptr = reallocarray (ptr)  but use a pivot/tmp instead */
 void *crpx_reallocarray_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, void *ptr, size_t nmemb, size_t size);
+
+void crpx_link_add_global_pointer (crpx_global_t original, crpx_global_t new);
 
 void curupixa_fprintf_colour (FILE *stream, int regular, int colour, const char *message, const char *normaltext, ...);
 

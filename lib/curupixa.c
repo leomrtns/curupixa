@@ -26,6 +26,7 @@ crpx_global_init (__attribute__((unused)) uint64_t seed, const char *level_strin
 {
   crpx_global_t cglob = (crpx_global_t) malloc (sizeof (crpx_global_struct));
   if (cglob == NULL) {  fprintf (stderr, "toplevel FATAL ERROR: could not allocate memory for crpx_global_t\n");  return NULL; }
+  cglob->ref_counter = 1;
   cglob->error = false;
   cglob->rng_seed_vector = NULL; // will be initialized by crpx_global_init_threads_rng() o.w. should return failure 
   cglob->rng_get = NULL;
@@ -92,10 +93,17 @@ void
 crpx_global_finalise (crpx_global_t cglob)
 {
   if (cglob) {
-    if (cglob->logfile) { fclose (cglob->logfile); cglob->logfile = NULL; cglob->loglevel_file = CRPX_LOGLEVEL_DEBUG + 1; }
-    crpx_logger_verbose (cglob, "Finalising global variables, program finished in %lf seconds.", crpx_update_elapsed_time_128bits (cglob->elapsed_time));
-    if (cglob->rng_seed_vector) { free (cglob->rng_seed_vector); cglob->rng_seed_vector = NULL; }
-    free (cglob);
+    #pragma omp atomic
+    cglob->ref_counter--;
+    
+    if (cglob->ref_counter > 0) return;
+    #pragma omp single
+    {
+      if (cglob->logfile) { fclose (cglob->logfile); cglob->logfile = NULL; cglob->loglevel_file = CRPX_LOGLEVEL_DEBUG + 1; }
+      crpx_logger_verbose (cglob, "Finalising global variables, program finished in %lf seconds.", crpx_update_elapsed_time_128bits (cglob->elapsed_time));
+      if (cglob->rng_seed_vector) { free (cglob->rng_seed_vector); cglob->rng_seed_vector = NULL; }
+      free (cglob);
+    }
   }
 }
 
