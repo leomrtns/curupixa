@@ -110,7 +110,7 @@ Substantial code from external sources are mentioned in the file together with t
 
 ## Acknowledgements 
 I incorporated or was inspired by many existing open source libraries and publicly available implementations.
-For a more complete, but perhaps non-exhaustive list, please see the file [README_references.md](README_references.md).
+For a more complete, but perhaps non-exhaustive list, please refer to the [documentation](https://leomrtns.github.io/curupixa/references)
 
 ## Licence 
 SPDX-License-Identifier: [GPL-3.0-or-later](LICENSE)

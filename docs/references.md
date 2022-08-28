@@ -7,7 +7,7 @@ version (http://www.gnu.org/copyleft/gpl.html).
 SPDX-License-Identifier: GPL-3.0-or-later
 Copyright (C) 2022-today --- Leonardo de Oliveira Martins
 ```
-curupixa (and other software wrote by me) borrows or was inspired by many existing open source libraries and publicly 
+curupixa (and other software written by me) borrows or was inspired by many existing open source libraries and publicly 
 available implementations.
 Below follows a reference list of libraries and function implementations which were used, studied, or even considered when writting the software. 
 Some minor or well-stablished (public domain) functions or tricks may be missing from here, but are still mentioned as comments in the 
@@ -16,6 +16,8 @@ code to the best of my recollection.
 ## List of libraries and algorithms supporting curupixa
 
 * https://github.com/lemire/testingRNG (Apache License 2.0)
+* http://burtleburtle.net/bob/rand/smallprng.html (CC0)
+* http://prng.di.unimi.it/xoroshiro128plusplus.c (CC0)
 * https://github.com/opencoff/portable-lib (GPL-2.0)
 * https://github.com/veorq/SipHash (CC0)
 * https://github.com/maciejczyzewski/retter (CC0)
@@ -26,6 +28,9 @@ code to the best of my recollection.
 * https://github.com/wolkykim/qlibc/blob/master/src/utilities/qhash.c (BSD-like)
 * https://github.com/yinqiwen/geohash-int/blob/master/geohash.c (BSD3)
 * https://github.com/skeeto/hash-prospector (CC0)
+
+* https://www.gnu.org/software/gsl/ (GPL-3.0)
+
 
 
 ## List of other libraries and algorithms 
@@ -44,8 +49,8 @@ which still is my main repository of code.
  * http://www.concentric.net/~Ttwang/tech/inthash.htm (now available at https://gist.github.com/badboy/6267743)
  * http://burtleburtle.net/bob/hash/integer.html
 
-The rolling hash algorithm for genomics (not incorporated into biomcmc-lib yet) was inspired by the [linclust algorithm](https://github.com/soedinglab/MMseqs2). 
-Their implementation is clean and very fast, but (at least at the time of our implementation) does not compute the
+The rolling hash algorithm for genomics (not incorporated yet) was inspired by the [linclust algorithm](https://github.com/soedinglab/MMseqs2). 
+Their implementation is clean and very fast, but (at least at the time of my implementation) does not compute the
 reverse strand &mdash; since it works with a reduced amino acid alphabet. 
  
 #### hash table
