@@ -26,10 +26,13 @@ See [more on that below](##how-to-use-it-in-other-projects).
 
 ## Documentation
 
-The documentation is available on [https://leomrtns.github.io/curupixa/](https://leomrtns.github.io/curupixa/). Please
-keep in mind that this software is not ready for general consumption &mdash; it is used internally for [QIB projects](https://github.com/quadram-institute-bioscience/).
+The up-to-date documentation is available on [https://leomrtns.github.io/curupixa/](https://leomrtns.github.io/curupixa/). 
+Please keep in mind that this software is not ready for general consumption &mdash; it is used internally for [QIB projects](https://github.com/quadram-institute-bioscience/).
 
 ## Installation
+Please refer to the documentation ([https://leomrtns.github.io/curupixa/](https://leomrtns.github.io/curupixa/)) for
+up-to-date information. 
+
 This library is usually not installed directly, but as a submodule of another project. 
 It includes, however, the `makefile.am` and `configure.ac` for autotools, and it provides unit tests from the
 [libcheck](https://github.com/libcheck/check) library as well as custom checks. 
@@ -84,8 +87,8 @@ from github will complain about uncommited changes. You can run `git stash` (or 
 
 ## How to use it in other projects 
 
-As I said, this is not a general-purpose library and I can't help much you if you want to use it as such. So in the following
-I assume you know enough to be able to include in your own project. If you don't use autotools you can install it globally. 
+As I said, this is not a general-purpose library and I can't be of help if you want to use it as such. So in the following
+I assume you know enough to be able to include in your own project at your own risk. If you don't use autotools you can install it globally. 
 
 The main component is to include something like the following in your `configure.ac`
 ```
@@ -126,4 +129,3 @@ The [logo owl](https://www.flickr.com/photos/biodivlibrary/51267563412/in/album-
 provided by the Biodiversity Heritage Library under the Public Domain.
 
 ![Anurag's github stats](https://github-readme-stats.vercel.app/api?username=leomrtns&count_private=true&show_icons=true&theme=calm)
-

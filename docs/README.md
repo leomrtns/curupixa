@@ -11,9 +11,10 @@ __Leonardo de Oliveira Martins<sup>1</sup>__
 This library provides low level functions used by other phylogenetic programs. 
 It will be a replacement or auxiliary to [biomcmc-lib](https://github.com/quadram-institute-bioscience/biomcmc-lib),
 but currently it is only a testing environment.
+
 Some functions in `biomcmc-lib` are not thread-safe, e.g. the random functions.
-Furthermore when used as an API for other languages, it should not exit with error (it should delegate to the calling
-program what to do with the exception).
+Furthermore when used as an API for other languages, it should not exit with error but delegate to the calling
+program what to do with the exception.
 
 In all likelihood you won't need to install it, since the derived software will have taken care of it &mdash; assuming you
 downloaded the derived software from github with `--recursive`.
@@ -23,6 +24,7 @@ know how to solve it :wink:.
 See [more on that below](##how-to-use-it-in-other-projects).
 
 **Etymology:** Curupixá is the name of a Brazilian tree (_Micropholis venulosa_), also known as salgueiro, Guajará, Grumixava, Grubixa, cubixa, Abiurana, Bacu Mixa, etc. 
+
 ## Installation
 This library is usually not installed directly, but as a submodule of another project. 
 It includes, however, the `makefile.am` and `configure.ac` for autotools, and it provides unit tests from the
@@ -104,7 +106,7 @@ Substantial code from external sources are mentioned in the file together with t
 
 ## Acknowledgements 
 I incorporated or was inspired by many existing open source libraries and publicly available implementations.
-For a more complete, but perhaps non-exhaustive list, please see the file [README_references.md](README_references.md).
+For a more complete, but perhaps non-exhaustive list, please refer to the [documentation](references)
 
 ## Licence 
 SPDX-License-Identifier: [GPL-3.0-or-later](LICENSE)
@@ -119,5 +121,4 @@ The [logo owl](https://www.flickr.com/photos/biodivlibrary/51267563412/in/album-
 [Fauna japonica v.4 Aves](https://www.flickr.com/photos/biodivlibrary/albums/72157719506234015/with/51267563412/)
 provided by the Biodiversity Heritage Library under the Public Domain.
 
-![Anurag's github stats](https://github-readme-stats.vercel.app/api?username=leomrtns&count_private=true&show_icons=true&theme=calm)
-
+### Github page  [https://github.com/leomrtns/curupixa](https://github.com/leomrtns/curupixa)
