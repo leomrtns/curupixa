@@ -11,7 +11,7 @@ common_headers = index_arrangement.h
 common_src     = index_arrangement.c
 
 otherincludedir = $(includedir)/curupixa
-otherinclude_HEADERS = config.h $(common_headers) # if headers are here (=global) should not be on SOURCES (=local)
+otherinclude_HEADERS = curupixa.h $(common_headers) # if headers are here (=global) should not be on SOURCES (=local)
 
 lib_LTLIBRARIES = libcurupixa.la  # libtools 
 libcurupixa_la_SOURCES = $(common_headers)
@@ -21,7 +21,7 @@ libcurupixa_la_CFLAGS = $(AM_CFLAGS)
 libcurupixa_la_LIBADD = $(GTKDEPS_LIBS) $(LOCALLIBS) @ZLIB_LIBS@  @LZMA_LIBS@ $(AM_LDFLAGS) 
 
 noinst_LTLIBRARIES = libcurupixa_static.la # convenience lib (not installed globally)
-libcurupixa_static_la_SOURCES = $(common_src) $(common_headers) # listed here s.t. any change triggers recompilation 
+libcurupixa_static_la_SOURCES = $(common_src) $(common_headers) # .c and .h listed here s.t. any change triggers recompilation 
 libcurupixa_static_la_CPPFLAGS = $(libcurupixa_la_CPPFLAGS)
 libcurupixa_static_la_CFLAGS = $(libcurupixa_la_CFLAGS)
 libcurupixa_static_la_LIBADD = $(libcurupixa_la_LIBADD) # LOCALLIBS must be here as well

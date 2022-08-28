@@ -9,10 +9,10 @@ common_src     = global_variable.c lowlevel.c maths_and_bits.c internal_random_c
 								 random_number.c random_number_generators.c
 
 otherincludedir = $(includedir)/curupixa/global
-otherinclude_HEADERS = config.h $(common_headers) # if headers are here (=global) should not be on SOURCES (=local)
+otherinclude_HEADERS = config.h $(common_headers) # if headers are here (=global) should not be on SOURCES (=local but not convenience)
 
 noinst_LTLIBRARIES = libcrpxglobal.la # convenience lib (not installed globally)
-libcrpxglobal_la_SOURCES = $(common_src) $(common_headers) config.h # listed here s.t. any change triggers recompilation 
+libcrpxglobal_la_SOURCES = $(common_src) $(common_headers) config.h # .c and .h listed here s.t. any change triggers recompilation 
 libcrpxglobal_la_CPPFLAGS = $(AM_CPPFLAGS)
 libcrpxglobal_la_CFLAGS = $(AM_CFLAGS) 
 libcrpxglobal_la_LIBADD = $(GTKDEPS_LIBS) @ZLIB_LIBS@  @LZMA_LIBS@ $(AM_LDFLAGS) 
