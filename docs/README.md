@@ -32,7 +32,7 @@ It includes, however, the `makefile.am` and `configure.ac` for autotools, and it
 
 For full functionality you will need `openmp`, `libcheck`, `zlib`, `bz2`, and `liblzma`. 
 If you can install them system-wide:
-```[bash]
+```bash
 ## 'bootstrap' the configuration files (needed when cloning from github):
 /home/simpson/$ apt-get install pkg-config autotools-dev autoconf automake libtool
 /home/simpson/$ (cd curupixa && autoreconf)  ## the parentheses avoid entering the directory afterwards
@@ -121,4 +121,5 @@ The [logo owl](https://www.flickr.com/photos/biodivlibrary/51267563412/in/album-
 [Fauna japonica v.4 Aves](https://www.flickr.com/photos/biodivlibrary/albums/72157719506234015/with/51267563412/)
 provided by the Biodiversity Heritage Library under the Public Domain.
 
-### Github page  [https://github.com/leomrtns/curupixa](https://github.com/leomrtns/curupixa)
+### Github page
+[https://github.com/leomrtns/curupixa](https://github.com/leomrtns/curupixa)

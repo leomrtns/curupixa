@@ -149,4 +149,5 @@ Not finished yet, but my implementation is based on code by Ivan Vitjuk https://
 released under an ISC License.
 
 
-### Github page  [https://github.com/leomrtns/curupixa](https://github.com/leomrtns/curupixa)
+### Github page
+[https://github.com/leomrtns/curupixa](https://github.com/leomrtns/curupixa)
