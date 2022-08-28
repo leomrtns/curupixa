@@ -23,6 +23,12 @@ know how to solve it :wink:.
 See [more on that below](##how-to-use-it-in-other-projects).
 
 **Etymology:** Curupixá is the name of a Brazilian tree (_Micropholis venulosa_), also known as salgueiro, Guajará, Grumixava, Grubixa, cubixa, Abiurana, Bacu Mixa, etc. 
+
+## Documentation
+
+The documentation is available on [https://leomrtns.github.io/curupixa/](https://leomrtns.github.io/curupixa/). Please
+keep in mind that this software is not ready for general consumption &mdash; it is used internally for [QIB projects](https://github.com/quadram-institute-bioscience/).
+
 ## Installation
 This library is usually not installed directly, but as a submodule of another project. 
 It includes, however, the `makefile.am` and `configure.ac` for autotools, and it provides unit tests from the
