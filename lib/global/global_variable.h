@@ -12,19 +12,24 @@
  * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
  */
 
-/*! \file curupixa.h 
+/*! \file global_variable.h 
  *  \brief headers exposed to other programs
  */
 
-#ifndef _curupixa_toplevel_h_ 
-#define _curupixa_toplevel_h_
+#ifndef _global_global_variable_h_
+#define _global_global_variable_h_
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-#include "global/global_variable.h"
-#include "index_arrangement.h"
+#include "lowlevel.h"
+#include "maths_and_bits.h"
+#include "hash_functions.h" // includes hash_functions_generators.h
+#include "random_number.h"  // includes random_number_generators.h
+
+crpx_global_t crpx_global_init (__attribute__((unused)) uint64_t seed, const char *level_string);
+void crpx_global_finalise (crpx_global_t cglob);
 
 #ifdef __cplusplus
 }

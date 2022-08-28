@@ -17,8 +17,8 @@
  *  hash (DNA bases mapped to a random value) and the spice (initial states used to generate several streams)
  *  These functions and macros are _not_ exposed to the user. Every calling function must include this file. */
 
-#ifndef _curupixa_random_constants_h_
-#define _curupixa_random_constants_h_
+#ifndef _global_random_constants_h_
+#define _global_random_constants_h_
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

@@ -16,8 +16,8 @@
  *  \brief threaded-safe "global" variables (i.e. all functions carry it around); contains logger and PRNG.
  */
 
-#ifndef _curupixa_lowlevel_h_
-#define _curupixa_lowlevel_h_
+#ifndef _global_lowlevel_h_
+#define _global_lowlevel_h_
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

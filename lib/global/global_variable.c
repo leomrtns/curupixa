@@ -11,11 +11,11 @@
  * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
  */
 
-/*! \file curupixa.c 
+/*! \file global_variable.c 
  *  \brief high-level functions handling the global variables. 
  */
 
-#include "curupixa.h"
+#include "global_variable.h"
 
 void global_init_logger (crpx_global_t cglob, const char *level_string);
 void global_init_simd_instructions (crpx_global_t cglob);

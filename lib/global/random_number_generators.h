@@ -14,8 +14,8 @@
 /*! \file random_number_generators.h
  *  \brief PRNGs   */
 
-#ifndef _curupixa_random_number_generators_h_
-#define _curupixa_random_number_generators_h_
+#ifndef _global_random_number_generators_h_
+#define _global_random_number_generators_h_
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

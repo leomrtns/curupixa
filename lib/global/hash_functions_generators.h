@@ -14,8 +14,8 @@
 /*! \file hash_functions_generators.h 
  *  \brief lower level, simple hash functions  */
 
-#ifndef _curupixa_hash_functions_generators_h_ 
-#define _curupixa_hash_functions_generators_h_
+#ifndef _global_hash_functions_generators_h_ 
+#define _global_hash_functions_generators_h_
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

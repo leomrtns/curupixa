@@ -21,7 +21,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include "random_number.h"
+#include "global/global_variable.h"
 
 typedef struct {
   size_t size, *idx; 

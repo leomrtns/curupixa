@@ -15,8 +15,8 @@
  *  \brief high-level PRNGs: depend on crpx_global_t, and know about multithreading  
  *  idea not implemented here: MPI can rely on common stream, based on global_t boolean */
 
-#ifndef _curupixa_random_number_h_
-#define _curupixa_random_number_h_
+#ifndef _global_random_number_h_
+#define _global_random_number_h_
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

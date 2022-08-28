@@ -3,7 +3,7 @@ AC_INIT([curupixa],[0.1],[leomrtns@gmail.com],[],[https://github.com/leomrtns/cu
 AC_CONFIG_AUX_DIR([.])
 
 dnl see AX_CHECK_X86_FEATURES https://www.gnu.org/software/autoconf-archive/ax_check_x86_features.html 
-AC_CONFIG_HEADERS([lib/config.h])
+AC_CONFIG_HEADERS([lib/global/config.h])
 AC_PREFIX_DEFAULT(${HOME})
 dnl libtoolize recomendation
 AC_CONFIG_MACRO_DIR([m4])
@@ -132,7 +132,7 @@ AC_SUBST([MPI_CXXLIBS])
 AC_SUBST([MPI_CXXFLAGS])
 
 dnl generate makefiles (last recipes, after defining CFLAGS etc.)
-AC_CONFIG_FILES([Makefile lib/Makefile tests/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile lib/global/Makefile tests/Makefile])
 AC_OUTPUT
 
 echo \

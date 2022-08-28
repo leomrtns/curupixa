@@ -19,8 +19,8 @@
  *  Includes a few tricks from https://graphics.stanford.edu/~seander/bithacks.html
  */
 
-#ifndef _curupixa_maths_and_bits_h_
-#define _curupixa_maths_and_bits_h_
+#ifndef _global_maths_and_bits_h_
+#define _global_maths_and_bits_h_
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

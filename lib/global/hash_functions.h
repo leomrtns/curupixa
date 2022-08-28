@@ -14,8 +14,8 @@
 /*! \file hash_functions.h 
  *  \brief higher level hash functions (use curupixa_global_t etc.) */
 
-#ifndef _curupixa_hash_functions_h_ 
-#define _curupixa_hash_functions_h_
+#ifndef _global_hash_functions_h_ 
+#define _global_hash_functions_h_
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
