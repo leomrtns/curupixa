@@ -1,4 +1,4 @@
-<img src="recipe/curupixa.png" height="300" align="right" alt="Curupixa">
+<img src="curupixa.png" height="300" align="right" alt="Curupixa">
 
 # Curupixá
 
