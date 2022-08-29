@@ -30,6 +30,7 @@ code to the best of my recollection.
 * https://github.com/skeeto/hash-prospector (CC0)
 
 * https://www.gnu.org/software/gsl/ (GPL-3.0)
+* https://github.com/cran/qrng/ (GPL-3.0)
 
 
 

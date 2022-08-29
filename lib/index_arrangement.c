@@ -15,7 +15,7 @@
 /*! \file index_arrangement.h 
  *  \brief combinations and permutations of indexes: a combination is just the subset of indices k out of n, and a permutation is each of the possible orderings of the subset.
 
- * based on the GSL (Copyright 1996~2007 Brian Gough under a GPL license) */ 
+ * based on the GSL (Copyright 1996~2007 Brian Gough under a GPL3) */ 
 
 #include "index_arrangement.h"
 

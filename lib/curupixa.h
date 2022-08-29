@@ -25,6 +25,7 @@ extern "C" {
 
 #include "global/global_variable.h"
 #include "index_arrangement.h"
+#include "quasi_random.c"
 
 #ifdef __cplusplus
 }

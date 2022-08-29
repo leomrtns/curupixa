@@ -13,7 +13,8 @@
 
 /*! \file index_arrangement.h 
  *  \brief combinations C(M) and permutations P(k,N) for an index vector (i.e. assuming indices 0...M-1 or 0...k-1)
- *  Combinations are 0...M-1 in all orderings, and permutations are all k numbers out of N in increasing order */ 
+ *  Combinations are 0...M-1 in all orderings, and permutations are all k numbers out of N in increasing order. 
+ *  algorithms based on the GSL library (GPL3) */ 
 
 #ifndef _curupixa_index_arrangement_h_
 #define _curupixa_index_arrangement_h_

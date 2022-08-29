@@ -6,9 +6,9 @@ SUBDIRS = global # run Makefile.am on subdirs
 
 LOCALLIBS  = global/libcrpxglobal.la # convenience (internal) libraries
 
-common_headers = index_arrangement.h
+common_headers = index_arrangement.h quasi_random.h quasi_random_constants.h
 
-common_src     = index_arrangement.c
+common_src     = index_arrangement.c quasi_random.c 
 
 otherincludedir = $(includedir)/curupixa
 otherinclude_HEADERS = curupixa.h $(common_headers) # if headers are here (=global) should not be on SOURCES (=local)
