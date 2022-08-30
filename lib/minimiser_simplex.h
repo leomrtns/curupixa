@@ -11,31 +11,22 @@
  * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
  */
 
-/*! \file quasi_random.h 
- *  \brief Quasi-random number generator using Halton and Korobov sequences.
- *  algorithms based on the GSL library (GPL3) and R's qrng (GPL-3) */ 
+/*! \file minimiser_simplex.h 
+ *  \brief  The Simplex method of Nelder and Mead, also known as the polytope search alogorithm, from the GSL (GPL-3.0)
+ * Ref: Nelder, J.A., Mead, R., Computer Journal 7 (1965) pp. 308-313. This implementation uses n+1 corner points in the simplex. 
+ * This is the "simplex2" algorithm from GSL, where the size of simplex is calculated as the RMS distance of each vertex from the center 
+ * rather than the mean distance. */
 
-#ifndef _curupixa_quasi_random_h_
-#define _curupixa_quasi_random_h_
+#ifndef _curupixa_minimiser_simplex_h_
+#define _curupixa_minimiser_simplex_h_
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
 #include "global/global_variable.h"
 
-typedef struct {
-  size_t size, leap, rem, iteration; /*!< leap and remainder are used by halton */
-  double *r, *ko; /*!< r = vector with quasi-random, ko = korobov aux vector with weights (random generators) */
-  crpx_global_t cglob;
-} crpx_quasi_random_struct, *crpx_quasi_random_t;
-
-crpx_quasi_random_t new_crpx_quasi_random (crpx_global_t cglob, size_t size);
-void del_crpx_quasi_random (crpx_quasi_random_t q);
-void crpx_quasi_random_reset (crpx_quasi_random_t q);
-void crpx_quasi_random_next_korobov (crpx_quasi_random_t q);
-void crpx_quasi_random_next_halton (crpx_quasi_random_t q);
-void crpx_quasi_random_next_halton_original (crpx_quasi_random_t q);
-
+/* Copyright (C) 2007, 2008, 2009 Brian Gough <bjg@network-theory.co.uk>, from the GSL (GPL-3.0)
+ * Copyright (C) 2002 Tuomo Keskitalo <tuomo.keskitalo@iki.fi>, Ivo Alxneit  <ivo.alxneit@psi.ch>, from the GSL (GPL-3.0) */
 
 #ifdef __cplusplus
 }

@@ -115,7 +115,7 @@ extern "C" {
 /*! \brief All global variables should be here; by creating several PRNG streams it's thread-safe even if user unaware of openMP; 
  * Should work with nested parallelism; All functions assume single crpx_global_t is created, since we rely on omp single */ 
 typedef struct {
-  uint64_t nthreads:16, 
+  uint64_t nthreads:16, // bit-fields lead to type promotion when distinct sizes, so best to compare equal to equal  
            loglevel_stderr:4, loglevel_file:4, 
            error:2,      /*!< set by crpx_logger(): 0 - no error, 1 - error (may continue), 2 - fatal (must halt) */
            sse:1, avx:1, /*!< checked at _runtime_ (if host CPU allows, irrespective of being build with support or not) */
@@ -140,6 +140,8 @@ void *crpx_realloc_with_errmsg (const char *c_file, const int c_line, crpx_globa
 /*! \brief Memory-safe reallocarray() function, with default error message in case of failure. Variadic args start at cglobal. 
  * In case of error, it does _not_ touch/free *ptr, but returns NULL; thus DO NOT ptr = reallocarray (ptr)  but use a pivot/tmp instead */
 void *crpx_reallocarray_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, void *ptr, size_t nmemb, size_t size);
+/*! \brief Memory-safe free() function, with default error message in case of failure. Variadic args start at cglobal. If cglobal==NULL no message is print */
+void crpx_free_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, void *ptr);
 
 void crpx_link_add_global_pointer (crpx_global_t original, crpx_global_t new);
 

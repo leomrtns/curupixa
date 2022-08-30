@@ -54,7 +54,8 @@ crpx_set_random_generator (crpx_global_t cglob, uint8_t rng_id, uint64_t seed)
   if (success_bytes < n_bytes)  // or seed==0 or cpu random was not successful
     crpx_generate_bytesized_random_seeds_from_seed (cglob, seed_vector_bytes + success_bytes, n_bytes - success_bytes, seed);
 
-  for (i = 0; i < cglob->rng_size * cglob->nthreads; i++) cglob->rng_seed_vector[i] |= 1ULL; // some generators assume odd seeds
+  // diff length integers lead to integer promotion
+  for (i = 0; i < (unsigned int)(cglob->rng_size * cglob->nthreads); i++) cglob->rng_seed_vector[i] |= 1ULL; // some generators assume odd seeds
   // warm up the random number generator (mt19937 and xorshift528 need a counter reset)
   for (i = 0; i < cglob->nthreads; i++) for (j = 0; j < cglob->rng_size; j++) { 
     cglob->rng_get (cglob->rng_seed_vector + i * cglob->rng_size);// j is a counter, while i is a thread index

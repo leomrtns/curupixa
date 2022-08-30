@@ -28,15 +28,18 @@ crpx_quasi_random_t
 new_crpx_quasi_random (crpx_global_t cglob, size_t size)
 {
   crpx_quasi_random_t q = (crpx_quasi_random_t) crpx_malloc (cglob, sizeof (crpx_quasi_random_struct));
+  if (!q) return NULL;
+
   q->r = q->ko = NULL;
+  q->cglob = NULL;
   q->r = (double*) crpx_malloc (cglob, size  * sizeof (double));
   if (!q->r) {
-    free (q);
+    del_crpx_quasi_random (q);
     return NULL;
   }
   q->ko = (double *) crpx_malloc (cglob, size  * sizeof (double));
   if (!q->ko) {
-    free (q);
+    del_crpx_quasi_random (q);
     return NULL;
   }
   q->size = size;
@@ -54,9 +57,9 @@ void
 del_crpx_quasi_random (crpx_quasi_random_t q)
 {
   if (!q) return;
+  crpx_free (cglob, q->r);
+  crpx_free (cglob, q->ko);
   crpx_global_finalise (q->cglob); // it should just decrease ref_counter unless user called it in wrong order 
-  if (q->r)  free (q->r);
-  if (q->ko) free (q->ko);
   free (q);
 }
 

@@ -92,18 +92,18 @@ global_init_threads_rng (crpx_global_t cglob, __attribute__((unused)) uint64_t s
 void
 crpx_global_finalise (crpx_global_t cglob)
 {
-  if (cglob) {
-    #pragma omp atomic
-    cglob->ref_counter--;
-    
-    if (cglob->ref_counter > 0) return;
-    #pragma omp single
-    {
-      if (cglob->logfile) { fclose (cglob->logfile); cglob->logfile = NULL; cglob->loglevel_file = CRPX_LOGLEVEL_DEBUG + 1; }
-      crpx_logger_verbose (cglob, "Finalising global variables, program finished in %lf seconds.", crpx_update_elapsed_time_128bits (cglob->elapsed_time));
-      if (cglob->rng_seed_vector) { free (cglob->rng_seed_vector); cglob->rng_seed_vector = NULL; }
-      free (cglob);
-    }
-  }
+  if (!cglob) return;
+
+#pragma omp atomic
+  cglob->ref_counter--;
+
+  if (cglob->ref_counter > 0) return;
+#pragma omp single
+   {
+    if (cglob->logfile) { fclose (cglob->logfile); cglob->logfile = NULL; cglob->loglevel_file = CRPX_LOGLEVEL_DEBUG + 1; }
+    crpx_logger_verbose (cglob, "Finalising global variables, program finished in %lf seconds.", crpx_update_elapsed_time_128bits (cglob->elapsed_time));
+    if (cglob->rng_seed_vector) { free (cglob->rng_seed_vector); cglob->rng_seed_vector = NULL; }
+    free (cglob);
+   }
 }
 

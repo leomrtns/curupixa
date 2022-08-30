@@ -25,13 +25,11 @@ crpx_index_permutation_t
 crpx_index_permutation_new (crpx_global_t cglob, size_t n)
 {
   crpx_index_permutation_t p = (crpx_index_permutation_t) crpx_malloc (cglob, sizeof (crpx_index_permutation_struct));
+  if (!p) return NULL;
   p->size = n;
   p->idx = NULL;
   p->idx = (size_t *) crpx_malloc (cglob, n * sizeof (size_t));
-  if (!p->idx) {
-    free (p);
-    return NULL;
-  }
+  if (!p->idx) { crpx_free (cglob, p); return NULL; }
   crpx_link_add_global_pointer (cglob, p->cglob); // thread-safe increase of ref_counter
   crpx_index_permutation_reset (p);
   return p;
@@ -41,8 +39,8 @@ void
 del_crpx_index_permutation (crpx_index_permutation_t p)
 {
   if (!p) return;
+  crpx_free (p->cglob, p->idx);  // free() with message if p->idx is NULL
   crpx_global_finalise (p->cglob); // it just decreases cglob->ref_counter unless order was inverted in main
-  if (p->idx) free (p->idx);
   free (p);
 }
 
@@ -192,14 +190,12 @@ crpx_index_combination_t
 crpx_index_combination_new (crpx_global_t cglob, size_t n, size_t k)
 {
   crpx_index_combination_t c = (crpx_index_combination_t) crpx_malloc (cglob, sizeof (crpx_index_combination_struct));
+  if (!c) return NULL;
   c->n = n;
   c->k = k;
   c->idx = NULL;
   c->idx = (size_t *) crpx_malloc (cglob, k * sizeof (size_t));
-  if (!c->idx) {
-    free (c);
-    return NULL;
-  }
+  if (!c->idx) { crpx_free (cglob, c); return NULL; }
   crpx_link_add_global_pointer (cglob, c->cglob); // thread-safe increase of ref_counter
   crpx_index_combination_reset_first (c);
   return c;
@@ -209,8 +205,8 @@ void
 del_crpx_index_combination (crpx_index_combination_t c)
 {
   if (!c) return;
+  crpx_free (c->cglob, c->idx);
   crpx_global_finalise (c->cglob); // it just decreases cglob->ref_counter unless order was inverted in main
-  if (c->idx) free (c->idx);
   free (c);
 }
 

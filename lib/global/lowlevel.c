@@ -29,16 +29,14 @@ const char *prt_col[][8]={ // 0-black   1-red   2-grn   3-yel   4-blu   5-mag   
 }; // OBS: '\e' is GNU only; '\033' is pedantic
 
 
-void // used through a macro (without error message)
+void
 crpx_free_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, void *ptr)
 {
-  if (ptr) { 
-    free (ptr); ptr = NULL; 
-  } else {
-    crpx_logger_message (CRPX_LOGLEVEL_DEBUG, c_file, c_line, cglobal, "Trying to free a NULL pointer.");
-  }
+  if (ptr) { free (ptr); ptr = NULL; return; }
+  if (cglobal) crpx_logger_message (CRPX_LOGLEVEL_DEBUG, c_file, c_line, cglobal, "Trying to free a NULL pointer.");
   return;
 }
+
 
 void *
 crpx_malloc_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, size_t size)
