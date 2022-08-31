@@ -22,6 +22,9 @@
 /* Copyright (C) 2007, 2008, 2009 Brian Gough <bjg@network-theory.co.uk>, from the GSL (GPL-3.0)
  * Copyright (C) 2002 Tuomo Keskitalo <tuomo.keskitalo@iki.fi>, Ivo Alxneit  <ivo.alxneit@psi.ch>, from the GSL (GPL-3.0) */
 
+// TODO: I assume that F() returns finite or NaN in error, but a good F() should return mInf or pInf also 
+const double CRPX_pInf = 1./0., CRPX_mInf = -1./0., CRPX_NaN = 0./0.; 
+
 typedef struct {
   double **x1;   /* simplex corner points , each row is one corner and cols are dimensions */
   double *y1,    /* function value at corner points */
@@ -31,8 +34,11 @@ typedef struct {
          *delta, /* current step */
          *xmc;   /* x - center (workspace) */
   double S2;
-  unsigned long count;
+  unsigned long count; /*!< number of attempts at initial state */
 
+  /* above are from gsl_multimin_fminimizer_type (lowlevel) and below are some from gsl_multimin_fminimizer and other high level */
+
+  double simplex_size, minimum; /*!< from gsl_multimin_fminimizer not gsl_multimin_fminimizer_type in GSL */
   double (*F)(double *, void *); /*!< function receiving n dimensions (and possibly extra parameters) and returning a double */
   void *params; /*!< extra parameters for the function */
   size_t size1, size2; /*!< size1 = n_rows (corners), size2 = n_cols (dimensions) */
@@ -100,404 +106,224 @@ del_crpx_simplex_t (crpx_simplex_t s)
   free (s);
 }
 
+void
+local_blas_daxpy (size_t n, double a, double *x, double *y)
+{
+  size_t i, m = n % 4;
 
+  for (i = 0; i < m; i++) y[i] += a * x[i];
+  for (i = m; i + 3 < n; i += 4) {
+    y[i] += a * x[i];
+    y[i+1] += a * x[i+1];
+    y[i+2] += a * x[i+2];
+    y[i+3] += a * x[i+3];
+  }
+}
+  
+double
+local_blas_dnrm2 (size_t n, double *x)
+{
+  double xabs, scale = 0.0, ssq = 1.0;
+  size_t i;
 
+  if (n == 1) return fabs (x[0]);
+  for (i = 0; i < n; i++) if (x[i] != 0.0) {
+    xabs = fabs (x[i]);
+    if (xabs > scale) {
+      ssq = 1.0 + ssq * (scale / xabs) * (scale / xabs);
+      scale = xabs;
+    } else {
+      ssq += (xabs / scale) * (xabs / scale);
+    }
+  }
+  return scale * sqrt (ssq);
+}
 
 static double
-try_corner_move (const double coeff,
-		 const nmsimplex_state_t * state,
-		 size_t corner,
-		 gsl_vector * xc, const gsl_multimin_function * f)
+try_corner_move (crpx_simplex_t sim, const double coeff, size_t corner, double *xc)
 {
-  /* moves a simplex corner scaled by coeff (negative value represents 
-     mirroring by the middle point of the "other" corner points)
-     and gives new corner in xc and function value at xc as a 
-     return value 
-   */
+  /* moves a simplex corner scaled by coeff (negative value represents mirroring by the middle point of the "other" corner points)
+   * and gives new corner in xc and function value at xc as a return value */
 
-  gsl_matrix *x1 = state->x1;
-  const size_t P = x1->size1;
-  double newval;
-
+  const double P = (double) sim->size1;
   /* xc = (1-coeff)*(P/(P-1)) * center(all) + ((P*coeff-1)/(P-1))*x_corner */
-  {
-    double alpha = (1 - coeff) * P / (P - 1.0);
-    double beta = (P * coeff - 1.0) / (P - 1.0);
-    gsl_vector_const_view row = gsl_matrix_const_row (x1, corner);
+  double alpha = (1 - coeff) * P / (P - 1.0);
+  double beta = (P * coeff - 1.0) / (P - 1.0);
+  size_t i, m;
 
-    gsl_vector_memcpy (xc, state->center);
-    gsl_blas_dscal (alpha, xc);
-    gsl_blas_daxpy (beta, &row.vector, xc);
-  }
-
-  newval = GSL_MULTIMIN_FN_EVAL (f, xc);
-
-  return newval;
+  for (size_t i = 0; i < sim->size2; i++) xc[i] = sim->center[i] * alpha; // gsl_blas_dscal (alpha,xc) with xc = center
+  local_blas_daxpy (sim->size2, beta, sim->x1[corner], xc);
+  return sim->F (xc, sim->params);
 }
-
 
 static void
-update_point (nmsimplex_state_t * state, size_t i,
-	      const gsl_vector * x, double val)
+update_point (crpx_simplex_t sim, size_t corner, const double *x, double val)
 {
-  gsl_vector_const_view x_orig = gsl_matrix_const_row (state->x1, i);
-  const size_t P = state->x1->size1;
+  const double xmcd = 0., P = (double) sim->size1;
 
   /* Compute delta = x - x_orig */
-  gsl_vector_memcpy (state->delta, x);
-  gsl_blas_daxpy (-1.0, &x_orig.vector, state->delta);
-
+  memcpy (sim->delta, x, sizeof (double) * sim->size2); // delta is tmp array from crpx_simplex_t
+  local_blas_daxpy (sim->size2, -1.0, sim->x1[corner], sim->delta);
   /* Compute xmc = x_orig - c */
-  gsl_vector_memcpy (state->xmc, &x_orig.vector);
-  gsl_blas_daxpy (-1.0, state->center, state->xmc);
+  memcpy (sim->xmc, sim->x1[corner], sizeof (double) * sim->size2); // xmc is tmp array from crpx_simplex_t
+  local_blas_daxpy (sim->size2, -1.0, sim->center, sim->xmc);
 
   /* Update size: S2' = S2 + (2/P) * (x_orig - c).delta + (P-1)*(delta/P)^2 */
-  {
-    double d = gsl_blas_dnrm2 (state->delta);
-    double xmcd;
-    gsl_blas_ddot (state->xmc, state->delta, &xmcd);
-    state->S2 += (2.0 / P) * xmcd + ((P - 1.0) / P) * (d * d / P);
-  }
+  double d = local_blas_dnrm2 (sim->size2, sim->delta);
+  for (size_t i = 0; i < sim->size2; i++) xmcd += sim->xmc[i] * sim->delta[i]; //  gsl_blas_ddot (state->xmc, state->delta, &xmcd);
+  sim->S2 += (2.0 / P) * xmcd + ((P - 1.0) / P) * (d * d / P);
 
   /* Update center:  c' = c + (x - x_orig) / P */
+  double alpha = 1.0 / P;
+  local_blas_daxpy (-alpha, sim->x1[corner], sim->center);
+  local_blas_daxpy (alpha, x, sim->center);
 
-  {
-    double alpha = 1.0 / P;
-    gsl_blas_daxpy (-alpha, &x_orig.vector, state->center);
-    gsl_blas_daxpy (alpha, x, state->center);
-  }
-
-  gsl_matrix_set_row (state->x1, i, x);
-  gsl_vector_set (state->y1, i, val);
+  memcpy (sim->x1[corner], x, sizeof (double) * sim->size2); // actual update of the corner point
+  sim->y1[corner] = val; // and the function value at it
 }
 
-static int
-contract_by_best (nmsimplex_state_t * state, size_t best,
-		  gsl_vector * xc, gsl_multimin_function * f)
+static bool 
+contract_by_best (crpx_simplex_t sim, size_t best, double *xc)
 {
-
-  /* Function contracts the simplex in respect to best valued
-     corner. That is, all corners besides the best corner are moved.
-     (This function is rarely called in practice, since it is the last
-     choice, hence not optimised - BJG)  */
+/* Function contracts the simplex in respect to best valued corner. That is, all corners besides the best corner are moved.
+ * (This function is rarely called in practice, since it is the lastchoice, hence not optimised - BJG)  */
 
   /* the xc vector is simply work space here */
-
   gsl_matrix *x1 = state->x1;
   gsl_vector *y1 = state->y1;
 
   size_t i, j;
-  double newval;
+  double status_success = true;
 
-  int status = GSL_SUCCESS;
-
-  for (i = 0; i < x1->size1; i++)
-    {
-      if (i != best)
-	{
-	  for (j = 0; j < x1->size2; j++)
-	    {
-	      newval = 0.5 * (gsl_matrix_get (x1, i, j)
-			      + gsl_matrix_get (x1, best, j));
-	      gsl_matrix_set (x1, i, j, newval);
-	    }
-
-	  /* evaluate function in the new point */
-
-	  gsl_matrix_get_row (xc, x1, i);
-	  newval = GSL_MULTIMIN_FN_EVAL (f, xc);
-	  gsl_vector_set (y1, i, newval);
-
-	  /* notify caller that we found at least one bad function value.
-	     we finish the contraction (and do not abort) to allow the user
-	     to handle the situation */
-
-	  if (!gsl_finite (newval))
-	    {
-	      status = GSL_EBADFUNC;
-	    }
-	}
-    }
-
+  for (i = 0; i < sim->size1; i++) if (i != best) {
+    for (j = 0; j < x1->size2; j++) sim->x1[i][j] = 0.5 * sim->x1[i][j] + sim->x1[best][j];
+    /* evaluate function in the new point */
+    memcp (xc, sim->x1[i], sizeof (double) * sim->size2);
+    sim->y1[i] = sim->F (xc, sim->params);
+    if (sim->y1[i] == CRPX_NaN) status_success = false; /* at least one bad function value; let user handle the situation */
+  }
   /* We need to update the centre and size as well */
-  compute_center (state, state->center);
-  compute_size (state, state->center);
-
-  return status;
+  compute_center (sim);
+  compute_size (sim);
+  return status_success;
 }
 
-static int
-compute_center (const nmsimplex_state_t * state, gsl_vector * center)
-{
-  /* calculates the center of the simplex and stores in center */
-
-  gsl_matrix *x1 = state->x1;
-  const size_t P = x1->size1;
+void
+compute_center (crpx_simplex_t sim)
+{  /* calculates the center of the simplex and stores in center */
+  double alpha = 1.0 / (double) (sim->size1);
   size_t i;
-
-  gsl_vector_set_zero (center);
-
-  for (i = 0; i < P; i++)
-    {
-      gsl_vector_const_view row = gsl_matrix_const_row (x1, i);
-      gsl_blas_daxpy (1.0, &row.vector, center);
-    }
-
-  {
-    const double alpha = 1.0 / P;
-    gsl_blas_dscal (alpha, center);
-  }
-
-  return GSL_SUCCESS;
+#ifdef __STDC_IEC_559__ // almost any compiler should have this defined, it states that (int) 0 == (double) 0.0
+  memset (sim->center, 0, sizeof (double) * sim->size2); // gsl_vector_set_zero (sim->center);
+#else
+  for (i = 0; i < sim->size2; i++) sim->center[i] = 0.0;
+#endif
+  for (i = 0; i < sim->size1; i++) local_blas_daxpy (sim->size2, 1.0, sim->x1[i], sim->center); // gsl_blas_daxpy (1.0, sim->x1[i], sim->center);
+  for (i = 0; i < sim->size2; i++) center[i] = sim->center * alpha; // gsl_blas_dscal (alpha,center)
 }
 
 static double
-compute_size (nmsimplex_state_t * state, const gsl_vector * center)
-{
-  /* calculates simplex size as rms sum of length of vectors 
-     from simplex center to corner points:     
-
-     sqrt( sum ( || y - y_middlepoint ||^2 ) / n )
-   */
-
-  gsl_vector *s = state->ws1;
-  gsl_matrix *x1 = state->x1;
-  const size_t P = x1->size1;
+compute_size (crpx_simplex_t sim) // sim->center
+{ /* calculates simplex size as rms sum of length of vectors  from simplex center to corner points:     
+   * sqrt( sum ( || y - y_middlepoint ||^2 ) / n )  */
   size_t i;
+  double t, ss = 0.0;
 
-  double ss = 0.0;
-
-  for (i = 0; i < P; i++)
-    {
-      double t;
-      gsl_matrix_get_row (s, x1, i);
-      gsl_blas_daxpy (-1.0, center, s);
-      t = gsl_blas_dnrm2 (s);
-      ss += t * t;
-    }
-
-  /* Store squared size in the state */
-  state->S2 = (ss / P);
-
-  return sqrt (ss / P);
+  for (i = 0; i < sim->size1; i++) {
+    memcpy (sim->ws1, sim->x1[i], sizeof (double) * sim->size2); // gsl_matrix_get_row (s, x1, i); with s = wc1
+    local_blas_daxpy (sim->size2, -1.0, sim->center, sim->ws1);  // gsl_blas_daxpy (-1.0, sim->center, s);
+    t = local_blas_dnrm2 (sim->size2, sim->ws1); // gsl_blas_dnrm2 (s);
+    ss += t * t;
+  }
+  sim->S2 = (ss / (double) sim->size1);  /* Store squared size in the state */
+  return sqrt (sim->S2);
 }
 
-static int
-nmsimplex_set (void *vstate, gsl_multimin_function * f,
-	       const gsl_vector * x,
-	       double *size, const gsl_vector * step_size)
+size_t
+crpx_simplex_initial_state (crpx_simplex_t sim, const double *x0, double *step_size)
 {
-  int status;
   size_t i;
   double val;
 
-  nmsimplex_state_t *state = (nmsimplex_state_t *) vstate;
-
-  gsl_vector *xtemp = state->ws1;
-
-  if (xtemp->size != x->size)
-    {
-      GSL_ERROR ("incompatible size of x", GSL_EINVAL);
-    }
-
-  if (xtemp->size != step_size->size)
-    {
-      GSL_ERROR ("incompatible size of step_size", GSL_EINVAL);
-    }
-
+  sim->count++;
   /* first point is the original x0 */
-
-  val = GSL_MULTIMIN_FN_EVAL (f, x);
-
-  if (!gsl_finite (val))
-    {
-      GSL_ERROR ("non-finite function value encountered", GSL_EBADFUNC);
-    }
-
-  gsl_matrix_set_row (state->x1, 0, x);
-  gsl_vector_set (state->y1, 0, val);
+  sim->y1[0] = sim->F (x0, sim->params);
+  memcpy (sim->x1[0], x0, sizeof (double) * sim->size2); // gsl_matrix_set_row (state->x1, 0, x);
+  /* unlike GSL, we copy x0 even if it is NaN so that user can do a post mortem */
+  if (sim->y1[0] == CRPX_NaN) return 0; // return how many successful dimensions
 
   /* following points are initialized to x0 + step_size */
-
-  for (i = 0; i < x->size; i++)
-    {
-      status = gsl_vector_memcpy (xtemp, x);
-
-      if (status != 0)
-	{
-	  GSL_ERROR ("vector memcopy failed", GSL_EFAILED);
-	}
-
-      {
-	double xi = gsl_vector_get (x, i);
-	double si = gsl_vector_get (step_size, i);
-
-	gsl_vector_set (xtemp, i, xi + si);
-	val = GSL_MULTIMIN_FN_EVAL (f, xtemp);
-      }
-
-      if (!gsl_finite (val))
-	{
-	  GSL_ERROR ("non-finite function value encountered", GSL_EBADFUNC);
-	}
-
-      gsl_matrix_set_row (state->x1, i + 1, xtemp);
-      gsl_vector_set (state->y1, i + 1, val);
-    }
-
-  compute_center (state, state->center);
-
-  /* Initialize simplex size */
-  *size = compute_size (state, state->center);
-
-  state->count++;
-
-  return GSL_SUCCESS;
+  for (i = 0; i < sim->size2; i++) {
+    memcpy (sim->ws1, x0, sizeof (double) * sim->size2); // status = gsl_vector_memcpy (xtemp, x); with xtemp=ws1
+    sim->ws1[i] = x0[i] + step_size[i]; // gsl_vector_set (xtemp, i, gsl_vector_get (x, i) + gsl_vector_get (step_size, i) );
+    sim->y1[i + 1] = sim->F (sim->ws1, sim->params); 
+    memcpy (sim->x1[i + 1], sim->ws1, sizeof (double) * sim->size2); // gsl_matrix_set_row (state->x1, i+1, xtemp);
+    if (sim->y1[i + 1] == CRPX_NaN) return i + 1; // return how many successful dimensions
+  }
+  compute_center (sim);
+  sim->simplex_size = compute_size (sim);  /* Initialize simplex size */
+  return i + 1; // sim->size2
 }
 
-static int
-nmsimplex_iterate (void *vstate, gsl_multimin_function * f,
-		   gsl_vector * x, double *size, double *fval)
-{
-
-  /* Simplex iteration tries to minimize function f value */
-  /* Includes corrections from Ivo Alxneit <ivo.alxneit@psi.ch> */
-
-  nmsimplex_state_t *state = (nmsimplex_state_t *) vstate;
-
+//static int nmsimplex_iterate (void *vstate, gsl_multimin_function * f, gsl_vector * x, double *size, double *fval)
+bool
+crpx_simplex_iterate (crpx_simplex_t sim)
+{ /* Simplex iteration tries to minimize function f value; w/ corrections from Ivo Alxneit <ivo.alxneit@psi.ch> */
   /* xc and xc2 vectors store tried corner point coordinates */
-
-  gsl_vector *xc = state->ws1;
-  gsl_vector *xc2 = state->ws2;
-  gsl_vector *y1 = state->y1;
-  gsl_matrix *x1 = state->x1;
-
-  const size_t n = y1->size;
-  size_t i;
-  size_t hi, s_hi, lo;
-  double dhi, ds_hi, dlo;
-  int status;
+  bool status;
   double val, val2;
-
-  if (xc->size != x->size)
-    {
-      GSL_ERROR ("incompatible size of x", GSL_EINVAL);
-    }
+  double dhi, ds_hi, dlo;
+  size_t  hi,  s_hi,  lo;
+  size_t i;
 
   /* get index of highest, second highest and lowest point */
+  dhi = dlo = sim->y1[0];  hi = lo = 0;
+  ds_hi = sim->y1[1];    s_hi = 1;
 
-  dhi = dlo = gsl_vector_get (y1, 0);
-  hi = 0;
-  lo = 0;
+  for (i = 1; i < sim->size1; i++) {
+    val = sim->y1[i];
+    if (val < dlo)        {   dlo = val;   lo = i; }
+    else if (val > dhi)   { ds_hi = dhi; s_hi = hi;  dhi = val;  hi = i;  }
+    else if (val > ds_hi)	{ ds_hi = val; s_hi = i;  }
+  }
 
-  ds_hi = gsl_vector_get (y1, 1);
-  s_hi = 1;
+  val = try_corner_move (sim, -1., hi, sim->ws1);  /* try reflecting the highest value point */
 
-  for (i = 1; i < n; i++)
-    {
-      val = (gsl_vector_get (y1, i));
-      if (val < dlo)
-	{
-	  dlo = val;
-	  lo = i;
-	}
-      else if (val > dhi)
-	{
-	  ds_hi = dhi;
-	  s_hi = hi;
-	  dhi = val;
-	  hi = i;
-	}
-      else if (val > ds_hi)
-	{
-	  ds_hi = val;
-	  s_hi = i;
-	}
+  if ((val != CRPX_NaN) && (val < sim->y1[lo])) { /* reflected point is lowest, try expansion */
+      val2 = try_corner_move (sim, -2.0, hi, sim->ws2);
+      if ((val2 != CRPX_NaN) && (val2 < sim->y1[lo])) { update_point (sim, hi, sim->ws2, val2); }
+      else                                            { update_point (sim, hi, sim->ws1, val);	}
+
+  } else if ((val == CPRX_NaN) || (val > sim->y1[s_hi])) { /* reflection does not improve things enough, or we got a non-finite function value */
+    if ((val != CRPX_NaN) && (val <= sim->y1[hi])) { update_point (sim, hi, sim->ws1, val); } /* trial point is better than highest point */
+    val2 = try_corner_move (sim. 0.5, hi, sim->ws2); /* try one-dimensional contraction */
+    if ((val2 != CRPX_NaN) && (val2 <= sim->y1[hi])) { update_point (sim, hi, sim->ws2, val2); }
+    else { /* contract the whole simplex about the best point */
+      status = contract_by_best (sim, lo, sim->ws1);
+      if (!status) { return false; }
     }
 
-  /* try reflecting the highest value point */
-
-  val = try_corner_move (-1.0, state, hi, xc, f);
-
-  if (gsl_finite (val) && val < gsl_vector_get (y1, lo))
-    {
-      /* reflected point is lowest, try expansion */
-
-      val2 = try_corner_move (-2.0, state, hi, xc2, f);
-
-      if (gsl_finite (val2) && val2 < gsl_vector_get (y1, lo))
-	{
-	  update_point (state, hi, xc2, val2);
-	}
-      else
-	{
-	  update_point (state, hi, xc, val);
-	}
-    }
-  else if (!gsl_finite (val) || val > gsl_vector_get (y1, s_hi))
-    {
-      /* reflection does not improve things enough, or we got a
-         non-finite function value */
-
-      if (gsl_finite (val) && val <= gsl_vector_get (y1, hi))
-	{
-	  /* if trial point is better than highest point, replace
-	     highest point */
-
-	  update_point (state, hi, xc, val);
-	}
-
-      /* try one-dimensional contraction */
-
-      val2 = try_corner_move (0.5, state, hi, xc2, f);
-
-      if (gsl_finite (val2) && val2 <= gsl_vector_get (y1, hi))
-	{
-	  update_point (state, hi, xc2, val2);
-	}
-      else
-	{
-	  /* contract the whole simplex about the best point */
-
-	  status = contract_by_best (state, lo, xc, f);
-
-	  if (status != GSL_SUCCESS)
-	    {
-	      GSL_ERROR ("contraction failed", GSL_EFAILED);
-	    }
-	}
-    }
-  else
-    {
-      /* trial point is better than second highest point.  Replace
-         highest point by it */
-
-      update_point (state, hi, xc, val);
-    }
-
+  } else { /* trial point is better than second highest point.  Replace highest point by it */
+    update_point (sim, hi, sim->ws1, val);
+  }
+// STOPHERE
   /* return lowest point of simplex as x */
-
-  lo = gsl_vector_min_index (y1);
+  lo = gsl_vector_min_index (y1); // FIXME: gsl does it by brute force 
   gsl_matrix_get_row (x, x1, lo);
   *fval = gsl_vector_get (y1, lo);
 
   /* Update simplex size */
-  
-  {
-    double S2 = state->S2;
+  double S2 = state->S2;
 
-    if (S2 > 0)
-      {
-	*size = sqrt (S2);
-      }
-    else
-      {
-	/* recompute if accumulated error has made size invalid */
-	*size = compute_size (state, state->center);
-      }
+  if (S2 > 0) {
+    *size = sqrt (S2);
+  }
+  else {
+    /* recompute if accumulated error has made size invalid */
+    *size = compute_size (state, state->center);
   }
 
-  return GSL_SUCCESS;
+  return true;
 }
 
 static const gsl_multimin_fminimizer_type nmsimplex_type = 
