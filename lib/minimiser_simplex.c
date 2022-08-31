@@ -33,12 +33,12 @@ typedef struct {
          *center,/* center of all points */
          *delta, /* current step */
          *xmc;   /* x - center (workspace) */
-  double S2;
+  double S2; /*!< simplex_size squared */
   unsigned long count; /*!< number of attempts at initial state */
 
   /* above are from gsl_multimin_fminimizer_type (lowlevel) and below are some from gsl_multimin_fminimizer and other high level */
 
-  double simplex_size, minimum; /*!< from gsl_multimin_fminimizer not gsl_multimin_fminimizer_type in GSL */
+  double *min_x, simplex_size, min_y; /*!< from gsl_multimin_fminimizer not gsl_multimin_fminimizer_type in GSL */
   double (*F)(double *, void *); /*!< function receiving n dimensions (and possibly extra parameters) and returning a double */
   void *params; /*!< extra parameters for the function */
   size_t size1, size2; /*!< size1 = n_rows (corners), size2 = n_cols (dimensions) */
@@ -82,9 +82,13 @@ new_crpx_simplex_t (crpx_global_t cglob, size_t n, (*f)(double*,void*), void *ex
   s->xmc = (double*) crpx_malloc (cglob, sizeof (double) * s->size2);
   if (!s->xmc) { del_crpx_simplex_t (s); return NULL; }
 
+  s->best_x = NULL; // pointer to best element of x1
+
   state->count = 0;
   s->F = f;
   s->params = extra_parameters;
+  s->simplex_size = CRPX_NaN;
+  s->minimum = CRPX_NaN;
 
   return s;
 }
@@ -242,8 +246,7 @@ compute_size (crpx_simplex_t sim) // sim->center
 size_t
 crpx_simplex_initial_state (crpx_simplex_t sim, const double *x0, double *step_size)
 {
-  size_t i;
-  double val;
+  size_t i, best_i;
 
   sim->count++;
   /* first point is the original x0 */
@@ -262,6 +265,9 @@ crpx_simplex_initial_state (crpx_simplex_t sim, const double *x0, double *step_s
   }
   compute_center (sim);
   sim->simplex_size = compute_size (sim);  /* Initialize simplex size */
+  sim->min_y = DBL_MAX;
+  for (i = 0; i < sim->size1; i++) if (sim->min_y > sim->y1[i]) { sim->min_y = sim->y1[i]; best_i = i; }
+  sim->min_x = sim->x1[best_i]; // GSL version does not compute this
   return i + 1; // sim->size2
 }
 
@@ -269,7 +275,7 @@ crpx_simplex_initial_state (crpx_simplex_t sim, const double *x0, double *step_s
 bool
 crpx_simplex_iterate (crpx_simplex_t sim)
 { /* Simplex iteration tries to minimize function f value; w/ corrections from Ivo Alxneit <ivo.alxneit@psi.ch> */
-  /* xc and xc2 vectors store tried corner point coordinates */
+  /* ws1 and ws2 vectors store tried corner point coordinates */
   bool status;
   double val, val2;
   double dhi, ds_hi, dlo;
@@ -306,46 +312,17 @@ crpx_simplex_iterate (crpx_simplex_t sim)
   } else { /* trial point is better than second highest point.  Replace highest point by it */
     update_point (sim, hi, sim->ws1, val);
   }
-// STOPHERE
   /* return lowest point of simplex as x */
-  lo = gsl_vector_min_index (y1); // FIXME: gsl does it by brute force 
-  gsl_matrix_get_row (x, x1, lo);
-  *fval = gsl_vector_get (y1, lo);
+  sim->min_y = DBL_MAX;
+  for (i = 0; i < sim->size1; i++) if (sim->min_y > sim->y1[i]) { sim->min_y = sim->y1[i]; best_i = i; }
+  sim->min_x = sim->x1[best_i]; // GSL version does not compute this
 
   /* Update simplex size */
-  double S2 = state->S2;
-
-  if (S2 > 0) {
-    *size = sqrt (S2);
-  }
-  else {
-    /* recompute if accumulated error has made size invalid */
-    *size = compute_size (state, state->center);
-  }
-
+  if (sim->S2 > 0) sim->simplex_size = sqrt (sim->S2);
+  else sim->simplex_size = compute_size (state); /* recompute if accumulated error has made size invalid */
   return true;
 }
 
-static const gsl_multimin_fminimizer_type nmsimplex_type = 
-{ "nmsimplex2",	/* name */
-  sizeof (nmsimplex_state_t),
-  &nmsimplex_alloc,
-  &nmsimplex_set,
-  &nmsimplex_iterate,
-  &nmsimplex_free
-};
-
-const gsl_multimin_fminimizer_type
-  * gsl_multimin_fminimizer_nmsimplex2 = &nmsimplex_type;
-
-
-static inline double
-ran_unif (unsigned long *seed)
-{
-  unsigned long s = *seed;
-  *seed = (s * 69069 + 1) & 0xffffffffUL;
-  return (*seed) / 4294967296.0;
-}
 
 static int
 nmsimplex_set_rand (void *vstate, gsl_multimin_function * f,
@@ -455,16 +432,4 @@ nmsimplex_set_rand (void *vstate, gsl_multimin_function * f,
 
   return GSL_SUCCESS;
 }
-
-static const gsl_multimin_fminimizer_type nmsimplex2rand_type = 
-{ "nmsimplex2rand",	/* name */
-  sizeof (nmsimplex_state_t),
-  &nmsimplex_alloc,
-  &nmsimplex_set_rand,
-  &nmsimplex_iterate,
-  &nmsimplex_free
-};
-
-const gsl_multimin_fminimizer_type
-  * gsl_multimin_fminimizer_nmsimplex2rand = &nmsimplex2rand_type;
 
