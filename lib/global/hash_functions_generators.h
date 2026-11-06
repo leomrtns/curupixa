@@ -28,7 +28,7 @@ extern uint32_t crpx_hash_64_to_32 (uint64_t key);
 
 extern uint64_t crpx_hashint_staffordmix64 (uint64_t z); // same as hashint_splitmix64 but adds prime number as initial state
 extern uint64_t crpx_hashint_splitmix64 (uint64_t x); // same as rng_splitmix with state=0 and hashint_staffordmix without state
-extern uint64_t crpx_hashint_spitmix64_inverse (uint64_t x);
+extern uint64_t crpx_hashint_splitmix64_inverse (uint64_t x);
 extern uint64_t crpx_hashint_degski64 (uint64_t x);
 extern uint64_t crpx_hashint_degski64_inverse (uint64_t x);
 extern uint64_t crpx_hashint_fastmix64 (uint64_t x); /*!< \brief compression, _not_ for RNG */

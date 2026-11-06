@@ -1,8 +1,7 @@
-# General structure of directories
-
-assuming your prefix location is `${PREFIX}`, that is, you configured it with e.g. `../configure --prefix=${PREFIX}`,
-then the header files will be on `${PREFIX}/include/curupixa`, the static and dynamic libraries will be respectively on `${PREFIX}/lib/libcurupixa.a` and `${PREFIX}/lib/libcurupixa.so` etc.
-
-
-### Github page
-[https://github.com/leomrtns/curupixa](https://github.com/leomrtns/curupixa)
+# Source and installed files
+`lib/` contains public object interfaces and their implementations. `lib/global/` contains the existing context, logging, random-number and hash primitives. Private synchronisation and constants stay outside the installed object API. `tests/test_*.c` are dependency-free regression suites; the older exploratory programs remain as reference material.
+Generate all local build products below `build/`. CMake keeps generated configuration headers and package metadata inside each selected build directory. The source checkout needs no bootstrap or generated files when using CMake.
+An optional installation places public headers in `${prefix}/include/curupixa` and the library in `${prefix}/${CMAKE_INSTALL_LIBDIR}`. The default library directory is usually `lib`; packaging toolchains may choose another directory. Static builds produce `libcurupixa.a`; shared builds use the platform's normal shared-library names. Every library target includes all implemented modules.
+CMake consumers use `curupixa::curupixa`, either through `add_subdirectory()` or `find_package(curupixa CONFIG REQUIRED)`. Installation exports CMake configuration below the library directory's `cmake/curupixa` subdirectory and `curupixa.pc` below `pkgconfig`. The exported target carries include paths and link requirements.
+Include `<curupixa.h>` when linking the build target; installed consumers can also include `<curupixa/curupixa.h>`. Individual object headers remain usable independently. New objects hide their fields, expose read-only views with documented lifetimes and return recoverable statuses.
+See the [migration inventory](migration.md) for the relationship between biomcmc-lib headers and the redesigned objects.

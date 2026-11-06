@@ -18,14 +18,14 @@
 
 #include "maths_and_bits.h"
 
-inline uint32_t
+uint32_t
 crpx_prev_power_of_two (uint32_t x)
 {
   x |= (x >> 1); x |= (x >> 2); x |= (x >> 4); x |= (x >> 8); x |= (x >> 16);
   return x - (x >> 1);
 }
 
-inline uint32_t
+uint32_t
 crpx_next_power_of_two (uint32_t x)
 {
   x--;
@@ -33,7 +33,7 @@ crpx_next_power_of_two (uint32_t x)
   return x + 1;
 }
 
-inline uint32_t 
+uint32_t
 crpx_reverse_bits32 (uint32_t v) 
 { // https://graphics.stanford.edu/~seander/bithacks.html
   v = ((v >> 1) & 0x55555555) | ((v & 0x55555555) << 1);// swap odd and even bits
@@ -44,13 +44,13 @@ crpx_reverse_bits32 (uint32_t v)
   return v;
 }
 
-inline uint64_t 
+uint64_t
 crpx_interleave_64bits (uint64_t xylo) /* [y4y3y2y1 x4x3x2x1] --> [y4x4 y3x3 y2x2 y1x1] */
 { // https://github.com/yinqiwen/geohash-int/blob/master/geohash.c; https://graphics.stanford.edu/~seander/bithacks.html has for 32bits
   static const uint64_t B[] = { 0x5555555555555555, 0x3333333333333333, 0x0F0F0F0F0F0F0F0F, 0x00FF00FF00FF00FF, 0x0000FFFF0000FFFF };
   static const unsigned int S[] = { 1, 2, 4, 8, 16 };
-  uint64_t x = xylo & UINT64_C(0xFFFFFFFFFFFFFFFF);  // Interleave lower  bits of x and y, so the bits of x
-  uint64_t y = xylo << 32;// are in the even positions and bits from y in the odd; //https://graphics.stanford.edu/~seander/bithacks.html#InterleaveBMN
+  uint64_t x = xylo & UINT64_C(0xFFFFFFFF);  // Interleave lower  bits of x and y, so the bits of x
+  uint64_t y = xylo >> 32;// are in the even positions and bits from y in the odd; //https://graphics.stanford.edu/~seander/bithacks.html#InterleaveBMN
 
   // x and y must initially be less than 2**32. (@leomrtns: original algo uses two uint32_t xlo and ylo)
   x = (x | (x << S[4])) & B[4]; y = (y | (y << S[4])) & B[4];
@@ -61,7 +61,7 @@ crpx_interleave_64bits (uint64_t xylo) /* [y4y3y2y1 x4x3x2x1] --> [y4x4 y3x3 y2x
   return x | (y << 1);
 }
 
-inline uint64_t 
+uint64_t
 crpx_deinterleave_64bits (uint64_t interleaved) /* [y4y3y2y1 x4x3x2x1] <-- [y4x4 y3x3 y2x2 y1x1] */
 { // https://github.com/yinqiwen/geohash-int/blob/master/geohash.c
   static const uint64_t B[] = { 0x5555555555555555, 0x3333333333333333, 0x0F0F0F0F0F0F0F0F, 0x00FF00FF00FF00FF, 0x0000FFFF0000FFFF, 0x00000000FFFFFFFF };
@@ -84,32 +84,34 @@ crpx_deinterleave_64bits (uint64_t interleaved) /* [y4y3y2y1 x4x3x2x1] <-- [y4x4
  *  swaps the n consecutive bits starting at positions i and j (from the right) 
  *  See https://github.com/lemire/Code-used-on-Daniel-Lemire-s-blog/blob/master/extra/binomialcoef/binom.c for alternative */
 
-inline int 
+int
 crpx_choose_n_k (int n, int k)
 {
-  if ((k > n) || (n > 100000)) return 0; // avoid overflow since 100000 choose 2 has more than 32 bits
-  if (k * 2 > n) k = n-k;
-  if (k == 0) return 1;
-  /* curiosity: 512 choose 4 has almost 32 bits (thus should be a limit in quartets for instance) */
-  int result = n;
-  for (int i = 2; i <= k; ++i) { result *= (n-i+1); result /= i; }
-  return result;
+  if (n < 0 || k < 0 || k > n) return 0;
+  if (k > n - k) k = n - k;
+  uint64_t result = 1;
+  for (int i = 1; i <= k; i++) {
+    result = result * (uint64_t)(n - k + i) / (uint64_t)i;
+    if (result > INT_MAX) return 0;
+  }
+  return (int)result;
 }
 
 /* order-th lexicographically ordered set of k elements out of n; output is in result (of length at least k) */
 void 
 crpx_ordered_combination_n_k (int* result, int n, int k, int order)
 { // https://stackoverflow.com/questions/561/how-to-use-combinations-of-sets-as-test-data#794
-  int r, j = 0, x = order+1; // order starts at zero, but lexico order starts at 1
-  for (int i = 0; i < k-1; i++) {
-    result[i] = (i != 0) ? result[i-1] : 0;
-    do {
-      result[i]++;
-      r = crpx_choose_n_k (n-result[i], k-(i+1));
-      j += r;
-    } while(j < x);
-    j -= r;
+  int count = crpx_choose_n_k(n, k);
+  if (!result || !count || k <= 0 || order < 0 || order >= count) return;
+  /* Preserve the legacy one-based elements; index_arrangement uses zero-based elements. */
+  int next = 1;
+  for (int i = 0; i < k; i++) {
+    for (;;) {
+      int suffixes = crpx_choose_n_k(n - next, k - i - 1);
+      if (order < suffixes) break;
+      order -= suffixes;
+      next++;
+    }
+    result[i] = next++;
   }
-  result[k-1] = result[k-2] + x - j;
 }
-

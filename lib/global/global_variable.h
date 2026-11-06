@@ -28,7 +28,8 @@ extern "C" {
 #include "hash_functions.h" // includes hash_functions_generators.h
 #include "random_number.h"  // includes random_number_generators.h
 
-crpx_global_t crpx_global_init (__attribute__((unused)) uint64_t seed, const char *level_string);
+/* Seed zero requests OS entropy; any other seed is reproducible. NULL level selects errors only. */
+crpx_global_t crpx_global_init (uint64_t seed, const char *level_string);
 void crpx_global_finalise (crpx_global_t cglob);
 
 #ifdef __cplusplus

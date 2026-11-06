@@ -1,0 +1,10 @@
+/* Generated for this build. Hardware-specific instructions are opt-in. */
+#ifndef CURUPIXA_CONFIG_H
+#define CURUPIXA_CONFIG_H
+#cmakedefine HAVE_SSE 1
+#cmakedefine HAVE_AVX 1
+#cmakedefine HAVE_RDRND 1
+#cmakedefine HAVE_ZLIB 1
+#cmakedefine HAVE_BZIP2 1
+#cmakedefine HAVE_LZMA 1
+#endif

@@ -1,0 +1,6 @@
+file(READ "@PROJECT_BINARY_DIR@/curupixa.pc" curupixa_pc_content)
+string(REGEX REPLACE "^prefix=[^\n]*" "prefix=${CMAKE_INSTALL_PREFIX}"
+  curupixa_pc_content "${curupixa_pc_content}")
+set(curupixa_pc_destination "$ENV{DESTDIR}@CMAKE_INSTALL_LIBDIR@/pkgconfig")
+file(MAKE_DIRECTORY "${curupixa_pc_destination}")
+file(WRITE "${curupixa_pc_destination}/curupixa.pc" "${curupixa_pc_content}")

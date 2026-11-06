@@ -1,11 +1,7 @@
-AM_CPPFLAGS = $(GTKDEPS_CFLAGS)  @OPENMP_CPPFLAGS@ -I$(srcdir)/../lib -DTEST_FILE_DIR='"$(srcdir)/files/"' 
-AM_CFLAGS = @AM_CFLAGS@  @OPENMP_CFLAGS@  @CHECK_CFLAGS@ @ZLIB_CFLAGS@  @LZMA_CFLAGS@
-LDADD =  ../lib/libcurupixa_static.la $(GTKDEPS_LIBS) $(AM_LDFLAGS) @CHECK_LIBS@ @ZLIB_LIBS@  @LZMA_LIBS@
-
-EXTRA_DIST = files # directory with fasta etc files (accessed with #define TEST_FILE_DIR above)
-
-# list of programs to be compiled only with 'make check' (like noinst_PROGRAMS)
-check_PROGRAMS = check_instructions check_hashfunctions dieharder_rng dieharder_hashint
-# list of test programs (duplicate of above, since we want all to be compiled only with 'make check'):
+AM_CPPFLAGS = -I$(top_srcdir)/lib -I$(top_builddir)/lib/global
+AM_CFLAGS = @AM_CFLAGS@ @OPENMP_CFLAGS@
+LDADD = ../lib/libcurupixa_static.la @OPENMP_CFLAGS@
+check_PROGRAMS = test_core test_tree test_runtime test_statistics test_probability test_hashing \
+  test_suffix_index test_topology test_alignment test_compression test_gff3 test_phylogenetics \
+  test_minimiser test_svd test_clustering test_algorithms
 TESTS = $(check_PROGRAMS)
-

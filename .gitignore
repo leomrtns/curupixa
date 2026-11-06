@@ -64,6 +64,8 @@ configure~
 configure.ac~
 config.h.in~
 **/config.h.in*
+# CMake's configuration template is source, unlike Autotools-generated templates.
+!cmake/config.h.in
 depcomp
 missing
 libtool

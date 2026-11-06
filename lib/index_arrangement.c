@@ -24,13 +24,14 @@
 crpx_index_permutation_t 
 crpx_index_permutation_new (crpx_global_t cglob, size_t n)
 {
+  if (n > SIZE_MAX / sizeof(size_t)) return NULL;
   crpx_index_permutation_t p = (crpx_index_permutation_t) crpx_malloc (cglob, sizeof (crpx_index_permutation_struct));
   if (!p) return NULL;
   p->size = n;
   p->idx = NULL;
   p->idx = (size_t *) crpx_malloc (cglob, n * sizeof (size_t));
-  if (!p->idx) { crpx_free (cglob, p); return NULL; }
-  crpx_link_add_global_pointer (cglob, p->cglob); // thread-safe increase of ref_counter
+  if (n && !p->idx) { crpx_free (cglob, p); return NULL; }
+  p->cglob = crpx_global_retain(cglob);
   crpx_index_permutation_reset (p);
   return p;
 }
@@ -40,7 +41,7 @@ del_crpx_index_permutation (crpx_index_permutation_t p)
 {
   if (!p) return;
   crpx_free (p->cglob, p->idx);  // free() with message if p->idx is NULL
-  crpx_global_finalise (p->cglob); // it just decreases cglob->ref_counter unless order was inverted in main
+  crpx_global_finalise (p->cglob); // release the object ownership reference
   free (p);
 }
 
@@ -54,6 +55,7 @@ crpx_index_permutation_reset (crpx_index_permutation_t p)
 bool
 crpx_index_permutation_swap (crpx_index_permutation_t p, const size_t i, const size_t j)
 {
+  if (!p) return false;
   if (i >= p->size) {
     crpx_logger_error (p->cglob, "index_permutation_swap: location i = %zu out of range (larger than size %zu)", i, p->size);
     return false;
@@ -82,6 +84,7 @@ crpx_index_permutation_swap_no_checks (crpx_index_permutation_t p, const size_t 
 bool
 crpx_index_permutation_is_valid (const crpx_index_permutation_t p) // just a check, therefore doesn't raise an error but logs a debug
 {
+  if (!p || (p->size && !p->idx)) return false;
   size_t i, j;
   for (i = 0; i < p->size; i++) {
     if (p->idx[i] >= p->size) { 
@@ -99,6 +102,7 @@ crpx_index_permutation_is_valid (const crpx_index_permutation_t p) // just a che
 void
 crpx_index_permutation_reverse (crpx_index_permutation_t p) // reverse all elements backwards
 {
+  if (!p) return;
   size_t i, j, tmp, halfsize = p->size / 2;
   for (i = 0; i < halfsize; i++) {
     j = p->size - i - 1;
@@ -111,12 +115,22 @@ crpx_index_permutation_reverse (crpx_index_permutation_t p) // reverse all eleme
 bool 
 crpx_index_permutation_inverse (crpx_index_permutation_t q, const crpx_index_permutation_t p)
 { // q[] will have the elements of p[] which would make p[] the identity index (i.e. p[q[i]] = i)
+  if (!q || !p || !crpx_index_permutation_is_valid(p)) return false;
   size_t i ;
   if (q->size != p->size) {
     crpx_logger_error (p->cglob, "index_permutation_inverse: q->size = %zu, p->size = %zu", q->size, p->size);
     return false;
   }
-  for (i = 0; i < q->size; i++) q->idx[p->idx[i]] = i;
+  size_t *destination = q->idx;
+  if (q == p && q->size) {
+    destination = crpx_malloc(q->cglob, q->size * sizeof(size_t));
+    if (!destination) return false;
+  }
+  for (i = 0; i < q->size; i++) destination[p->idx[i]] = i;
+  if (destination != q->idx) {
+    memcpy(q->idx, destination, q->size * sizeof(size_t));
+    free(destination);
+  }
   return true;
 }
 
@@ -125,7 +139,7 @@ crpx_index_permutation_next (crpx_index_permutation_t p)
 { // Replaces p with the next permutation (in lexico ordering). Returns false if there is no next permutation (i.e. iterated over all permutations).
   size_t i, j, k, tmp;
 
-  if (p->size < 2) return false;
+  if (!p || p->size < 2) return false;
   i = p->size - 2;
   while ((p->idx[i] > p->idx[i+1]) && (i)) i--;
   if ((i == 0) && (p->idx[0] > p->idx[1])) return false;
@@ -149,7 +163,7 @@ crpx_index_permutation_prev (crpx_index_permutation_t p)
 {
   size_t i, j, k, tmp;
 
-  if (p->size < 2) return false;
+  if (!p || p->size < 2) return false;
   i = p->size - 2;
   while ((p->idx[i] < p->idx[i+1]) && (i)) i--;
   if ((i == 0) && (p->idx[0] < p->idx[1])) return false;
@@ -171,6 +185,8 @@ crpx_index_permutation_prev (crpx_index_permutation_t p)
 bool
 crpx_index_permutation_combine (crpx_index_permutation_t p, const crpx_index_permutation_t pa, const crpx_index_permutation_t pb)
 {
+  if (!p || !pa || !pb) return false;
+  if (!crpx_index_permutation_is_valid(pa) || !crpx_index_permutation_is_valid(pb)) return false;
   size_t i;
   if (pa->size != p->size) {
     crpx_logger_error (p->cglob, "index_permutation_combine: input pa->size = %zu but output size = %zu", pa->size, p->size);
@@ -180,7 +196,16 @@ crpx_index_permutation_combine (crpx_index_permutation_t p, const crpx_index_per
     crpx_logger_error (p->cglob, "index_permutation_combine: input pb->size = %zu but output size = %zu", pb->size, p->size);
     return false;
   }
-  for (i = 0; i < p->size; i++) p->idx[i] = pb->idx[ pa->idx[i] ];
+  size_t *destination = p->idx;
+  if ((p == pa || p == pb) && p->size) {
+    destination = crpx_malloc(p->cglob, p->size * sizeof(size_t));
+    if (!destination) return false;
+  }
+  for (i = 0; i < p->size; i++) destination[i] = pb->idx[pa->idx[i]];
+  if (destination != p->idx) {
+    memcpy(p->idx, destination, p->size * sizeof(size_t));
+    free(destination);
+  }
   return true;
 }
 
@@ -189,14 +214,15 @@ crpx_index_permutation_combine (crpx_index_permutation_t p, const crpx_index_per
 crpx_index_combination_t 
 crpx_index_combination_new (crpx_global_t cglob, size_t n, size_t k)
 {
+  if (k > n || k > SIZE_MAX / sizeof(size_t)) return NULL;
   crpx_index_combination_t c = (crpx_index_combination_t) crpx_malloc (cglob, sizeof (crpx_index_combination_struct));
   if (!c) return NULL;
   c->n = n;
   c->k = k;
   c->idx = NULL;
   c->idx = (size_t *) crpx_malloc (cglob, k * sizeof (size_t));
-  if (!c->idx) { crpx_free (cglob, c); return NULL; }
-  crpx_link_add_global_pointer (cglob, c->cglob); // thread-safe increase of ref_counter
+  if (k && !c->idx) { crpx_free (cglob, c); return NULL; }
+  c->cglob = crpx_global_retain(cglob);
   crpx_index_combination_reset_first (c);
   return c;
 }
@@ -206,7 +232,7 @@ del_crpx_index_combination (crpx_index_combination_t c)
 {
   if (!c) return;
   crpx_free (c->cglob, c->idx);
-  crpx_global_finalise (c->cglob); // it just decreases cglob->ref_counter unless order was inverted in main
+  crpx_global_finalise (c->cglob); // release the object ownership reference
   free (c);
 }
 
@@ -227,6 +253,7 @@ crpx_index_combination_reset_last (crpx_index_combination_t c)
 bool 
 crpx_index_combination_is_valid (crpx_index_combination_t c)
 {
+  if (!c || (c->k && !c->idx)) return false;
   size_t i, j, ci;
   if(c->k > c->n) {
     crpx_logger_debug (c->cglob, "index_combination check: k=%zu is larger than size %zu)", c->k, c->n);
@@ -255,7 +282,7 @@ crpx_index_combination_is_valid (crpx_index_combination_t c)
 bool
 crpx_index_combination_next (crpx_index_combination_t c)
 { // Replaces c with the next combination (in lexico ordering). Returns false if all combinations were given
-  if (c->k == 0) return false;
+  if (!c || c->k == 0 || c->k > c->n) return false;
   size_t i = c->k - 1;
 
   while ((i > 0) && (c->idx[i] == (c->n - c->k + i))) i--;
@@ -268,7 +295,7 @@ crpx_index_combination_next (crpx_index_combination_t c)
 bool
 crpx_index_combination_prev (crpx_index_combination_t c)
 { // Replaces c with the previous combination (in lexico ordering). Returns false if all combinations were given
-  if (c->k == 0) return false;
+  if (!c || c->k == 0 || c->k > c->n) return false;
   size_t i = c->k - 1;
 
   while ((i > 0) && (c->idx[i] == (c->idx[i-1] + 1))) i--;

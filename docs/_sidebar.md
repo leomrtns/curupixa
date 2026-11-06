@@ -1,3 +1,8 @@
 - [README](README.md)
 - [General Structure](general_structure.md "General structure of source and installed files")
+- [Migration coverage](migration.md)
+- [Tree design](tree-design.md)
+- [Runtime and hashing](runtime-and-hashing.md)
+- [Likelihood direction](likelihood-design.md)
+- [Local validation](validation.md)
 - [References](references.md "references for incorporated or inspirational code")

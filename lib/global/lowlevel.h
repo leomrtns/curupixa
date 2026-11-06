@@ -23,13 +23,10 @@ extern "C" {
 #endif /* __cplusplus */
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-  #pragma message  "Compiling for a Windows environment" 
   #define CRPX_OS_WINDOWS
 #elif defined(__linux__) || defined(__unix__) || defined(_POSIX_VERSION)
-  #pragma message  "Compiling for a Unix environment" 
   #define CRPX_OS_UNIX
 #elif defined (__APPLE__) || defined(__MACH__)
-  #pragma message  "Compiling for an MacOS environment" 
   #define CRPX_OS_MACOS
 #else
 #error "Unknown compiler"
@@ -65,7 +62,9 @@ extern "C" {
   #include <crtdefs.h>    /* size_t in windows, mingw */
 #else
 //  #include <sys/times.h>  /* speed profiling in clock ticks (e.g. times() ) */ // unused at the moment
-  #include <sys/syscall.h>/* system calls like syscall(SYS_getrandom, buf, buflen, 0) for random noise */
+#if defined(__linux__)
+  #include <sys/syscall.h>
+#endif
 #endif
 
 #ifdef _OPENMP
@@ -112,22 +111,20 @@ extern "C" {
 #define crpx_reallocarray(...) crpx_reallocarray_with_errmsg(__FILE__, __LINE__, __VA_ARGS__)
 
 
-/*! \brief All global variables should be here; by creating several PRNG streams it's thread-safe even if user unaware of openMP; 
- * Should work with nested parallelism; All functions assume single crpx_global_t is created, since we rely on omp single */ 
+/* Context lifetime is reference-counted. Retain a reference before publishing it to another thread.
+ * RNG calls and logging are serialised, including callers outside OpenMP. Per-worker streams avoid
+ * lock contention and make results independent of scheduling. Direct field mutation requires exclusive access. */
 typedef struct {
-  uint64_t nthreads:16, // bit-fields lead to type promotion when distinct sizes, so best to compare equal to equal  
-           loglevel_stderr:4, loglevel_file:4, 
-           error:2,      /*!< set by crpx_logger(): 0 - no error, 1 - error (may continue), 2 - fatal (must halt) */
-           sse:1, avx:1, /*!< checked at _runtime_ (if host CPU allows, irrespective of being build with support or not) */
-           rng_size:9;   /*!< each PRNG function relies on state sets of different lengths; largest is 313 (for mt19937) */
+  size_t nthreads, rng_size;
+  uint8_t loglevel_stderr, loglevel_file, error;
+  bool sse, avx;
   uint64_t elapsed_time[2];
-  int ref_counter; /*!< how many structs have a ptr to the global structure; freed only if ref_counter <=0 (should be == 0) */
   uint64_t *rng_seed_vector;
   uint64_t (*rng_get)(void*);
   char rng_name[32];
   FILE *logfile;
+  struct crpx_runtime_state *runtime_state;
 } crpx_global_struct, *crpx_global_t;
-
 
 /*! \brief Memory-safe malloc() function, with default error message in case of failure. Variadic args start at cglobal */
 void *crpx_malloc_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, size_t size);
@@ -143,9 +140,12 @@ void *crpx_reallocarray_with_errmsg (const char *c_file, const int c_line, crpx_
 /*! \brief Memory-safe free() function, with default error message in case of failure. Variadic args start at cglobal. If cglobal==NULL no message is print */
 void crpx_free_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, void *ptr);
 
-void crpx_link_add_global_pointer (crpx_global_t original, crpx_global_t new);
+/*! Retain one ownership reference; NULL is accepted. The caller must still own a live reference. */
+crpx_global_t crpx_global_retain (crpx_global_t original);
+/* Legacy source-compatible assignment helper; prefer explicit crpx_global_retain(). */
+#define crpx_link_add_global_pointer(original, destination) ((destination) = crpx_global_retain(original))
 
-void curupixa_fprintf_colour (FILE *stream, int regular, int colour, const char *message, const char *normaltext, ...);
+void crpx_fprintf_colour (FILE *stream, int regular, int colour, const char *message, const char *normaltext, ...);
 
 /*! \brief Prints message to stderr,  and also to log file depending on global settings.
  * Thread safe when all sharing same global; maybe safe even with several globals sharing file name, since we can have several FILE*s 
