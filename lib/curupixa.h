@@ -62,6 +62,8 @@ extern "C" {
 #include "character_data.h"
 #include "substitution_model.h"
 #include "likelihood.h"
+#include "continuous_traits.h"
+#include "reconstruction.h"
 #include "character_analysis.h"
 
 #ifdef __cplusplus

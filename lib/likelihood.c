@@ -3,6 +3,7 @@
  * Pruning follows biomcmc-recomb/guenomu, using explicit worker state and log-space scaling. */
 #include "likelihood.h"
 #include "substitution_model_internal.h"
+#include "likelihood_kernel_internal.h"
 #include <float.h>
 #include <math.h>
 #include <stdint.h>
@@ -10,7 +11,9 @@
 #include <string.h>
 
 struct crpx_likelihood_workspace {
-  double *partials, *scales, *pattern_logs, *scratch, *projected;
+  double *partials, *scales, *pattern_logs, *scratch, *projected, *log_pi;
+  crpx_log_kernel *kernels;
+  size_t kernel_capacity, pi_capacity;
   size_t partial_capacity, scale_capacity, pattern_capacity, state_capacity;
   size_t nodes, patterns, states;
   bool valid, retained;
@@ -25,9 +28,58 @@ crpx_status crpx_likelihood_workspace_new(crpx_likelihood_workspace **out)
   *out = calloc(1,sizeof(**out));
   return *out ? CRPX_OK : CRPX_ERROR_ALLOCATION;
 }
-void crpx_likelihood_workspace_free(crpx_likelihood_workspace *w)
+void crpx_likelihood_workspace_clear(crpx_likelihood_workspace *w)
 {
-  if (w) { free(w->partials); free(w->scales); free(w->pattern_logs); free(w->scratch); free(w->projected); free(w); }
+  if (!w) return;
+  free(w->partials); free(w->scales); free(w->pattern_logs); free(w->scratch); free(w->projected);
+  free(w->log_pi); free(w->kernels); memset(w,0,sizeof(*w));
+}
+void crpx_likelihood_workspace_free(crpx_likelihood_workspace *w)
+{ if (w) { crpx_likelihood_workspace_clear(w); free(w); } }
+size_t crpx_likelihood_workspace_storage_size(const crpx_likelihood_workspace *w)
+{
+  return w ? sizeof(*w)+(w->partial_capacity+w->scale_capacity+w->pattern_capacity+2*w->state_capacity+
+    w->pi_capacity)*sizeof(double)+w->kernel_capacity*sizeof(crpx_log_kernel) : 0;
+}
+struct crpx_likelihood_binding {
+  crpx_tree *tree;
+  const crpx_character_data *data;
+  crpx_tree_workspace *traversal;
+  size_t *tip_index;
+};
+void crpx_likelihood_binding_free(crpx_likelihood_binding *b)
+{
+  if (!b) return;
+  crpx_tree_workspace_free(b->traversal); crpx_tree_free(b->tree);
+  crpx_character_data_free((crpx_character_data *)b->data); free(b->tip_index); free(b);
+}
+crpx_status crpx_likelihood_binding_new(const crpx_tree *tree,const crpx_character_data *data,
+                                       crpx_likelihood_binding **out)
+{
+  if (!out) return CRPX_ERROR_INVALID_ARGUMENT;
+  *out=NULL;
+  if (!tree || !data || !crpx_tree_node_count(tree)) return CRPX_ERROR_INVALID_ARGUMENT;
+  size_t nodes=crpx_tree_node_count(tree),taxa=crpx_character_data_taxa(data);
+  if (nodes>SIZE_MAX/sizeof(size_t) || taxa>SIZE_MAX/sizeof(crpx_node_id)) return CRPX_ERROR_OVERFLOW;
+  crpx_likelihood_binding *b=calloc(1,sizeof(*b));
+  crpx_node_id *tips=malloc(taxa*sizeof(*tips));
+  if (!b || !tips) { free(b); free(tips); return CRPX_ERROR_ALLOCATION; }
+  crpx_status status=crpx_character_data_retain(data);
+  if (status==CRPX_OK) { b->data=data; status=crpx_tree_clone(tree,&b->tree); }
+  if (status==CRPX_OK) {
+    b->tip_index=malloc(nodes*sizeof(*b->tip_index));
+    if (!b->tip_index) status=CRPX_ERROR_ALLOCATION;
+  }
+  if (status==CRPX_OK) status=crpx_character_data_map_tips(data,b->tree,tips,taxa);
+  if (status==CRPX_OK) {
+    for (size_t i=0;i<nodes;++i) b->tip_index[i]=SIZE_MAX;
+    for (size_t i=0;i<taxa;++i) b->tip_index[tips[i]]=i;
+    status=crpx_tree_workspace_new(CRPX_TREE_WORKSPACE_TRAVERSAL,&b->traversal);
+  }
+  if (status==CRPX_OK) status=crpx_tree_workspace_refresh(b->traversal,b->tree);
+  free(tips);
+  if (status!=CRPX_OK) crpx_likelihood_binding_free(b); else *out=b;
+  return status;
 }
 static crpx_status reserve(double **array, size_t *capacity, size_t count)
 {
@@ -37,49 +89,9 @@ static crpx_status reserve(double **array, size_t *capacity, size_t count)
   if (!grown) return CRPX_ERROR_ALLOCATION;
   *array = grown; *capacity = count; return CRPX_OK;
 }
-static double log_add(double a, double b)
-{
-  if (a == -INFINITY) return b;
-  if (b == -INFINITY) return a;
-  if (a < b) { double swap = a; a = b; b = swap; }
-  return a+log1p(exp(b-a));
-}
-typedef struct { double loss, factor, matrix[16]; } log_kernel;
-static void prepare_log_kernel(const crpx_substitution_model *m, double t, crpx_branch_mode mode, log_kernel *k)
-{
-  if (m->hky) {
-    crpx_private_hky_log_matrix(m,t,mode,k->matrix);
-  } else if (!t || !m->base_decay) { k->factor = 0; k->loss = -INFINITY; }
-  else {
-    double logx = log(m->base_decay)+log(t);
-    if (mode == CRPX_BRANCH_SITEWISE_EXPONENTIAL) {
-      double denom = log_add(0,logx);
-      k->factor = -denom; k->loss = logx-denom;
-    } else {
-      double x = m->base_decay*t;
-      k->factor = -x;
-      k->loss = x ? log(-expm1(-x)) : logx;
-    }
-  }
-}
-static void project(const crpx_substitution_model *m, const log_kernel *k, const double *child,
-                    const double *log_pi, double *out)
-{
-  if (m->hky) {
-    for (size_t i = 0; i < 4; ++i) {
-      double value = -INFINITY;
-      for (size_t j = 0; j < 4; ++j) value = log_add(value,k->matrix[i*4+j]+child[j]);
-      out[i] = value;
-    }
-  } else {
-    double value = -INFINITY;
-    for (size_t j = 0; j < m->states; ++j) value = log_add(value,log_pi[j]+child[j]);
-    for (size_t i = 0; i < m->states; ++i) out[i] = log_add(k->loss+value,k->factor+child[i]);
-  }
-}
-crpx_status crpx_likelihood_evaluate(const crpx_tree *tree, const crpx_character_data *data,
+static crpx_status evaluate_core(const crpx_tree *tree, const crpx_character_data *data,
                                     const crpx_substitution_model *m, const crpx_likelihood_options *options,
-                                    crpx_likelihood_workspace *w, double *result)
+                                    crpx_likelihood_workspace *w, double *result, const crpx_likelihood_binding *binding)
 {
   if (w) w->valid = false;
   if (!tree || !data || !m || !w || !result) return CRPX_ERROR_INVALID_ARGUMENT;
@@ -91,24 +103,33 @@ crpx_status crpx_likelihood_evaluate(const crpx_tree *tree, const crpx_character
       (o->branch_mode != CRPX_BRANCH_FIXED && o->branch_mode != CRPX_BRANCH_SITEWISE_EXPONENTIAL) ||
       (o->edge_values ? o->edge_count != nodes : o->edge_count != 0)) return CRPX_ERROR_INVALID_ARGUMENT;
   size_t blocks = o->retain_partials ? patterns : (patterns ? 1 : 0);
-  if (nodes > SIZE_MAX/sizeof(log_kernel) || nodes > SIZE_MAX/sizeof(size_t) ||
+  if (nodes > SIZE_MAX/sizeof(crpx_log_kernel) || nodes > SIZE_MAX/sizeof(size_t) ||
       taxa > SIZE_MAX/sizeof(crpx_node_id) || states > SIZE_MAX/nodes ||
       (blocks && nodes*states > SIZE_MAX/blocks) || (blocks && nodes > SIZE_MAX/blocks)) return CRPX_ERROR_OVERFLOW;
   crpx_status status = CRPX_OK;
-  crpx_tree_workspace *traversal = NULL;
-  crpx_node_id *tips = malloc(taxa*sizeof(*tips));
-  size_t *tip_index = malloc(nodes*sizeof(*tip_index));
-  log_kernel *kernels = calloc(nodes,sizeof(*kernels));
-  double *log_pi = malloc(states*sizeof(double));
-  if (!tips || !tip_index || !kernels || !log_pi) { status = CRPX_ERROR_ALLOCATION; goto done; }
-  status = crpx_character_data_map_tips(data,tree,tips,taxa);
-  if (status != CRPX_OK) goto done;
-  for (size_t i = 0; i < nodes; ++i) tip_index[i] = SIZE_MAX;
-  for (size_t i = 0; i < taxa; ++i) tip_index[tips[i]] = i;
+  crpx_tree_workspace *traversal = binding ? binding->traversal : NULL;
+  crpx_node_id *tips = binding ? NULL : malloc(taxa*sizeof(*tips));
+  size_t *tip_index = binding ? binding->tip_index : malloc(nodes*sizeof(*tip_index));
+  if (!tip_index || (!binding && !tips)) { status=CRPX_ERROR_ALLOCATION; goto done; }
+  if (nodes>w->kernel_capacity) {
+    crpx_log_kernel *grown=realloc(w->kernels,nodes*sizeof(*grown));
+    if (!grown) { status=CRPX_ERROR_ALLOCATION; goto done; }
+    w->kernels=grown; w->kernel_capacity=nodes;
+  }
+  status=reserve(&w->log_pi,&w->pi_capacity,states);
+  if (status!=CRPX_OK) goto done;
+  crpx_log_kernel *kernels=w->kernels;
+  double *log_pi=w->log_pi;
+  if (!binding) {
+    status = crpx_character_data_map_tips(data,tree,tips,taxa);
+    if (status != CRPX_OK) goto done;
+    for (size_t i = 0; i < nodes; ++i) tip_index[i] = SIZE_MAX;
+    for (size_t i = 0; i < taxa; ++i) tip_index[tips[i]] = i;
+    status = crpx_tree_workspace_new(CRPX_TREE_WORKSPACE_TRAVERSAL,&traversal);
+    if (status == CRPX_OK) status = crpx_tree_workspace_refresh(traversal,tree);
+    if (status != CRPX_OK) goto done;
+  }
   for (size_t i = 0; i < states; ++i) log_pi[i] = log(m->pi[i]);
-  status = crpx_tree_workspace_new(CRPX_TREE_WORKSPACE_TRAVERSAL,&traversal);
-  if (status == CRPX_OK) status = crpx_tree_workspace_refresh(traversal,tree);
-  if (status != CRPX_OK) goto done;
   crpx_node_id root = crpx_tree_root(tree), first = CRPX_NODE_NONE, second = CRPX_NODE_NONE;
   if (o->collapse_binary_root) {
     first = crpx_tree_first_child(tree,root);
@@ -127,7 +148,7 @@ crpx_status crpx_likelihood_evaluate(const crpx_tree *tree, const crpx_character
       if (status != CRPX_OK) goto done;
     }
     if (!isfinite(value) || value < 0) { status = CRPX_ERROR_INVALID_ARGUMENT; goto done; }
-    prepare_log_kernel(m,value,o->branch_mode,kernels+node);
+    crpx_private_likelihood_prepare_kernel(m,value,o->branch_mode,kernels+node);
     if (m->hky) for (size_t entry = 0; entry < 16; ++entry)
       if (isnan(kernels[node].matrix[entry]) || kernels[node].matrix[entry] == INFINITY) {
         status = CRPX_ERROR_OVERFLOW; goto done;
@@ -162,7 +183,7 @@ crpx_status crpx_likelihood_evaluate(const crpx_tree *tree, const crpx_character
       } else {
         for (size_t s = 0; s < states; ++s) v[s] = 0;
         for (; child != CRPX_NODE_NONE; child = crpx_tree_next_sibling(tree,child)) {
-          project(m,kernels+child,vectors+(size_t)child*states,log_pi,w->projected);
+          crpx_private_likelihood_project(m,kernels+child,vectors+(size_t)child*states,log_pi,w->projected);
           double maximum = -INFINITY;
           for (size_t s = 0; s < states; ++s) { v[s] += w->projected[s]; if (v[s] > maximum) maximum = v[s]; }
           if (maximum == -INFINITY) { scales[node] = 0; continue; }
@@ -173,7 +194,7 @@ crpx_status crpx_likelihood_evaluate(const crpx_tree *tree, const crpx_character
       }
     }
     double log_probability = -INFINITY;
-    for (size_t s = 0; s < states; ++s) log_probability = log_add(log_probability,log_pi[s]+vectors[(size_t)root*states+s]);
+    for (size_t s = 0; s < states; ++s) log_probability = crpx_private_likelihood_log_add(log_probability,log_pi[s]+vectors[(size_t)root*states+s]);
     if (log_probability != -INFINITY) log_probability += scales[root];
     w->pattern_logs[p] = log_probability;
     if (weights[p]) total += (long double)weights[p]*log_probability;
@@ -182,8 +203,20 @@ crpx_status crpx_likelihood_evaluate(const crpx_tree *tree, const crpx_character
   w->nodes = nodes; w->states = states; w->patterns = patterns; w->retained = o->retain_partials; w->valid = true;
   *result = (double)total;
 done:
-  free(tips); free(tip_index); free(kernels); free(log_pi); crpx_tree_workspace_free(traversal);
+  if (!binding) { free(tips); free(tip_index); crpx_tree_workspace_free(traversal); }
   return status;
+}
+crpx_status crpx_likelihood_evaluate(const crpx_tree *tree,const crpx_character_data *data,
+                                    const crpx_substitution_model *model,const crpx_likelihood_options *options,
+                                    crpx_likelihood_workspace *workspace,double *score)
+{ return evaluate_core(tree,data,model,options,workspace,score,NULL); }
+crpx_status crpx_likelihood_evaluate_prepared(const crpx_likelihood_binding *binding,
+                                             const crpx_substitution_model *model,
+                                             const crpx_likelihood_options *options,
+                                             crpx_likelihood_workspace *workspace,double *score)
+{
+  if (!binding) { if (workspace) workspace->valid=false; return CRPX_ERROR_INVALID_ARGUMENT; }
+  return evaluate_core(binding->tree,binding->data,model,options,workspace,score,binding);
 }
 const double *crpx_likelihood_workspace_pattern_log_likelihoods(const crpx_likelihood_workspace *w, size_t *count)
 {

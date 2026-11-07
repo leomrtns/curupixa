@@ -64,3 +64,6 @@ The [common character-analysis guide](character-analysis.md) describes fixed-edg
 
 ## Guenomu and genefam-dist algorithms
 The [cladistic/reconciliation guide](cladistic-distances.md) records the adapted dSPR heuristic, hdist conventions, explicit taxon mapping and binary all-root reconciliation. Each optimum has its own candidate index; loss scope is an explicit argument. LCA snapshots use binary lifting instead of attaching a quadratic MRCA cache to the species tree. These are semantic successors with redesigned ownership, rather than legacy structure/function aliases. Header dependencies and loading behaviour are described in the [footprint guide](library-footprint.md).
+
+## Trait-analysis additions
+The [downstream trait API response](downstream-trait-api.md) covers stable-ID root insertion, optional tail-aware construction, full marginal likelihood ASR and Sankoff assignments/global state sets, explicit prepared likelihood snapshots and operation-specific validation. `continuous_traits.h` adds linear-memory PIC and Brownian ML, with ancestral marginals allocated only on request. These additions leave the score-only interfaces and compact node layout intact.

@@ -1,4 +1,15 @@
 # Local validation
+## Downstream trait API update, 7 November 2026
+The update prompted by branchtraits passes 26/26 suites in both a strict static Debug ASan/UBSan build and a strict shared Release build with all three codecs. All 5 unchanged branchtraits suites pass against the updated checkout, including CLI/Python and C example integration. Builds and fixtures stay inside curupixa's `build/` directory.
+
+The 51 installed public headers pass 108 standalone/repeated/combined-order C17/C++17 checks; their local include graph is acyclic. Private kernel headers remain uninstalled. The complete trait example compiles and runs as both C17 and C++17 against the installed shared package. Autotools bootstrap, strict build/check, installation and XZ-enabled distribution checks pass all 26 suites too.
+
+New scientific tests exhaustively enumerate discrete node-state assignments and global parsimony optima on tiny trees. Independent dense Gaussian covariance/precision calculations check Brownian likelihood and every ancestral mean/variance; PIC includes hand-calculated contrasts. Zero/missing/signed lengths, unknown/soft observations, directed costs, polytomies, unary nodes, ties, one-state and 70-state alphabets, snapshot destruction and concurrent workers are covered.
+
+Rooting tests check stable IDs/labels/taxa and all pairwise tip distances, and inject every transaction allocation failure. Annotated star-tree tests at 1,000/2,000/4,000 tips prove cached appends avoid validator allocations even with label/length changes. The static linker-wrapped rate test records 0 allocations, 0 mappings and 0 validations for 100 warmed prepared calls, versus 1,000/100/100 for ordinary calls. The default unstripped shared object measures 381,760 bytes; immediate measured residency remains 120 KiB. Tree-only clients have identical linked code/data sizes with individual and umbrella headers and omit the new ASR/PCM modules.
+
+No MPI multi-rank runtime, cross-platform run or leak-check coverage is claimed. ASan uses `detect_leaks=0` because the execution environment wraps processes with ptrace. See [the observation-by-observation guide](downstream-trait-api.md) and [footprint measurements](library-footprint.md).
+## Earlier migration/build validation
 Validated on 6–7 November 2026 with GCC 13.3.0, CMake 3.28.3 and Python 3.12.8 on Linux. All generated builds, test fixtures and temporary consumers stayed inside this checkout's `build/` directory.
 ## Build and regression matrix
 | Configuration | Result |

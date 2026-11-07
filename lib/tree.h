@@ -19,6 +19,7 @@ typedef uint32_t crpx_node_id;
 typedef struct crpx_tree crpx_tree;
 typedef crpx_tree *crpx_tree_t;
 typedef struct crpx_tree_workspace crpx_tree_workspace;
+typedef struct crpx_tree_builder crpx_tree_builder;
 
 /* An empty tree has no root. Node indices remain stable for the lifetime of a tree.
  * All allocation failures return a status; destruction accepts NULL.
@@ -33,6 +34,18 @@ crpx_status crpx_tree_reserve(crpx_tree *tree, size_t capacity);
  * Appending costs O(number of existing children); Newick construction remains O(number of nodes).
  */
 crpx_status crpx_tree_add_node(crpx_tree *tree, crpx_node_id parent, crpx_node_id *result);
+/* Optional tail cache for bulk construction: O(nodes) initial/topology refresh,
+ * then amortised O(1) ordered appends, including wide polytomies. No tails are
+ * added to the backbone. External topology edits invalidate the cache safely;
+ * setting labels/lengths between appends preserves the constant-time tail path.
+ * The builder borrows its last tree: reset/rebind/free before destroying it.
+ * Reset drops that identity while retaining capacity; use one builder per worker. */
+crpx_status crpx_tree_builder_new(crpx_tree_builder **result);
+void crpx_tree_builder_free(crpx_tree_builder *builder);
+void crpx_tree_builder_reset(crpx_tree_builder *builder);
+size_t crpx_tree_builder_storage_size(const crpx_tree_builder *builder);
+crpx_status crpx_tree_builder_append(crpx_tree_builder *builder, crpx_tree *tree,
+                                     crpx_node_id parent, crpx_node_id *result);
 size_t crpx_tree_node_count(const crpx_tree *tree);
 size_t crpx_tree_leaf_count(const crpx_tree *tree);
 crpx_node_id crpx_tree_root(const crpx_tree *tree);
@@ -44,6 +57,21 @@ uint64_t crpx_tree_revision(const crpx_tree *tree);
 /* Includes owned capacities and strings, excluding allocator overhead. */
 size_t crpx_tree_storage_size(const crpx_tree *tree);
 crpx_status crpx_tree_validate(const crpx_tree *tree);
+enum {
+  CRPX_TREE_REQUIRE_NAMED_TIPS = 1u,
+  CRPX_TREE_REQUIRE_UNIQUE_TIPS = 2u,
+  CRPX_TREE_REQUIRE_COMPLETE_LENGTHS = 4u,
+  CRPX_TREE_REQUIRE_NONNEGATIVE_LENGTHS = 8u,
+  CRPX_TREE_REQUIRE_POSITIVE_LENGTHS = 16u,
+  CRPX_TREE_INCLUDE_ROOT_STEM = 32u,
+  CRPX_TREE_REQUIRE_BINARY = 64u
+};
+/* Operation-specific policy layered over structural validation. Unique tips also
+ * require nonempty names. Sign checks inspect present lengths; COMPLETE separately
+ * requires lengths. The root stem is excluded unless INCLUDE_ROOT_STEM is set.
+ * BINARY permits a one-tip tree and otherwise requires exactly two children per
+ * internal vertex (UNSUPPORTED on unary/polytomous trees). No inputs are retained. */
+crpx_status crpx_tree_validate_policy(const crpx_tree *tree, uint32_t requirements);
 /* Reparenting rejects cycles and moving the root. A node's branch length follows its incoming edge.
  * Rerooting at an internal node reverses path edges and shifts their lengths; the old root's stem length
  * follows the new root. A tip target or a unary old root is rejected to preserve the leaf/taxon set.
@@ -51,6 +79,25 @@ crpx_status crpx_tree_validate(const crpx_tree *tree);
  */
 crpx_status crpx_tree_reparent(crpx_tree *tree, crpx_node_id node, crpx_node_id parent);
 crpx_status crpx_tree_reroot(crpx_tree *tree, crpx_node_id node);
+typedef enum {
+  CRPX_TREE_REUSE_BINARY_ROOT,
+  CRPX_TREE_KEEP_OLD_ROOT
+} crpx_tree_edge_root_policy;
+/* Root inside child's incoming edge, fraction measured from its parent in [0,1].
+ * REUSE_BINARY_ROOT suppresses the old binary root and reuses its ID, preserving
+ * node count. KEEP_OLD_ROOT appends one node and preserves the old vertex, which
+ * may become unary. Existing IDs and labels remain attached to their nodes;
+ * reusing the artificial root moves its label with it. Reassess support metadata.
+ * Root stem follows the new root. Unary old-root chains return UNSUPPORTED;
+ * no nodes/labels are silently deleted. End fractions still insert a binary root
+ * with a zero edge when its length is known; use reroot() for an existing vertex.
+ * Zero edges and missing/signed lengths are supported; missing sums stay missing.
+ * Every taxon and pairwise path length is preserved. No reference-counted node
+ * pointers exist: arrays may move, but stable IDs survive. Transactional O(nodes)
+ * scratch (proportional to reserved capacity) protects the original tree on error;
+ * outputs change only on success. */
+crpx_status crpx_tree_reroot_edge(crpx_tree *tree, crpx_node_id child, double fraction,
+                                 crpx_tree_edge_root_policy policy, crpx_node_id *root);
 /* Exchange disjoint non-root subtrees. Node-attached lengths/labels follow the exchanged nodes.
  * Siblings yield a no-op because unordered topology is unchanged.
  */

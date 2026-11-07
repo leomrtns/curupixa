@@ -5,7 +5,7 @@ Each public header has an include guard and declares its own required standard a
 
 For example, `reconciliation_roots.h` includes `ancestry_index.h`, which includes `tree.h`, which includes standard types and `status.h`. `spr_distance.h` includes `splitset_distances.h`, which includes `tree.h` and `bipartition.h`. None of these paths imports likelihood, SVD, file compression or the global runtime. `context_types.h` provides the context forward declaration for RNG/hash declarations. Raw RNG, hash-generator and bit-operation headers now use only their required standard headers; their source files include implementation dependencies explicitly.
 
-The installed API has 49 headers, including the generated configuration header. All compile independently, twice in succession, as C17 and C++17 with strict warnings. Combined tests use forward, reverse and seeded shuffled orders. The optional maintainer check also rejects missing local includes and cycles:
+The installed API has 51 headers, including the generated configuration header. All compile independently, twice in succession, as C17 and C++17 with strict warnings. Combined tests use forward, reverse and seeded shuffled orders. The optional maintainer check also rejects missing local includes and cycles:
 ```sh
 python3 tests/check_headers.py build/package-prefix/include/curupixa
 ```
@@ -16,7 +16,13 @@ The default static archive contains one object member per source module. The lin
 Shared builds place the available code and data in one shared object. Linux maps the file into virtual memory; resident memory depends on which pages have been accessed. File size, mapped virtual size, resident size and private dirty pages measure different things. Dependencies such as libm and optionally enabled compression libraries have their own mappings. Curupixa has no library-load constructor that creates trees, random contexts or analysis workspaces. The dynamic loader still uses memory for mappings, relocations and its own bookkeeping.
 
 Static builds already avoid unused algorithm modules. A downstream toolchain can additionally enable function/data sections and linker garbage collection when reducing within-module code matters. Such flags are platform-specific and remain under downstream control. Splitting every algorithm into separate shared libraries would add packaging/dependency complexity without reducing the dominant numerical workspace allocations.
-## Measured local footprint
+## Trait-API update measurement
+The branchtraits-driven additions retain the 12-byte node layout and add one 64-bit topology generation per tree. The default Release shared library now measures 381,760 bytes on disk (about 373 KiB), mapping 336 KiB virtual, 120 KiB resident and 8 KiB private dirty immediately after loading in the measured process. These figures exclude optional codec libraries and other process dependencies.
+
+Tree-only static clients have identical text/data/bss figures of 22,572/712/8 bytes whether they include `tree.h` or the umbrella. Their executable files differ by eight bytes of file metadata (35,320/35,328 bytes). Neither includes likelihood, ASR, Brownian, PIC or reconciliation symbols. New tree primitives increase the linked tree object, while the optional analysis modules remain absent. The earlier measurements below record the pre-trait-API baseline.
+
+The allocation-instrumented 100-rate test records zero allocation/mapping/validation calls with an already warmed prepared binding. The ordinary repeated one-off interface records 1,000/100/100 respectively under the tested static build. These count library call sites rather than arbitrary loader/libm internals, and measure setup work rather than guaranteeing a machine-independent timing speedup. The prepared path pays its snapshot/preparation cost once; one-off callers do not allocate a snapshot.
+## Measured earlier footprint
 On Linux x86-64, GCC 13.3.0, Release `-O3 -DNDEBUG`, default hardware options and optional codecs disabled, on 7 November 2026:
 | Measurement | Value |
 | --- | --- |

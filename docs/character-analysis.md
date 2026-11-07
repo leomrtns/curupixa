@@ -31,3 +31,8 @@ target_link_libraries(discrete_example PRIVATE curupixa::curupixa)
 ```
 The example reports fixed-length log likelihood `-5.39209264`, sitewise exponential log likelihood `-6.49189976`, collapsed-root sitewise log likelihood `-7.68647685` and parsimony `3`. Its three likelihood scores use different explicit branch assumptions.
 The character-analysis regression suite also runs four POSIX workers against the same read-only tree, data and model, with one analysis workspace per worker. Each worker repeats fixed-length likelihood, streaming sitewise likelihood and parsimony 100 times and compares the results with independently calculated serial scores. This passes under AddressSanitizer and UndefinedBehaviourSanitizer; those tools check memory/undefined behaviour, rather than proving the absence of every possible thread race.
+
+## Repeated evaluation and reconstruction
+Use `crpx_likelihood_binding_new()` plus `crpx_likelihood_evaluate_prepared()` to amortise tip mapping, validation and traversal over repeated fitting. The binding owns a tree snapshot and shares immutable data; rebuild it to adopt input edits. The ordinary scorer constructs no snapshot. Workspaces expose `clear()` and owned-storage reporting for retained numerical capacities.
+
+The separate [reconstruction module](reconstruction.md) supplies full-data marginal ASR and coherent/global-state parsimony reconstructions without adding work to score-only calls. [Continuous traits](continuous-traits.md) provide linear-memory PIC and Brownian fitting with optional ancestral marginals. The [trait example](../examples/trait_analysis.c) composes these interfaces.

@@ -18,7 +18,7 @@ struct crpx_tree {
   char **labels;
   size_t count, capacity;
   crpx_node_id root;
-  uint64_t revision;
+  uint64_t revision, topology_revision;
 };
 
 struct crpx_tree_workspace {
@@ -29,6 +29,13 @@ struct crpx_tree_workspace {
   crpx_node_id *preorder, *postorder, *sisters;
   uint32_t *depth;
   uint8_t *updated;
+};
+
+struct crpx_tree_builder {
+  const crpx_tree *tree;
+  uint64_t revision;
+  crpx_node_id *tails;
+  size_t capacity;
 };
 
 typedef struct {
@@ -76,6 +83,7 @@ crpx_tree_new(crpx_tree **result)
   if (!tree) return CRPX_ERROR_ALLOCATION;
   tree->root = CRPX_NODE_NONE;
   tree->revision = 1;
+  tree->topology_revision = 1;
   *result = tree;
   return CRPX_OK;
 }
@@ -153,6 +161,7 @@ add_node_at_tail(crpx_tree *tree, crpx_node_id parent, crpx_node_id tail, crpx_n
   else tree->nodes[tail].next_sibling = node;
   ++tree->count;
   ++tree->revision;
+  ++tree->topology_revision;
   *result = node;
   return CRPX_OK;
 }
@@ -169,6 +178,60 @@ crpx_tree_add_node(crpx_tree *tree, crpx_node_id parent, crpx_node_id *result)
       while (tree->nodes[tail].next_sibling != CRPX_NODE_NONE) tail = tree->nodes[tail].next_sibling;
   }
   return add_node_at_tail(tree, parent, tail, result);
+}
+
+crpx_status crpx_tree_builder_new(crpx_tree_builder **result)
+{
+  if (!result) return CRPX_ERROR_INVALID_ARGUMENT;
+  *result = (crpx_tree_builder *)calloc(1,sizeof(**result));
+  return *result ? CRPX_OK : CRPX_ERROR_ALLOCATION;
+}
+void crpx_tree_builder_free(crpx_tree_builder *builder)
+{ if (builder) { free(builder->tails); free(builder); } }
+void crpx_tree_builder_reset(crpx_tree_builder *builder)
+{ if (builder) { builder->tree = NULL; builder->revision = 0; } }
+size_t crpx_tree_builder_storage_size(const crpx_tree_builder *builder)
+{ return builder ? sizeof(*builder)+builder->capacity*sizeof(crpx_node_id) : 0; }
+crpx_status crpx_tree_builder_append(crpx_tree_builder *builder, crpx_tree *tree,
+                                    crpx_node_id parent, crpx_node_id *result)
+{
+  if (!builder || !tree || !result) return CRPX_ERROR_INVALID_ARGUMENT;
+  if ((!tree->count && parent != CRPX_NODE_NONE) || (tree->count && !valid_node(tree,parent)))
+    return CRPX_ERROR_OUT_OF_RANGE;
+  if (tree->count == UINT32_MAX) return CRPX_ERROR_OVERFLOW;
+  if (builder->tree != tree || builder->revision != tree->topology_revision) {
+    crpx_status status = crpx_tree_validate(tree);
+    if (status != CRPX_OK) return status;
+    /* Mark stale before reallocating: failed refresh cannot certify old tails. */
+    crpx_tree_builder_reset(builder);
+  }
+  if (tree->count+1 > builder->capacity) {
+    size_t capacity = builder->capacity ? builder->capacity : 16;
+    while (capacity < tree->count+1) {
+      if (capacity > UINT32_MAX/2) { capacity = tree->count+1; break; }
+      capacity *= 2;
+    }
+    if (capacity > SIZE_MAX/sizeof(crpx_node_id)) return CRPX_ERROR_OVERFLOW;
+    crpx_node_id *tails = (crpx_node_id *)realloc(builder->tails,capacity*sizeof(*tails));
+    if (!tails) return CRPX_ERROR_ALLOCATION;
+    builder->tails = tails; builder->capacity = capacity;
+  }
+  if (!builder->tree) {
+    for (size_t i=0;i<tree->count;++i) {
+      crpx_node_id child = tree->nodes[i].first_child;
+      if (child != CRPX_NODE_NONE)
+        while (tree->nodes[child].next_sibling != CRPX_NODE_NONE) child = tree->nodes[child].next_sibling;
+      builder->tails[i] = child;
+    }
+    builder->tree = tree; builder->revision = tree->topology_revision;
+  }
+  crpx_node_id added, tail = parent == CRPX_NODE_NONE ? CRPX_NODE_NONE : builder->tails[parent];
+  crpx_status status = add_node_at_tail(tree,parent,tail,&added);
+  if (status != CRPX_OK) return status;
+  builder->tails[added] = CRPX_NODE_NONE;
+  if (parent != CRPX_NODE_NONE) builder->tails[parent] = added;
+  builder->revision = tree->topology_revision; *result = added;
+  return CRPX_OK;
 }
 
 size_t crpx_tree_node_count(const crpx_tree *tree) { return tree ? tree->count : 0; }
@@ -236,6 +299,50 @@ crpx_tree_validate(const crpx_tree *tree)
   free(stack);
   free(seen);
   return status;
+}
+
+static int compare_label_pointers(const void *a, const void *b)
+{ return strcmp(*(const char *const *)a,*(const char *const *)b); }
+crpx_status crpx_tree_validate_policy(const crpx_tree *tree, uint32_t requirements)
+{
+  if (requirements & ~UINT32_C(127)) return CRPX_ERROR_INVALID_ARGUMENT;
+  crpx_status status = crpx_tree_validate(tree);
+  if (status != CRPX_OK) return status;
+  const char **names = NULL; size_t named = 0;
+  if (requirements & CRPX_TREE_REQUIRE_UNIQUE_TIPS) {
+    if (tree->count > SIZE_MAX/sizeof(*names)) return CRPX_ERROR_OVERFLOW;
+    names = tree->count ? (const char **)malloc(tree->count*sizeof(*names)) : NULL;
+    if (tree->count && !names) return CRPX_ERROR_ALLOCATION;
+  }
+  for (size_t i=0;i<tree->count;++i) {
+    crpx_node_id first = tree->nodes[i].first_child;
+    if (first == CRPX_NODE_NONE && (requirements & (CRPX_TREE_REQUIRE_NAMED_TIPS|CRPX_TREE_REQUIRE_UNIQUE_TIPS))) {
+      const char *name = tree->labels ? tree->labels[i] : NULL;
+      if (!name || !*name) { status = CRPX_ERROR_INVALID_ARGUMENT; goto done; }
+      if (names) names[named++] = name;
+    }
+    if (first != CRPX_NODE_NONE && (requirements & CRPX_TREE_REQUIRE_BINARY)) {
+      crpx_node_id second = tree->nodes[first].next_sibling;
+      if (second == CRPX_NODE_NONE || tree->nodes[second].next_sibling != CRPX_NODE_NONE) {
+        status = CRPX_ERROR_UNSUPPORTED; goto done;
+      }
+    }
+    if (i == tree->root && !(requirements & CRPX_TREE_INCLUDE_ROOT_STEM)) continue;
+    double length = tree->lengths ? tree->lengths[i] : NAN;
+    if (isnan(length)) {
+      if (requirements & CRPX_TREE_REQUIRE_COMPLETE_LENGTHS) { status = CRPX_ERROR_NOT_FOUND; goto done; }
+    } else if (!isfinite(length) ||
+        ((requirements & CRPX_TREE_REQUIRE_NONNEGATIVE_LENGTHS) && length < 0) ||
+        ((requirements & CRPX_TREE_REQUIRE_POSITIVE_LENGTHS) && length <= 0)) {
+      status = CRPX_ERROR_INVALID_ARGUMENT; goto done;
+    }
+  }
+  if (named > 1) {
+    qsort(names,named,sizeof(*names),compare_label_pointers);
+    for (size_t i=1;i<named;++i) if (!strcmp(names[i-1],names[i])) { status = CRPX_ERROR_INVALID_ARGUMENT; break; }
+  }
+done:
+  free(names); return status;
 }
 
 crpx_status
@@ -407,6 +514,7 @@ crpx_tree_swap_subtrees(crpx_tree *tree, crpx_node_id first, crpx_node_id second
   tree->nodes[second].parent = first_parent;
   tree->nodes[second].next_sibling = first_next;
   ++tree->revision;
+  ++tree->topology_revision;
   return CRPX_OK;
 }
 
@@ -471,6 +579,7 @@ crpx_tree_spr(crpx_tree *tree, crpx_node_id prune, crpx_node_id regraft, double 
   tree->nodes[regraft].parent = parent;
   tree->nodes[regraft].next_sibling = CRPX_NODE_NONE;
   ++tree->revision;
+  ++tree->topology_revision;
   return CRPX_OK;
 }
 
@@ -488,6 +597,7 @@ crpx_tree_reparent(crpx_tree *tree, crpx_node_id node, crpx_node_id parent)
   detach_child(tree, tree->nodes[node].parent, node);
   append_child(tree, parent, node);
   ++tree->revision;
+  ++tree->topology_revision;
   return CRPX_OK;
 }
 
@@ -526,7 +636,81 @@ crpx_tree_reroot(crpx_tree *tree, crpx_node_id node)
   tree->root = node;
   if (tree->lengths) tree->lengths[node] = stem_length;
   ++tree->revision;
+  ++tree->topology_revision;
   return CRPX_OK;
+}
+
+crpx_status
+crpx_tree_reroot_edge(crpx_tree *tree, crpx_node_id child, double fraction,
+                      crpx_tree_edge_root_policy policy, crpx_node_id *result)
+{
+  if (!tree || !result || !isfinite(fraction) || fraction < 0 || fraction > 1 ||
+      (policy != CRPX_TREE_REUSE_BINARY_ROOT && policy != CRPX_TREE_KEEP_OLD_ROOT))
+    return CRPX_ERROR_INVALID_ARGUMENT;
+  if (!valid_node(tree,child)) return CRPX_ERROR_OUT_OF_RANGE;
+  if (child == tree->root) return CRPX_ERROR_TOPOLOGY;
+  if (tree->revision == UINT64_MAX ||
+      (policy == CRPX_TREE_KEEP_OLD_ROOT && tree->count == UINT32_MAX)) return CRPX_ERROR_OVERFLOW;
+  crpx_status status = crpx_tree_validate(tree);
+  if (status != CRPX_OK) return status;
+  crpx_node_id old_root = tree->root, parent = tree->nodes[child].parent;
+  crpx_node_id a = tree->nodes[old_root].first_child, b = tree->nodes[a].next_sibling;
+  if (b == CRPX_NODE_NONE) return CRPX_ERROR_UNSUPPORTED;
+  if (policy == CRPX_TREE_REUSE_BINARY_ROOT && tree->nodes[b].next_sibling != CRPX_NODE_NONE)
+    return CRPX_ERROR_UNSUPPORTED;
+  size_t count = tree->count+(policy == CRPX_TREE_KEEP_OLD_ROOT), capacity = tree->capacity;
+  if (count > capacity) capacity = capacity > UINT32_MAX/2 ? UINT32_MAX : capacity*2;
+  if (capacity < count || capacity > SIZE_MAX/sizeof(crpx_tree_node) ||
+      capacity > SIZE_MAX/sizeof(double) || capacity > SIZE_MAX/sizeof(char *)) return CRPX_ERROR_OVERFLOW;
+  crpx_tree copy = *tree;
+  copy.nodes = (crpx_tree_node *)malloc(capacity*sizeof(*copy.nodes));
+  copy.lengths = tree->lengths ? (double *)malloc(capacity*sizeof(*copy.lengths)) : NULL;
+  copy.labels = tree->labels ? (char **)calloc(capacity,sizeof(*copy.labels)) : NULL;
+  if (!copy.nodes || (tree->lengths && !copy.lengths) || (tree->labels && !copy.labels)) {
+    free(copy.nodes); free(copy.lengths); free(copy.labels); return CRPX_ERROR_ALLOCATION;
+  }
+  memcpy(copy.nodes,tree->nodes,tree->count*sizeof(*copy.nodes));
+  if (copy.labels) memcpy(copy.labels,tree->labels,tree->count*sizeof(*copy.labels));
+  if (copy.lengths) {
+    memcpy(copy.lengths,tree->lengths,tree->count*sizeof(*copy.lengths));
+    for (size_t i=tree->count;i<capacity;++i) copy.lengths[i] = NAN;
+  }
+  copy.capacity = capacity; copy.revision = 1;
+  crpx_node_id root = policy == CRPX_TREE_KEEP_OLD_ROOT ? (crpx_node_id)tree->count : old_root;
+  double edge = copy.lengths ? copy.lengths[child] : NAN;
+  double stem = copy.lengths ? copy.lengths[old_root] : NAN;
+  double to_parent = edge*fraction, to_child = edge*(1-fraction);
+  if (policy == CRPX_TREE_REUSE_BINARY_ROOT) {
+    double joined = copy.lengths ? copy.lengths[a]+copy.lengths[b] : NAN;
+    if (isinf(joined)) { status = CRPX_ERROR_OVERFLOW; goto failed; }
+    if (parent == old_root) {
+      crpx_node_id other = child == a ? b : a;
+      to_parent += copy.lengths ? copy.lengths[other] : NAN;
+      if (isinf(to_parent)) { status = CRPX_ERROR_OVERFLOW; goto failed; }
+      parent = other; a = other; b = child;
+    } else if (copy.nodes[a].first_child == CRPX_NODE_NONE) {
+      crpx_node_id swap = a; a = b; b = swap;
+    }
+    copy.root = a; copy.nodes[a].parent = CRPX_NODE_NONE; copy.nodes[a].next_sibling = CRPX_NODE_NONE;
+    append_child(&copy,a,b);
+    if (copy.lengths) { copy.lengths[a] = stem; copy.lengths[b] = joined; }
+    copy.nodes[old_root] = (crpx_tree_node){CRPX_NODE_NONE,CRPX_NODE_NONE,CRPX_NODE_NONE};
+  }
+  status = crpx_tree_reroot(&copy,parent);
+  if (status != CRPX_OK) goto failed;
+  detach_child(&copy,parent,child);
+  copy.nodes[root] = (crpx_tree_node){CRPX_NODE_NONE,child,CRPX_NODE_NONE};
+  copy.nodes[child].parent = root; copy.nodes[child].next_sibling = parent;
+  copy.nodes[parent].parent = root; copy.nodes[parent].next_sibling = CRPX_NODE_NONE;
+  copy.root = root; copy.count = count;
+  if (copy.lengths) { copy.lengths[root] = stem; copy.lengths[parent] = to_parent; copy.lengths[child] = to_child; }
+  free(tree->nodes); free(tree->lengths); free(tree->labels);
+  tree->nodes = copy.nodes; tree->lengths = copy.lengths; tree->labels = copy.labels;
+  tree->count = count; tree->capacity = capacity; tree->root = root;
+  ++tree->revision; ++tree->topology_revision;
+  *result = root; return CRPX_OK;
+failed:
+  free(copy.nodes); free(copy.lengths); free(copy.labels); return status;
 }
 
 /* Skip whitespace and nested Newick comments, without consulting or changing a process locale. */

@@ -55,6 +55,9 @@ set(curupixa_sources
   lib/character_analysis.c
   lib/substitution_model.c
   lib/likelihood.c
+  lib/likelihood_kernel_internal.c
+  lib/continuous_traits.c
+  lib/reconstruction.c
   lib/prob_distribution.c
   lib/hll.c
   lib/kmerhash.c
@@ -80,7 +83,7 @@ set(curupixa_headers
   lib/distance_generator.h lib/clustering_goptics.h lib/upgma.h lib/newick_space.h lib/lowlevel_algorithms.h
   lib/splitset_distances.h lib/spr_distance.h lib/ancestry_index.h lib/reconciliation_roots.h lib/taxon_map.h
   lib/character_data.h lib/character_analysis.h
-  lib/substitution_model.h lib/likelihood.h)
+  lib/substitution_model.h lib/likelihood.h lib/continuous_traits.h lib/reconstruction.h)
 set(curupixa_global_headers
   lib/global/context_types.h lib/global/global_variable.h lib/global/lowlevel.h lib/global/maths_and_bits.h
   lib/global/hash_functions_generators.h
@@ -165,13 +168,20 @@ if(CURUPIXA_BUILD_TESTS)
   find_package(Threads REQUIRED)
   foreach(test_name core tree runtime statistics probability hashing suffix_index topology alignment
       compression gff3 phylogenetics minimiser svd clustering algorithms
-      character_analysis substitution_model likelihood spr reconciliation_roots)
+      character_analysis substitution_model likelihood spr reconciliation_roots likelihood_prepared continuous_traits reconstruction tree_extensions tree_allocation)
     add_executable(test_${test_name} tests/test_${test_name}.c)
     target_link_libraries(test_${test_name} PRIVATE curupixa::curupixa Threads::Threads)
     if(MSVC)
       target_compile_options(test_${test_name} PRIVATE /UNDEBUG)
     else()
       target_compile_options(test_${test_name} PRIVATE -UNDEBUG)
+    endif()
+    if(test_name STREQUAL "likelihood_prepared" AND NOT BUILD_SHARED_LIBS AND CMAKE_SYSTEM_NAME STREQUAL "Linux"
+        AND CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+      target_compile_definitions(test_${test_name} PRIVATE CRPX_TEST_ALLOCATION_WRAPPERS)
+      target_link_options(test_${test_name} PRIVATE
+        -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
+        -Wl,--wrap=crpx_character_data_map_tips -Wl,--wrap=crpx_tree_validate)
     endif()
     add_test(NAME ${test_name} COMMAND test_${test_name})
   endforeach()

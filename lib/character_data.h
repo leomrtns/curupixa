@@ -38,6 +38,10 @@ crpx_status crpx_character_data_from_tip_likelihoods(const char *const *names, s
 crpx_status crpx_character_data_from_alignment_dna(const crpx_alignment *alignment, bool compact,
                                                  crpx_character_data **out);
 void crpx_character_data_free(crpx_character_data *data);
+/* Optional shared ownership of this immutable object. Each successful retain
+ * requires one free; the caller already owns a live reference when retaining.
+ * Prepared likelihood bindings use this to avoid copying observations. */
+crpx_status crpx_character_data_retain(const crpx_character_data *data);
 size_t crpx_character_data_taxa(const crpx_character_data *data);
 size_t crpx_character_data_sites(const crpx_character_data *data);
 size_t crpx_character_data_states(const crpx_character_data *data);

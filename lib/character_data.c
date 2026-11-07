@@ -6,8 +6,10 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdatomic.h>
 
 struct crpx_character_data {
+  atomic_size_t references;
   size_t taxa, sites, states, patterns, total_weight;
   crpx_char_vector_t names;
   crpx_hashtable_t name_index;
@@ -19,8 +21,20 @@ typedef enum { INPUT_STATES, INPUT_MASKS, INPUT_BINARY, INPUT_VALUES } input_typ
 void crpx_character_data_free(crpx_character_data *data)
 {
   if (!data) return;
+  if (atomic_fetch_sub_explicit(&data->references,1,memory_order_acq_rel)!=1) return;
   crpx_char_vector_free(data->names); crpx_hashtable_free(data->name_index);
   free(data->values); free(data->weights); free(data->site_patterns); free(data);
+}
+crpx_status crpx_character_data_retain(const crpx_character_data *data)
+{
+  if (!data) return CRPX_ERROR_INVALID_ARGUMENT;
+  crpx_character_data *mutable_data=(crpx_character_data *)data;
+  size_t count=atomic_load_explicit(&mutable_data->references,memory_order_relaxed);
+  do {
+    if (count==SIZE_MAX) return CRPX_ERROR_OVERFLOW;
+  } while (!atomic_compare_exchange_weak_explicit(&mutable_data->references,&count,count+1,
+                                                 memory_order_relaxed,memory_order_relaxed));
+  return CRPX_OK;
 }
 
 static crpx_status create_data(const char *const *names, size_t taxa, size_t sites, size_t states,
@@ -41,6 +55,7 @@ static crpx_status create_data(const char *const *names, size_t taxa, size_t sit
   size_t width = taxa*states;
   data = calloc(1, sizeof(*data));
   if (!data) return CRPX_ERROR_ALLOCATION;
+  atomic_init(&data->references,1);
   data->taxa = taxa; data->sites = sites; data->states = states;
   status = crpx_char_vector_new(taxa, &data->names);
   if (status == CRPX_OK) status = crpx_hashtable_new(taxa, 0, &data->name_index);

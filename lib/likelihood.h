@@ -10,6 +10,7 @@ extern "C" {
 #endif
 
 typedef struct crpx_likelihood_workspace crpx_likelihood_workspace;
+typedef struct crpx_likelihood_binding crpx_likelihood_binding;
 typedef struct {
   crpx_branch_mode branch_mode;
   const double *edge_values;
@@ -24,6 +25,26 @@ typedef struct {
 void crpx_likelihood_options_init(crpx_likelihood_options *options);
 crpx_status crpx_likelihood_workspace_new(crpx_likelihood_workspace **out);
 void crpx_likelihood_workspace_free(crpx_likelihood_workspace *workspace);
+/* Release retained numerical capacities and invalidate borrowed result views. */
+void crpx_likelihood_workspace_clear(crpx_likelihood_workspace *workspace);
+size_t crpx_likelihood_workspace_storage_size(const crpx_likelihood_workspace *workspace);
+/* Explicit immutable preparation for repeated evaluation. Owns a snapshot of
+ * tree connectivity, labels and lengths, and retains immutable data without
+ * copying observations. Original tree/data may be changed/freed afterwards.
+ * Original-tree revisions deliberately do not change this snapshot: construct
+ * a new binding after changes. No pointer-identity caches or node references.
+ * Safe to share one binding read-only across separate worker workspaces. */
+crpx_status crpx_likelihood_binding_new(const crpx_tree *tree, const crpx_character_data *data,
+                                       crpx_likelihood_binding **out);
+void crpx_likelihood_binding_free(crpx_likelihood_binding *binding);
+/* Same numerical/options contract as evaluate(); edge overrides use snapshot
+ * node IDs. After warm-up for fixed dimensions, evaluation performs no mapping,
+ * tree validation, traversal construction or capacity allocations. Changing
+ * models/edge values rebuilds kernels, never stale model-pointer caches. */
+crpx_status crpx_likelihood_evaluate_prepared(const crpx_likelihood_binding *binding,
+                                             const crpx_substitution_model *model,
+                                             const crpx_likelihood_options *options,
+                                             crpx_likelihood_workspace *workspace, double *log_likelihood);
 /* Standard pruning on any rooted tree, including unary nodes and polytomies.
  * Fixed mode uses tree edge lengths unless edge_values supplies one value per
  * node (root entry ignored). Missing/negative/nonfinite lengths return an error.
