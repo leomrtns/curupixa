@@ -1,4 +1,4 @@
-# References
+# Source references and attribution
 
 curupixa is free software; you can redistribute it and/or modify it under the terms of the GNU General Public
 License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later
@@ -7,11 +7,7 @@ version (http://www.gnu.org/copyleft/gpl.html).
 SPDX-License-Identifier: GPL-3.0-or-later
 Copyright (C) 2022-today --- Leonardo de Oliveira Martins
 ```
-curupixa (and other software written by me) borrows or was inspired by many existing open source libraries and publicly 
-available implementations.
-Below follows a reference list of libraries and function implementations which were used, studied, or even considered when writting the software. 
-Some minor or well-stablished (public domain) functions or tricks may be missing from here, but are still mentioned as comments in the 
-code to the best of my recollection.
+The references below record source implementations, algorithm descriptions and historical influences on curupixa. Current module behaviour is described in [Migration coverage](migration.md).
 
 ## List of libraries and algorithms supporting curupixa
 

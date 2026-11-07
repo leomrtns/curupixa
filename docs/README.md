@@ -16,21 +16,21 @@ target_link_libraries(my_phylogeny PRIVATE curupixa::curupixa)
 ```
 Embedding needs no separate installation or bootstrap. Alternatively, configure with the package manager's `CMAKE_INSTALL_PREFIX`, build, then run `cmake --install` for conda, Galaxy dependency packages or container images. Installed CMake consumers use `find_package(curupixa CONFIG REQUIRED)`; other build systems can use pkg-config.
 ## API guides
-- [Source and installed files](general_structure.md)
-- [Module coverage and intentional changes](migration.md)
-- [Compact tree backbone and analysis workspaces](tree-design.md)
-- [Downstream trait API improvements](downstream-trait-api.md)
-- [Tree rooting, builders and policy validation](tree-extensions.md)
-- [Full discrete reconstruction](reconstruction.md)
-- [Continuous traits](continuous-traits.md)
-- [Cladistic distances and reconciliation](cladistic-distances.md)
-- [Headers and memory footprint](library-footprint.md)
-- [Runtime, random streams, hashing and annotation I/O](runtime-and-hashing.md)
-- [Discrete-state likelihood and parsimony](character-analysis.md)
-- [Likelihood design](likelihood-design.md)
-- [Reference likelihood audit](likelihood-reference-audit.md)
-- [Local validation and platform limits](validation.md)
-- [Source references and attribution](references.md)
-Likelihood and parsimony share immutable arbitrary-state character data and worker-owned numerical workspaces. Closed-form Poisson/F81 and HKY support fixed edge lengths and explicitly sitewise exponential branch priors. See the guides for model units, root treatment and partial-vector access.
+- [Source and installed files](general_structure.md) — Repository layout, public headers and installation paths.
+- [Migration coverage](migration.md) — Module coverage and API changes from biomcmc-lib.
+- [Tree design](tree-design.md) — Connectivity, ownership, workspaces and rearrangements.
+- [Downstream trait API improvements](downstream-trait-api.md) — Prepared analyses and the changes prompted by branchtraits.
+- [Tree rooting, builders and validation](tree-extensions.md) — Stable-ID rooting, bulk construction and operation-specific checks.
+- [Discrete ancestral reconstruction](reconstruction.md) — Full marginal ASR and optimal parsimony assignments and state sets.
+- [Continuous traits](continuous-traits.md) — Brownian fitting, ancestral reconstruction and independent contrasts.
+- [Cladistic distances and reconciliation](cladistic-distances.md) — RF, hdist, approximate SPR and gene/species reconciliation.
+- [Headers and memory footprint](library-footprint.md) — Header dependencies, linking and analysis storage costs.
+- [Runtime and hashing](runtime-and-hashing.md) — Contexts, random streams, sequence indexes and threading.
+- [Likelihood and parsimony](character-analysis.md) — Discrete-state data, models and scoring interfaces.
+- [Likelihood design](likelihood-design.md) — Pruning costs, partial buffers and backend boundaries.
+- [Likelihood reference audit](likelihood-reference-audit.md) — Branch-integration assumptions in the reference implementations.
+- [Local validation](validation.md) — Numerical tests, package checks and tested platforms.
+- [Build-system decision](build-systems.md) — CMake and Autotools installation choices.
+- [Source references and attribution](references.md) — Scientific references and implementation provenance.
 ## Licence
-Copyright (C) 2022–today Leonardo de Oliveira Martins. Curupixa uses GPL-3.0-or-later; incorporated source files retain their attribution. See the repository licence and references for details.
+Curupixa is licensed under GPL-3.0-or-later.

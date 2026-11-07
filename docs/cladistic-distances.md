@@ -1,11 +1,11 @@
-# Cladistic distances and gene/species reconciliation
+# Cladistic distances and reconciliation
 These modules adapt the reusable split-pruning and reconciliation algorithms in guenomu and the newer genefam-dist. Their data belong to analysis objects; the 12-byte connectivity node has no additional fields. Include only the public headers required by the application:
 ```c
 #include <curupixa/spr_distance.h>
 #include <curupixa/reconciliation_roots.h>
 #include <curupixa/taxon_map.h>
 ```
-The [complete example](../examples/gene_species_distances.c) shows ownership, explicit mapping, distances and root optimisation. The headers also work through `add_subdirectory()` using the unprefixed spelling, such as `#include <spr_distance.h>`.
+The [complete example](https://github.com/leomrtns/curupixa/blob/main/examples/gene_species_distances.c) shows ownership, explicit mapping, distances and root optimisation. The headers also work through `add_subdirectory()` using the unprefixed spelling, such as `#include <spr_distance.h>`.
 ## Choosing a distance
 | Entry point | Result and assumptions |
 | --- | --- |

@@ -1,4 +1,4 @@
-# Migration from biomcmc-lib
+# Migration coverage
 This inventory compares the local biomcmc-lib checkout with the new curupixa interfaces. Curupixa changes ownership, types and error handling deliberately. It provides no compatibility aliases. An implemented module means the capabilities described below exist; it does not imply that every legacy helper has a one-to-one replacement. [The symbol inventory](api-migration.csv) lists every parsed function declaration from the legacy public headers and identifies direct name successors separately from interfaces that need manual migration.
 ## Object and error conventions
 New objects use opaque pointers, constructors return `crpx_status`, and constructor outputs become `NULL` on failure. Each object owns its allocations. New code avoids implicit reference counts and process-global errors. Callers can inspect `crpx_status_string()` and choose whether to retry, propagate, log or stop. Pure numerical distribution functions return `NAN` for invalid parameters; IEEE infinity remains a valid mathematical endpoint.

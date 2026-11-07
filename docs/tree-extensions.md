@@ -1,4 +1,4 @@
-# Tree roots, construction and operation-specific validation
+# Tree rooting, builders and validation
 The tree remains one compact connectivity object: each node has three 32-bit indices (parent, first child, next sibling), or 12 bytes on the tested ABI. Labels, lengths, traversal/sister arrays and analysis caches remain optional separate allocations. There are no exposed node pointers or per-node reference counters.
 ## Implementation roots and biological roots
 Every nonempty curupixa tree has one ordinary vertex selected as its implementation root, with no parent. The first-child/next-sibling orientation permits any degree, including a bifurcation, trifurcation or unary vertex. Parsing preserves the root and vertices represented by Newick; it adds no fake tip, artificial vertex or three-struct representation per biological node.

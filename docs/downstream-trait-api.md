@@ -1,4 +1,4 @@
-# Changes prompted by branchtraits
+# Downstream trait API improvements
 This update follows the five observations in `branchtraits/docs/curupixa-issues.md`. It changes curupixa on the local `improve-downstream-trait-api` branch. Branchtraits remains an independent downstream consumer; its application and Python interfaces are unchanged.
 ## 1. Roots, tree size and references
 Curupixa uses a rooted **orientation** of a graph: one ordinary node ID identifies the root, whose parent is `CRPX_NODE_NONE`. It has no special implementation tip, three-struct biological nodes, or per-node reference counters. An artificial binary root can represent an unrooted edge for reversible likelihoods; a biological root uses the same storage. A rootedness boolean alone would not express the necessary connectivity or split edge lengths.
@@ -30,7 +30,7 @@ Other modules already follow the same principle: no reconciliation, splitset, li
 The broad tree representation remains consistent: finite signed or missing lengths and arbitrary labels are useful during construction, distance fitting and transformations. Each algorithm validates the properties it actually consumes. Name-based likelihood mapping requires unique matching tips; fixed-edge likelihoods reject missing/negative lengths unless valid overrides supply the actual model edges. Parsimony ignores lengths. Brownian/PIC require positive edges and explicit observations. Root stems are excluded from these trait calculations.
 
 The reusable `crpx_tree_validate_policy()` adds opt-in checks for nonempty/unique tip names, complete/nonnegative/positive lengths, binary degree, and inclusion of the root stem. It makes application preflight checks convenient while algorithm entry points retain responsibility for their own requirements. A successful general tree validation alone never promises suitability for every statistical model.
-The [complete C/C++ example](../examples/trait_analysis.c) composes prepared likelihood, marginal ASR, parsimony, Brownian fitting and PIC using only public headers.
+The [complete C/C++ example](https://github.com/leomrtns/curupixa/blob/main/examples/trait_analysis.c) composes prepared likelihood, marginal ASR, parsimony, Brownian fitting and PIC using only public headers.
 ## Validation and downstream migration
 The regression suites include allocation-free repeated likelihood evaluation (100 warmed calls: zero allocations/maps/validations, versus 1,000/100/100 for the ordinary interface in the instrumented static test), snapshot destruction/interleaving/thread tests, exhaustive discrete-state enumeration, independent Gaussian covariance/precision checks, pairwise-distance invariance under root changes, allocator failures and wide-tree construction. Installed headers are checked separately as C17 and C++17. Existing branchtraits regressions run against the updated library without changing branchtraits source.
 

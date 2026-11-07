@@ -1,4 +1,4 @@
-# Trees, analyses and ownership
+# Tree design
 The new tree API consolidates the core operations in biomcmc-lib's `topology_common`, `read_newick_trees`, `topology_distance`, `topology_randomise`, `newick_space`, `topology_space` and `upgma` modules. It uses stable node indices and independent analysis objects. All public constructors and operations return `crpx_status` values, and no operation terminates the calling program or requires an MPI runtime.
 ## Compact backbone
 Each node stores three `uint32_t` indices: parent, first child and next sibling. This occupies 12 bytes on the tested ABI. `CRPX_NODE_NONE` denotes an absent index; a tree can contain at most `UINT32_MAX` nodes. The tree owns one contiguous node allocation. IDs remain stable through reparenting, rerooting, NNI and SPR. Leaves and internal nodes can occur at any ID, and the root can change ID.

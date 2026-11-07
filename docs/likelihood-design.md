@@ -1,4 +1,4 @@
-# Likelihood implementation and backend direction
+# Likelihood design
 The current implementation uses the mathematical models in biomcmc-recomb and guenomu with new ownership, arbitrary-state data and recoverable errors. The [reference audit](likelihood-reference-audit.md) identifies the original formulas and assumptions; the [developer guide](character-analysis.md) gives the public calling interface and a complete binary example.
 ## Models and statistical assumptions
 Poisson/equal-rates and F81 support arbitrary positive state counts; HKY supports DNA in A,C,G,T order. The stationary mean substitution rate is one, except for the constant one-state process. Frequency weights must be positive and finite. Constructors normalise them with checked arithmetic. Fixed transition matrices use analytic exponential decays; the sitewise exponential-prior mode replaces each decay by its analytic Laplace transform. No numerical eigensystem is used.

@@ -1,4 +1,4 @@
-# Headers, linking and memory
+# Headers and memory footprint
 Curupixa keeps algorithm buffers in explicitly constructed objects and separates algorithms into compiled source modules. Adding another header/function expands the API and library file; it does not add per-node fields or allocate its analysis buffers when a program loads the library.
 ## Public dependency structure
 Each public header has an include guard and declares its own required standard and curupixa types. Guards make repeated inclusion safe. The include graph is also acyclic: algorithm headers depend on primitive objects, while primitive objects do not include algorithm headers. The umbrella `curupixa.h` is a convenient top-level aggregate.
