@@ -21,12 +21,13 @@
  * Implementation for Halton generator, modified according to the following improvement (reverse scrambling): [ B. Vandewoestyne and
  * R. Cools, Good permutations for deterministic scrambled Halton sequences in terms of L2-discrepancy, Computational and Applied
  * Mathematics 189, 2006]  */
-static double reverse_vdcorput (int x, int b);
-static double original_vdcorput (int x, int b); // original, without the reverse scrambling
+static double reverse_vdcorput (size_t x, size_t b);
+static double original_vdcorput (size_t x, size_t b); // original, without the reverse scrambling
 
 crpx_quasi_random_t
 new_crpx_quasi_random (crpx_global_t cglob, size_t size)
 {
+  if (!cglob || !size || size > SIZE_MAX / sizeof(double)) return NULL;
   crpx_quasi_random_t q = (crpx_quasi_random_t) crpx_malloc (cglob, sizeof (crpx_quasi_random_struct));
   if (!q) return NULL;
 
@@ -48,7 +49,7 @@ new_crpx_quasi_random (crpx_global_t cglob, size_t size)
   q->rem  = size % HALTON_MAX_DIMENSION;
 
   if (size > HALTON_MAX_DIMENSION) crpx_logger_warning (cglob, "Halton quasi-random generator is not efficient for space dimensions > %d", HALTON_MAX_DIMENSION);
-  crpx_link_add_global_pointer (cglob, q->cglob); // thread-safe increase of ref_counter
+  q->cglob = crpx_global_retain(cglob);
   crpx_quasi_random_reset (q);
   return q;
 }
@@ -57,9 +58,9 @@ void
 del_crpx_quasi_random (crpx_quasi_random_t q)
 {
   if (!q) return;
-  crpx_free (cglob, q->r);
-  crpx_free (cglob, q->ko);
-  crpx_global_finalise (q->cglob); // it should just decrease ref_counter unless user called it in wrong order 
+  crpx_free (q->cglob, q->r);
+  crpx_free (q->cglob, q->ko);
+  crpx_global_finalise (q->cglob); // release the object ownership reference
   free (q);
 }
 
@@ -92,6 +93,7 @@ crpx_quasi_random_next_korobov (crpx_quasi_random_t q)
 void
 crpx_quasi_random_next_halton (crpx_quasi_random_t q)
 {
+  if (!q) return;
   size_t i, j, k=0, iter_skip;
   q->iteration++;
   iter_skip = q->iteration;
@@ -105,26 +107,27 @@ crpx_quasi_random_next_halton (crpx_quasi_random_t q)
   }
 
   for (j = 1; j <= q->rem; j++) q->r[k++] = reverse_vdcorput (iter_skip, halton_prime_numbers[j]); // original GSL has prime_number[j] instead of j+1
-  assert ((k == (q->size-1)) && "not all quasi-random elements were generated in crpx_quasi_random_next_halton");
+  assert ((k == q->size) && "not all quasi-random elements were generated in crpx_quasi_random_next_halton");
   return;
 }
 
 void
 crpx_quasi_random_next_halton_original (crpx_quasi_random_t q)
 {
+  if (!q) return;
   size_t i, j, k=0, iter_skip;
   q->iteration++;
   iter_skip = q->iteration;
 
-  for (k = q->size - 1, i = 0; i < q->leap; i++) { // only enter this loop if q->size > HALTON_MAX_DIMENSION
+  for (k = q->size, i = 0; i < q->leap; i++) { // only enter this loop if q->size > HALTON_MAX_DIMENSION
     if (i < HALTON_MAX_DIMENSION + 1) iter_skip = (q->iteration) * halton_prime_numbers[i] + i; // "x prime" means "leap" and "+i" means "warm up"
     else iter_skip = (q->iteration) * i; // we're too far the original assumption of 1229 dimensions
     for (j = 1; j <= HALTON_MAX_DIMENSION; j++) {
-      q->r[k--] = original_vdcorput (iter_skip, halton_prime_numbers[j]); // original GSL had prime_number[j] instead of j+1 but we use prime_number[0] to store "1"
+      q->r[--k] = original_vdcorput (iter_skip, halton_prime_numbers[j]); // original GSL had prime_number[j] instead of j+1 but we use prime_number[0] to store "1"
     }
   }
 
-  for (j = 1; j <= q->rem; j++) q->r[k--] = original_vdcorput (iter_skip, halton_prime_numbers[j]); // original GSL has prime_number[j] instead of j+1
+  for (j = 1; j <= q->rem; j++) q->r[--k] = original_vdcorput (iter_skip, halton_prime_numbers[j]); // original GSL has prime_number[j] instead of j+1
   assert ((k == 0) && "not all quasi-random elements were generated in crpx_quasi_random_next_halton_original");
   return;
 }
@@ -132,7 +135,7 @@ crpx_quasi_random_next_halton_original (crpx_quasi_random_t q)
 /* auxiliary functions */
 
 static double
-reverse_vdcorput (int x, int b)
+reverse_vdcorput (size_t x, size_t b)
 {
   double r = 0., v = 1., binv = 1. / (double) b;
   while (x > 0) {
@@ -144,7 +147,7 @@ reverse_vdcorput (int x, int b)
 }
 
 static double
-original_vdcorput (int x, int b) // higher correlation, vdcorput is better
+original_vdcorput (size_t x, size_t b) // higher correlation, vdcorput is better
 {
   double r = 0., v = 1., binv = 1. / (double) b;
   while (x > 0) {

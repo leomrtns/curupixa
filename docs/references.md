@@ -1,7 +1,7 @@
 # References
 
 curupixa is free software; you can redistribute it and/or modify it under the terms of the GNU General Public
-License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later
+License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later
 version (http://www.gnu.org/copyleft/gpl.html).
 ```
 SPDX-License-Identifier: GPL-3.0-or-later
@@ -34,11 +34,8 @@ code to the best of my recollection.
 
 
 
-## List of other libraries and algorithms 
-
-These libraries are not implemented in curupixa, but have helped me in other software or served as inspiration somehow
-(aesthetically, or through OO ideas). The list below is copied from [biomcmc-lib](https://github.com/quadram-institute-bioscience/biomcmc-lib)
-which still is my main repository of code.
+## Algorithm and historical references
+The references below include historical sources from [biomcmc-lib](https://github.com/quadram-institute-bioscience/biomcmc-lib) as well as the redesigned implementations. The [migration inventory](migration.md) identifies current capabilities and deliberate changes. Source files retain the attribution for incorporated code; a historical reference does not imply that the current module copies that implementation.
 
 #### hash functions
 
@@ -50,20 +47,17 @@ which still is my main repository of code.
  * http://www.concentric.net/~Ttwang/tech/inthash.htm (now available at https://gist.github.com/badboy/6267743)
  * http://burtleburtle.net/bob/hash/integer.html
 
-The rolling hash algorithm for genomics (not incorporated yet) was inspired by the [linclust algorithm](https://github.com/soedinglab/MMseqs2). 
+The earlier rolling-hash work was inspired by the [linclust algorithm](https://github.com/soedinglab/MMseqs2). The current API provides a byte rolling hash and a separate canonical DNA k-mer iterator.
 Their implementation is clean and very fast, but (at least at the time of my implementation) does not compute the
 reverse strand &mdash; since it works with a reduced amino acid alphabet. 
  
 #### hash table
 
-Our first implementation is derived from the software (Rec-I-DCM3)[https://web.njit.edu/~usman/RecIDCM3.html], 
-released under the GPL license (Copyright (C) 2004 The University of Texas at Austin. 
+The historical biomcmc-lib implementation derives from [Rec-I-DCM3](https://web.njit.edu/~usman/RecIDCM3.html), released under the GPL (Copyright (C) 2004 The University of Texas at Austin). Curupixa now uses independently owned byte keys and open addressing.
 
 #### argtable 
 
-The files `argtable3.c` and `argtable3.h` were copied with small modicifcations from [argtable3](https://www.argtable.org/) library, 
-maintained by Tom G. Huang at the time of this import (2019.06) and are distributed under a BSD license. 
-Please refer to  https://github.com/argtable/argtable3 for the list of authors.
+Biomcmc-lib includes the BSD-licensed [argtable3](https://www.argtable.org/) command-line parser. Curupixa leaves this third-party utility outside its phylogenetic API.
 
 #### clustering
 
@@ -77,12 +71,11 @@ Code by Nicolas Devillard - 1998. Public domain.  http://ndevilla.free.fr/median
 
 #### getline
 
-Our implementation is originally from the CvsGui project (http://www.wincvs.org/).
-It may be equivalent to the standard GNU getline since (POSIX.1-2008)[https://man7.org/linux/man-pages/man3/getline.3.html].
+The legacy reader credits the CvsGui project (http://www.wincvs.org/). The new stream API uses its own buffered line reader and distinguishes EOF, I/O failure and allocation failure.
 
 #### Hungarian method
 
-The hungarian method was copied (with modifications) from http://www.informatik.uni-freiburg.de/~stachnis/misc.html
+The historical Hungarian implementation was copied (with modifications) from http://www.informatik.uni-freiburg.de/~stachnis/misc.html. The current checked rectangular assignment API uses a separate shortest-augmenting-path implementation.
 The original message follows:
 ```
  libhungarian by Cyrill Stachniss, 2004  Solving the Minimum Assignment Problem using the
@@ -96,7 +89,7 @@ The original message follows:
 
 The probability distribution functions and auxiliary mathematical functions are derived from the (R project for Statistical Computing)[http://www.r-project.org/],
 version 2.9.1, available under the GPL license.
-The code for the discrete sampling comes from the [GNU Scientific Library](https://www.gnu.org/software/gsl/), version 1.14.
+The historical discrete sampler credits the [GNU Scientific Library](https://www.gnu.org/software/gsl/), version 1.14. The current opaque sampler builds a Walker alias table and uses an explicit caller-owned stream.
 
 #### Random number generation
 
@@ -115,6 +108,9 @@ Other references:
 
 It is noted that most of these algorithms are in the public domain.
 
+#### Split distances and all-root reconciliation
+The greedy dSPR and directional reconciliation implementations adapt Leonardo de Oliveira Martins's `topology_splitset.c` and `topology_mrca.c` from [guenomu](https://bitbucket.org/leomrtns/guenomu) and the newer [genefam-dist](https://github.com/leomrtns/genefam-dist), under their GPL-2.0-or-later terms, incorporated here as GPL-3.0-or-later. Curupixa replaces attached scratch fields, the quadratic MRCA cache and all-pairs disagreement bitsets with separate analysis objects. The [distance guide](cladistic-distances.md) records conventions, corrections and heuristic differences.
+
 #### reconciliation
 
 All reconciliation algorithms were implemented here by Leo Martins, based on methods described in
@@ -129,7 +125,7 @@ All reconciliation algorithms were implemented here by Leo Martins, based on met
 
 #### suffix tree
 
-Implementation not functional, but these are the projects that I considered and have been studying.
+The current substring index uses a fresh suffix-array/LCP implementation. The following suffix-tree projects informed earlier investigations:
 ```
 git@github.com:JGAntunes/longest-substrings.git
 git@github.com:ScottBogen/mcc.git
@@ -139,15 +135,19 @@ git@github.com:Jodh/Ukkonen_Algorithm.git
 ```
 #### SVD
 
-Not implemented yet, but I am considering the implementation from [git@github.com:lucasmaystre/svdlibc.git](https://github.com/lucasmaystre/svdlibc).
+The legacy sparse implementation comes from [SVDLIBC](https://github.com/lucasmaystre/svdlibc).
 It contains a fast implementation of SVD matrix decomposition by Doug Rohde.
 As of version 1.4, the original files (SVDLIBC) are explicitly available under a BSD license, according to 
 [the github repository](https://github.com/lucasmaystre/svdlibc). 
+Curupixa currently uses an independent scaled dense Jacobi backend, including for materialised sparse inputs. It does not retain SVDLIBC's LAS2 implementation or scalability contract.
 
 #### hyperloglog
 
-Not finished yet, but my implementation is based on code by Ivan Vitjuk https://github.com/ivitjuk/libhll, 
-released under an ISC License.
+Earlier work considered Ivan Vitjuk's [libhll](https://github.com/ivitjuk/libhll), released under an ISC licence. The current implementation follows the classic estimator in [Flajolet, Fusy, Gandouet and Meunier (2007)](https://algo.inria.fr/flajolet/Publications/FlFuGaMe07.pdf).
+
+#### File formats and tree construction
+The [Sequence Ontology GFF3 specification](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md) defines GFF coordinates, attributes and escaping. The parser implements the subset and validation limits described in its public header.
+BioNJ follows [Gascuel (1997)](https://academic.oup.com/mbe/article-pdf/14/7/685/11165731/1gasc.pdf); the [tree design](tree-design.md) records corrections to the local legacy implementation.
 
 
 ### Github page

@@ -13,6 +13,8 @@
 /*! \file random_number_generators.c
  *  \brief 64 bits random number generators from integers. */
 
+#include "lowlevel.h"
+#include "hash_functions_generators.h"
 #include "random_number_generators.h"
 #include "internal_random_constants.h" // not available to the user, only locally
 
@@ -42,9 +44,11 @@ crpx_rng_splitmix_seed64 (void *vstate)
 uint64_t 
 crpx_rng_lehmer_seed128 (void *vstate)
 { // https://github.com/lemire/testingRNG/blob/master/source/lehmer64.h
-  __uint128_t *state = (__uint128_t *) vstate;
-  *state *= UINT64_C(0xda942042e4dd58b5);
-  return (uint64_t) (*state >> 64);
+  __uint128_t state;
+  memcpy(&state, vstate, sizeof(state));
+  state *= UINT64_C(0xda942042e4dd58b5);
+  memcpy(vstate, &state, sizeof(state));
+  return (uint64_t)(state >> 64);
 }
 
 uint64_t 
@@ -175,7 +179,7 @@ crpx_xoroshiro_pp_seed256 (void *vstate)
 {// https://github.com/quadram-institute-bioscience/biomcmc-lib/blob/master/lib/random_number_gen.c
   uint64_t *v = (uint64_t *) vstate;
   uint64_t t = v[1] << 17; 
-  uint64_t result = ROTL64(v[1] * 5, 7) * 9;
+  uint64_t result = ROTL64(v[0] + v[3], 23) + v[0];
   v[2] ^= v[0]; v[3] ^= v[1]; v[1] ^= v[2]; v[0] ^= v[3]; v[2] ^= t; v[3] = ROTL64(v[3], 45);
   return result;
 }
@@ -185,7 +189,7 @@ crpx_xoroshiro_star_seed256 (void *vstate)
 {// https://github.com/quadram-institute-bioscience/biomcmc-lib/blob/master/lib/random_number_gen.c
   uint64_t *v = (uint64_t *) vstate;
   uint64_t t = v[1] << 17; 
-  uint64_t result = ROTL64(v[0] + v[3], 23) + v[0];
+  uint64_t result = ROTL64(v[1] * 5, 7) * 9;
   v[2] ^= v[0]; v[3] ^= v[1]; v[1] ^= v[2]; v[0] ^= v[3]; v[2] ^= t; v[3] = ROTL64(v[3], 45);
   return result;
 }
@@ -194,7 +198,7 @@ uint64_t
 crpx_rng_xorshift_star_seed64 (void *vstate)
 { // https://github.com/opencoff/portable-lib/blob/master/src/xorshift.c
   uint64_t *s = (uint64_t *) vstate;  
-  *s ^= *s >> 12; *s ^= *s << 25; *s ^= *s << 27;
+  *s ^= *s >> 12; *s ^= *s << 25; *s ^= *s >> 27;
   return (*s) * 2685821657736338717ULL;
 }
 
@@ -213,13 +217,15 @@ crpx_rng_xorshift_p_seed128 (void *vstate)
 uint64_t
 crpx_rng_pcg_seed256 (void *vstate)
 { // https://github.com/lemire/testingRNG/blob/master/source/pcg64.h
-  __uint128_t *s = (__uint128_t *) vstate;
+  __uint128_t s[2];
+  memcpy(s, vstate, sizeof(s));
   uint64_t value;
   unsigned int rot;
   s[0] = s[0] * PCG_DEFAULT_MULTIPLIER_128 + s[1]; // s[1] never changes but _must_be_ odd;
   value = ((uint64_t)(s[0] >> 64u)) ^ (uint64_t) s[0];
   rot = s[0] >> 122u;
-  return (value >> rot) | (value << ((-rot) & 63));
+  memcpy(vstate, s, sizeof(s));
+  return (value >> rot) | (value << ((64u - rot) & 63u));
 }
 
 uint64_t
@@ -338,8 +344,8 @@ crpx_rng_pcg_set_seed256 (void *vstate, uint64_t seed)
   initseq = (initseq << 1u) | 1u; // makes sure it's odd
   initstate += initseq;
   initstate = initstate * PCG_DEFAULT_MULTIPLIER_128 + initseq;
-  s[0] = (uint64_t) (initstate >> 64); s[1] = (uint64_t) initstate;
-  s[2] = (uint64_t) (initseq >> 64);   s[3] = (uint64_t) initseq;
+  __uint128_t states[2] = { initstate, initseq };
+  memcpy(vstate, states, sizeof(states));
 }
 
 void
