@@ -14,6 +14,7 @@ void crpx_splitset_free(crpx_splitset *s)
   for (size_t i = 0; i < s->count; ++i) crpx_bipartition_free(s->splits[i]);
   free(s->splits); free(s);
 }
+size_t crpx_splitset_taxa(const crpx_splitset *s) { return s ? s->taxa : 0; }
 size_t crpx_splitset_count(const crpx_splitset *s) { return s ? s->count : 0; }
 const struct crpx_bipartition_struct *crpx_splitset_get(const crpx_splitset *s, size_t i)
 { return s && i < s->count ? s->splits[i] : NULL; }

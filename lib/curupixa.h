@@ -39,6 +39,10 @@ extern "C" {
 #include "alignment.h"
 #include "parsimony.h"
 #include "reconciliation.h"
+#include "ancestry_index.h"
+#include "reconciliation_roots.h"
+#include "taxon_map.h"
+#include "spr_distance.h"
 #include "lowlevel_algorithms.h"
 #include "splitset_distances.h"
 #include "topology_distance.h"
@@ -55,6 +59,10 @@ extern "C" {
 #include "rolling_hash.h"
 #include "suffix_tree.h"
 #include "minimiser_simplex.h"
+#include "character_data.h"
+#include "substitution_model.h"
+#include "likelihood.h"
+#include "character_analysis.h"
 
 #ifdef __cplusplus
 }

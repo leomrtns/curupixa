@@ -25,7 +25,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include "lowlevel.h"
+#include <stdint.h>
 
 #define CRPX_set_or_clear_bits (w,m,f) (w ^ (-f ^ w) & m) /*!< \brief nonbranching f=set mask bits m: (if (f) w |= m; else w &= ~m)  */
 #define CRPX_merge_bits_using_mask (a,b,mask) (a ^ ((a ^ b) & mask)) /*!< \brief mask has 1 where bits from b are selected, and zero where from a: ((a & ~mask) | (b & mask)) */

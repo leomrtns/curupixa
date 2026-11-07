@@ -13,6 +13,8 @@
 /*! \file random_number_generators.c
  *  \brief 64 bits random number generators from integers. */
 
+#include "lowlevel.h"
+#include "hash_functions_generators.h"
 #include "random_number_generators.h"
 #include "internal_random_constants.h" // not available to the user, only locally
 

@@ -14,6 +14,8 @@
 /*! \file hash_functions_generators.c 
  *  \brief simple hash functions.  */
 
+#include "lowlevel.h"
+#include "maths_and_bits.h"
 #include "hash_functions_generators.h"
 #include "internal_random_constants.h" // not available to the user, only locally
 

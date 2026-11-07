@@ -1,6 +1,6 @@
 AM_CPPFLAGS = -I$(top_builddir)/lib/global
 AM_CFLAGS = @AM_CFLAGS@ @OPENMP_CFLAGS@
-common_headers = global_variable.h lowlevel.h maths_and_bits.h \
+common_headers = context_types.h global_variable.h lowlevel.h maths_and_bits.h \
   hash_functions_generators.h hash_functions.h random_number.h random_number_generators.h
 common_src = global_variable.c lowlevel.c maths_and_bits.c internal_random_constants.c \
   hash_functions_generators.c hash_functions.c random_number.c random_number_generators.c

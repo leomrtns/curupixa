@@ -21,6 +21,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#include "context_types.h"
 #include "random_number_generators.h"
 #include "../status.h"
 

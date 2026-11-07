@@ -17,6 +17,7 @@ typedef struct crpx_splitset crpx_splitset;
 crpx_status crpx_splitset_from_tree(const crpx_tree *tree, const crpx_node_id *tip_nodes, size_t taxa,
                                    crpx_splitset **out);
 void crpx_splitset_free(crpx_splitset *splits);
+size_t crpx_splitset_taxa(const crpx_splitset *splits);
 size_t crpx_splitset_count(const crpx_splitset *splits);
 const struct crpx_bipartition_struct *crpx_splitset_get(const crpx_splitset *splits, size_t index);
 /* RF is the symmetric difference. Assignment cost matches disagreeing splits by

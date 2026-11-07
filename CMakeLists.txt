@@ -46,7 +46,15 @@ set(curupixa_sources
   lib/upgma.c
   lib/newick_space.c
   lib/lowlevel_algorithms.c
+  lib/spr_distance.c
+  lib/ancestry_index.c
+  lib/reconciliation_roots.c
+  lib/taxon_map.c
   lib/splitset_distances.c
+  lib/character_data.c
+  lib/character_analysis.c
+  lib/substitution_model.c
+  lib/likelihood.c
   lib/prob_distribution.c
   lib/hll.c
   lib/kmerhash.c
@@ -70,9 +78,11 @@ set(curupixa_headers
   lib/topology_distance.h lib/topology_randomise.h lib/alignment.h lib/nexus_common.h
   lib/gff3_format.h lib/parsimony.h lib/reconciliation.h lib/minimiser_simplex.h lib/svd.h
   lib/distance_generator.h lib/clustering_goptics.h lib/upgma.h lib/newick_space.h lib/lowlevel_algorithms.h
-  lib/splitset_distances.h)
+  lib/splitset_distances.h lib/spr_distance.h lib/ancestry_index.h lib/reconciliation_roots.h lib/taxon_map.h
+  lib/character_data.h lib/character_analysis.h
+  lib/substitution_model.h lib/likelihood.h)
 set(curupixa_global_headers
-  lib/global/global_variable.h lib/global/lowlevel.h lib/global/maths_and_bits.h
+  lib/global/context_types.h lib/global/global_variable.h lib/global/lowlevel.h lib/global/maths_and_bits.h
   lib/global/hash_functions_generators.h
   lib/global/hash_functions.h lib/global/random_number.h lib/global/random_number_generators.h)
 
@@ -101,9 +111,10 @@ if(UNIX)
 endif()
 if(CURUPIXA_ENABLE_OPENMP)
   find_package(OpenMP REQUIRED COMPONENTS C)
-  target_link_libraries(curupixa PUBLIC OpenMP::OpenMP_C)
-  string(APPEND CURUPIXA_PC_LIBS_PRIVATE " ${OpenMP_C_FLAGS}")
-  string(APPEND CURUPIXA_PC_CFLAGS " ${OpenMP_C_FLAGS}")
+  # Current implementation carries/synchronises its own state and calls no
+  # OpenMP runtime API. Keep this compiler feature private to this build; an
+  # installed C++ consumer should not need to enable the C compiler or OpenMP.
+  target_link_libraries(curupixa PRIVATE $<BUILD_INTERFACE:OpenMP::OpenMP_C>)
 endif()
 if(CURUPIXA_ENABLE_ZLIB)
   find_package(ZLIB REQUIRED)
@@ -153,7 +164,8 @@ if(CURUPIXA_BUILD_TESTS)
   enable_testing()
   find_package(Threads REQUIRED)
   foreach(test_name core tree runtime statistics probability hashing suffix_index topology alignment
-      compression gff3 phylogenetics minimiser svd clustering algorithms)
+      compression gff3 phylogenetics minimiser svd clustering algorithms
+      character_analysis substitution_model likelihood spr reconciliation_roots)
     add_executable(test_${test_name} tests/test_${test_name}.c)
     target_link_libraries(test_${test_name} PRIVATE curupixa::curupixa Threads::Threads)
     if(MSVC)

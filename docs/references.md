@@ -108,6 +108,9 @@ Other references:
 
 It is noted that most of these algorithms are in the public domain.
 
+#### Split distances and all-root reconciliation
+The greedy dSPR and directional reconciliation implementations adapt Leonardo de Oliveira Martins's `topology_splitset.c` and `topology_mrca.c` from [guenomu](https://bitbucket.org/leomrtns/guenomu) and the newer [genefam-dist](https://github.com/leomrtns/genefam-dist), under their GPL-2.0-or-later terms, incorporated here as GPL-3.0-or-later. Curupixa replaces attached scratch fields, the quadratic MRCA cache and all-pairs disagreement bitsets with separate analysis objects. The [distance guide](cladistic-distances.md) records conventions, corrections and heuristic differences.
+
 #### reconciliation
 
 All reconciliation algorithms were implemented here by Leo Martins, based on methods described in

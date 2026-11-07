@@ -20,7 +20,8 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include "maths_and_bits.h"
+#include <stddef.h>
+#include <stdint.h>
 
 extern uint64_t crpx_mumhash64_mixer (uint64_t a, uint64_t b);
 extern uint64_t crpx_wyhash64_mixer (uint64_t a, uint64_t b);

@@ -13,6 +13,7 @@
 /*! \file random_number.c
  *  \brief high-level RNG, relying on lower level random_number_generators.c . */
 
+#include "global_variable.h"
 #include "random_number.h"
 #include "runtime_internal.h"
 

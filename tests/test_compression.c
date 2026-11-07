@@ -79,12 +79,25 @@ static int test_format(crpx_file_format format)
     CHECK(raw && fwrite(bytes, 1, byte_count, raw) == byte_count);
     CHECK(fwrite(bytes, 1, byte_count, raw) == byte_count && fclose(raw) == 0);
     CHECK(read_data(two, CRPX_FILE_AUTO, data, length * 2) == 0);
+    if (format == CRPX_FILE_XZ) {
+      const unsigned char padding[4] = {0, 0, 0, 0};
+      raw = fopen(two, "wb");
+      CHECK(raw && fwrite(bytes, 1, byte_count, raw) == byte_count);
+      CHECK(fwrite(padding, 1, sizeof(padding), raw) == sizeof(padding));
+      CHECK(fwrite(bytes, 1, byte_count, raw) == byte_count);
+      CHECK(fwrite(padding, 1, sizeof(padding), raw) == sizeof(padding) && fclose(raw) == 0);
+      CHECK(read_data(two, CRPX_FILE_AUTO, data, length * 2) == 0);
+    }
     raw = fopen(altered, "wb");
     CHECK(raw && fwrite(bytes, 1, byte_count - 3, raw) == byte_count - 3 && fclose(raw) == 0);
     CHECK(read_failure(format) == 0);
     raw = fopen(altered, "wb");
     CHECK(raw && fwrite(bytes, 1, byte_count, raw) == byte_count);
     CHECK(fwrite("trailing garbage", 1, 16, raw) == 16 && fclose(raw) == 0);
+    CHECK(read_failure(format) == 0);
+    bytes[byte_count / 2] ^= 0x40;
+    raw = fopen(altered, "wb");
+    CHECK(raw && fwrite(bytes, 1, byte_count, raw) == byte_count && fclose(raw) == 0);
     CHECK(read_failure(format) == 0);
     free(bytes);
   }

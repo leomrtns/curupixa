@@ -6,12 +6,17 @@ common_headers = index_arrangement.h quasi_random.h status.h tree.h bipartition.
   distance_matrix.h hashtable.h quickselect_quantile.h empirical_frequency.h prob_distribution.h \
   hll.h kmerhash.h rolling_hash.h suffix_tree.h topology_distance.h topology_randomise.h file_compression.h \
   alignment.h nexus_common.h gff3_format.h parsimony.h reconciliation.h minimiser_simplex.h svd.h \
-  distance_generator.h clustering_goptics.h upgma.h newick_space.h lowlevel_algorithms.h splitset_distances.h
+  distance_generator.h clustering_goptics.h upgma.h newick_space.h lowlevel_algorithms.h splitset_distances.h \
+  spr_distance.h ancestry_index.h reconciliation_roots.h taxon_map.h \
+  character_data.h character_analysis.h substitution_model.h likelihood.h
 common_src = index_arrangement.c quasi_random.c status.c tree.c bipartition.c char_vector.c \
   distance_matrix.c hashtable.c quickselect_quantile.c empirical_frequency.c prob_distribution.c \
   hll.c kmerhash.c rolling_hash.c suffix_tree.c topology_distance.c topology_randomise.c file_compression.c \
   alignment.c nexus_common.c gff3_format.c parsimony.c reconciliation.c minimiser_simplex.c svd.c \
-  distance_generator.c clustering_goptics.c upgma.c newick_space.c lowlevel_algorithms.c splitset_distances.c
+  distance_generator.c clustering_goptics.c upgma.c newick_space.c lowlevel_algorithms.c splitset_distances.c \
+  spr_distance.c ancestry_index.c reconciliation_roots.c taxon_map.c \
+  character_data.c character_analysis.c substitution_model.c likelihood.c
+noinst_HEADERS = substitution_model_internal.h
 
 otherincludedir = $(includedir)/curupixa
 otherinclude_HEADERS = curupixa.h $(common_headers)

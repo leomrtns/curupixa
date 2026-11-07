@@ -20,6 +20,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#include "context_types.h"
 #include "hash_functions_generators.h"
 
 size_t crpx_generate_bytesized_random_seeds_from_cpu  (crpx_global_t cglob, void *seed, size_t seed_size);

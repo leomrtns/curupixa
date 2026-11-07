@@ -33,6 +33,7 @@ extern "C" {
 #endif
 
 #include "config.h"
+#include "context_types.h"
 
 #include <stdio.h>
 #include <stdlib.h>     /* random number, searching, sorting, EXIT_SUCCESS */
@@ -114,7 +115,7 @@ extern "C" {
 /* Context lifetime is reference-counted. Retain a reference before publishing it to another thread.
  * RNG calls and logging are serialised, including callers outside OpenMP. Per-worker streams avoid
  * lock contention and make results independent of scheduling. Direct field mutation requires exclusive access. */
-typedef struct {
+struct crpx_global_struct {
   size_t nthreads, rng_size;
   uint8_t loglevel_stderr, loglevel_file, error;
   bool sse, avx;
@@ -124,7 +125,7 @@ typedef struct {
   char rng_name[32];
   FILE *logfile;
   struct crpx_runtime_state *runtime_state;
-} crpx_global_struct, *crpx_global_t;
+};
 
 /*! \brief Memory-safe malloc() function, with default error message in case of failure. Variadic args start at cglobal */
 void *crpx_malloc_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, size_t size);

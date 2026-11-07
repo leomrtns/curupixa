@@ -15,7 +15,21 @@ LT_INIT
 
 AC_CHECK_HEADERS([unistd.h sys/time.h sys/times.h sys/syscall.h threads.h])
 AC_SEARCH_LIBS([clock_gettime], [rt])
-AC_SEARCH_LIBS([sqrt], [m])
+dnl Use the real prototype: AC_SEARCH_LIBS' char sqrt() conflicts with compiler
+dnl builtins under caller-supplied -Werror and can silently omit the maths library.
+AC_MSG_CHECKING([whether mathematical functions need libm])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <math.h>]], [[
+  volatile double argument = 2.0;
+  double (*volatile function)(double) = sqrt;
+  return function(argument) < 0;
+]])], [AC_MSG_RESULT([no])], [
+  LIBS="-lm $LIBS"
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <math.h>]], [[
+    volatile double argument = 2.0;
+    double (*volatile function)(double) = sqrt;
+    return function(argument) < 0;
+  ]])], [AC_MSG_RESULT([yes])], [AC_MSG_ERROR([working mathematical functions are required])])
+])
 AC_SEARCH_LIBS([pthread_create], [pthread])
 
 dnl A parent package controls optimisation, architecture and instrumentation flags.
@@ -67,8 +81,9 @@ AS_IF([test "x$enable_lzma" = xyes], [
   AC_DEFINE([HAVE_LZMA], [1], [Enable XZ file streams])
 ])
 
-CURUPIXA_PC_LIBS_PRIVATE="$LIBS $OPENMP_CFLAGS"
-CURUPIXA_PC_CFLAGS="$OPENMP_CFLAGS"
+dnl OpenMP is a private compilation option; the implementation calls no runtime API.
+CURUPIXA_PC_LIBS_PRIVATE="$LIBS"
+CURUPIXA_PC_CFLAGS=""
 AC_SUBST([CURUPIXA_PC_LIBS_PRIVATE])
 AC_SUBST([CURUPIXA_PC_CFLAGS])
 AC_SUBST([AM_CFLAGS])

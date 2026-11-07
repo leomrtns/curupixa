@@ -16,6 +16,7 @@
  *  \brief Maths and bits functions.
  */
 
+#include "lowlevel.h"
 #include "maths_and_bits.h"
 
 uint32_t
