@@ -12,10 +12,9 @@
  * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
  */
 
-/*! \file global_variable.h 
- *  \brief headers exposed to other programs
+/*! \file global_variable.h
+    \brief Create and release contexts used by logging, allocation helpers and context-based random generators.
  */
-
 #ifndef _global_global_variable_h_
 #define _global_global_variable_h_
 

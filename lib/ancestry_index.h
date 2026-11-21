@@ -1,5 +1,8 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/*! \file ancestry_index.h
+    \brief Prepare a tree for repeated ancestor and least-common-ancestor queries without storing an all-pairs table.
+ */
 #ifndef CURUPIXA_ANCESTRY_INDEX_H
 #define CURUPIXA_ANCESTRY_INDEX_H
 #include "tree.h"
@@ -7,9 +10,9 @@
 extern "C" {
 #endif
 typedef struct crpx_ancestry_index crpx_ancestry_index;
-/* Immutable snapshot of connectivity only: O(nodes log nodes) indices, O(log nodes)
- * LCA queries. No tree pointer, labels, lengths or all-pairs MRCA table is retained.
- * IDs refer to the input snapshot. Rebuild explicitly after changing connectivity. */
+/* Immutable snapshot of connectivity only: O(nodes log nodes) indices, O(log nodes) LCA queries. No tree pointer,
+   labels, lengths or all-pairs MRCA table is retained. IDs refer to the input snapshot. Rebuild explicitly after
+   changing connectivity. */
 crpx_status crpx_ancestry_index_new(const crpx_tree *tree,crpx_ancestry_index **out);
 void crpx_ancestry_index_free(crpx_ancestry_index *index);
 size_t crpx_ancestry_index_nodes(const crpx_ancestry_index *index);

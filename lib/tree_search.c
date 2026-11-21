@@ -1,5 +1,6 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Search tree topologies by NNI using an objective supplied by the application. */
 #include "tree_search.h"
 #include <math.h>
 
@@ -18,7 +19,7 @@ evaluate (const crpx_tree *tree, crpx_tree_objective objective, void *state,
 static crpx_status
 search_nni (const crpx_tree *start, crpx_tree_objective objective, void *state,
             size_t max_moves, bool suppress_root, crpx_tree_search_result *result)
-{
+{ /* Evaluate neighbouring topologies with the supplied objective and accept only strict improvements. */
   crpx_tree_search_result search = {0};
   crpx_status status;
   if (!start || !objective || !result) return CRPX_ERROR_INVALID_ARGUMENT;
@@ -53,9 +54,8 @@ search_nni (const crpx_tree *start, crpx_tree_objective objective, void *state,
         }
       }
     }
-    /* Suppress the artificial binary root conceptually. Its two incident
-     * edges form one unrooted edge, whose NNI alternatives exchange grandchildren
-     * on opposite sides. Ordinary rooted moves only relocate this root. */
+    /* Suppress the artificial binary root conceptually. Its two incident edges form one unrooted edge, whose NNI
+   alternatives exchange grandchildren on opposite sides. Ordinary rooted moves only relocate this root. */
     if (suppress_root) {
       crpx_node_id left = crpx_tree_first_child (search.tree, crpx_tree_root (search.tree));
       crpx_node_id right = crpx_tree_next_sibling (search.tree, left);
@@ -85,8 +85,7 @@ search_nni (const crpx_tree *start, crpx_tree_objective objective, void *state,
     search.score = best_score;
     search.moves++;
   }
-  /* Leave callback-owned numerical caches consistent with the returned tree,
-   * rather than the last rejected neighbour. */
+  /* Leave callback-owned numerical caches consistent with the returned tree, rather than the last rejected neighbour. */
   status = evaluate (search.tree, objective, state, &search.score, &search.evaluations);
   if (status != CRPX_OK) goto failed;
   *result = search;

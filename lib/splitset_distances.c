@@ -1,6 +1,9 @@
 /* Reimplementation of biomcmc-lib splitset distances (Leonardo de Oliveira Martins).
  * Copyright (C) 2019-2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Extract comparable unrooted splits and calculate RF or split-assignment costs. */
+/* Robinson and Foulds (1981), Comparison of phylogenetic trees, doi:10.1016/0025-5564(81)90043-2. Assignment costs are
+   defined separately in this interface. */
 #include "splitset_distances.h"
 #include "hashtable.h"
 #include "lowlevel_algorithms.h"
@@ -20,7 +23,7 @@ const struct crpx_bipartition_struct *crpx_splitset_get(const crpx_splitset *s, 
 { return s && i < s->count ? s->splits[i] : NULL; }
 
 crpx_status crpx_splitset_from_tree(const crpx_tree *tree, const crpx_node_id *tips, size_t taxa, crpx_splitset **out)
-{
+{ /* Extract comparable splits once, so later comparisons can reuse their taxon coordinates. */
   crpx_tree_workspace *w = NULL;
   crpx_hashtable_t unique = NULL;
   crpx_splitset *s = NULL;
@@ -77,7 +80,7 @@ done:
 }
 
 crpx_status crpx_splitset_compare(const crpx_splitset *a, const crpx_splitset *b, size_t *rf, uint64_t *assignment_cost)
-{
+{ /* Match common splits first; build the assignment problem only when its cost is requested. */
   if (!a || !b || a->taxa != b->taxa || (!rf && !assignment_cost)) return CRPX_ERROR_INVALID_ARGUMENT;
   size_t *left = NULL, *right = NULL, *assignment = NULL;
   double *costs = NULL;

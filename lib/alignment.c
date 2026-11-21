@@ -1,6 +1,7 @@
 /* Reimplementation of biomcmc-lib alignment (Leonardo de Oliveira Martins).
  * Copyright (C) 2019-2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Read sequence alignments and count repeated site patterns for distance and likelihood calculations. */
 #include "alignment.h"
 #include "char_vector.h"
 #include "file_compression.h"
@@ -188,8 +189,8 @@ crpx_status crpx_alignment_distance_matrix(const crpx_alignment *a, crpx_sequenc
     status = crpx_alignment_pairwise_distance(a, i, j, model, &distance, &used);
     if (status == CRPX_ERROR_NOT_FOUND) { status = CRPX_OK; distance = NAN; }
     if (status != CRPX_OK) break;
-    /* Saturated model distances are retained as missing in a finite-distance
-     * matrix; use pairwise_distance to distinguish saturation from no sites. */
+    /* Saturated model distances are retained as missing in a finite-distance matrix; use pairwise_distance to distinguish
+   saturation from no sites. */
     status = crpx_distance_matrix_set(matrix, i, j, isfinite(distance) ? distance : NAN);
     if (status != CRPX_OK) break;
   }
@@ -257,8 +258,8 @@ static crpx_status parse_fasta(char *text, bool compact, crpx_alignment **out)
   return status;
 }
 
-/* Bounded tokeniser for NEXUS headers and matrix names; edits only its private
- * input. Newline handling for sequential/interleaved rows stays in parse_nexus. */
+/* Bounded tokeniser for NEXUS headers and matrix names; edits only its private input. Newline handling for
+   sequential/interleaved rows stays in parse_nexus. */
 static char *next_token(char **cursor, crpx_status *status)
 {
   char *p = *cursor;

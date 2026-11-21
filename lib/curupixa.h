@@ -12,10 +12,9 @@
  * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
  */
 
-/*! \file curupixa.h 
- *  \brief headers exposed to other programs
+/*! \file curupixa.h
+    \brief Include all three library interfaces; individual component or function headers can be included instead.
  */
-
 #ifndef _curupixa_toplevel_h_ 
 #define _curupixa_toplevel_h_
 

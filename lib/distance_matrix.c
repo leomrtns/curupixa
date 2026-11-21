@@ -1,6 +1,7 @@
 /* Reimplementation of biomcmc-lib distance_matrix (Leonardo de Oliveira Martins).
  * Copyright (C) 2019-2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Store symmetric pairwise distances and summarise observations from gene copies by species. */
 #include "distance_matrix.h"
 #include <math.h>
 #include <stdlib.h>

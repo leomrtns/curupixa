@@ -3,6 +3,7 @@
  * Reimplementation of biomcmc-lib distance-based tree construction.
  * BioNJ equations follow Gascuel (1997), doi:10.1093/oxfordjournals.molbev.a025808.
  */
+/* Construct trees from pairwise distances using UPGMA or neighbour-joining methods. */
 #include "upgma.h"
 #include <math.h>
 #include <stdio.h>

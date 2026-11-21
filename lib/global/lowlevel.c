@@ -15,6 +15,7 @@
  *  \brief Lowest level basic functions, that should be available to all other modules. 
  */
 
+/* Provide platform definitions, allocation helpers and logging used by the runtime context. */
 #include "lowlevel.h"
 #include "runtime_internal.h"
 

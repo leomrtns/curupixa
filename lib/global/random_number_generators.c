@@ -13,6 +13,7 @@
 /*! \file random_number_generators.c
  *  \brief 64 bits random number generators from integers. */
 
+/* Implement individual random-number generators independently of the context interface. */
 #include "lowlevel.h"
 #include "hash_functions_generators.h"
 #include "random_number_generators.h"
@@ -142,8 +143,9 @@ crpx_rng_romu_seed128 (void *vstate) // romu_duo: 2 x uint64_t
   return x;
 }
 
-/* See also http://prng.di.unimi.it/xoroshiro128plusplus.c and http://xoroshiro.di.unimi.it/xoroshiro128plus.c 
- * https://github.com/quadram-institute-bioscience/biomcmc-lib/blob/master/lib/random_number_gen.c contains others, and jump functions */
+/* See also http://prng.di.unimi.it/xoroshiro128plusplus.c and http://xoroshiro.di.unimi.it/xoroshiro128plus.c
+   https://github.com/quadram-institute-bioscience/biomcmc-lib/blob/master/lib/random_number_gen.c contains others, and
+   jump functions */
 uint64_t
 crpx_xoroshiro_pv6_seed128 (void *vstate) // 128+ V 2016
 { // https://github.com/opencoff/portable-lib/blob/master/src/xoroshiro.c

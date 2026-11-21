@@ -1,12 +1,13 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Match gene labels to species labels and return an explicit node-indexed correspondence. */
 #include "taxon_map.h"
 #include "hashtable.h"
 #include <stdlib.h>
 #include <string.h>
 crpx_status crpx_gene_species_map_labels(const crpx_tree *gene,const crpx_tree *species,
                                         char delimiter,size_t field,crpx_node_id *out,size_t capacity)
-{
+{ /* Build the explicit species correspondence once before repeated reconciliation or mapped-distance calls. */
   if (!gene || !species || !out || (!delimiter && field)) return CRPX_ERROR_INVALID_ARGUMENT;
   size_t n=crpx_tree_node_count(gene);
   if (!n || !crpx_tree_node_count(species)) return CRPX_ERROR_INVALID_ARGUMENT;

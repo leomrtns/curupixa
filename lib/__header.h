@@ -11,9 +11,9 @@
  * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
  */
 
-/*! \file .h 
- *  \brief */ 
-
+/*! \file __header.h
+    \brief Template for a new Curupixa module; not an installed public interface.
+ */
 #ifndef _curupixa_
 #define _curupixa_
 #ifdef __cplusplus

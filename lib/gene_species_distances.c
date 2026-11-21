@@ -1,12 +1,13 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Prepare mapped tree comparisons, then call the shared split, dSPR and tanglegram calculations. */
 #include "gene_species_distances.h"
 #include <stdlib.h>
 
 crpx_status
 crpx_gene_species_tanglegram_new (const crpx_tree *gene, const crpx_tree *species,
                                  const crpx_node_id *mapping, crpx_tanglegram_workspace **result)
-{
+{ /* Turn each gene-copy mapping into a tip link; retain unmatched species in the second tree. */
   size_t taxa = crpx_tree_leaf_count (gene), used = 0;
   crpx_tanglegram_link *links;
   crpx_status status;
@@ -28,7 +29,7 @@ crpx_status
 crpx_gene_species_splitsets (const crpx_tree *gene, const crpx_tree *species,
                             const crpx_node_id *mapping,
                             crpx_splitset **gene_splits, crpx_splitset **species_splits)
-{
+{ /* Expand the supplied copy map into common split coordinates; the distance algorithms are shared. */
   size_t taxa = crpx_tree_leaf_count (gene), count = 0;
   crpx_node_id *gene_tips, *species_tips;
   crpx_splitset *first = NULL, *second = NULL;

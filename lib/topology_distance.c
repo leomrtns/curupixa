@@ -2,6 +2,7 @@
  * Copyright (C) 2022-today Leonardo de Oliveira Martins
  * General-purpose replacements for biomcmc-lib tree distance operations.
  */
+/* Calculate ancestor queries, path lengths and rooted or unrooted RF distances. */
 #include "topology_distance.h"
 #include "hashtable.h"
 #include <math.h>
@@ -245,7 +246,7 @@ finished:
 
 crpx_status
 crpx_tree_rf_distance(const crpx_tree *first, const crpx_tree *second, bool rooted, size_t *result)
-{
+{ /* Match named tips and count clades or splits present in only one tree. */
   crpx_hashtable_t labels = NULL, splits = NULL;
   size_t leaves, i, label_id = 0, distance = 0;
   const char *label;

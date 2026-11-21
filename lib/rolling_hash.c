@@ -1,5 +1,6 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Update sequence hashes as a window moves through a sequence. */
 #include "rolling_hash.h"
 #include <stdbool.h>
 #include <stdlib.h>

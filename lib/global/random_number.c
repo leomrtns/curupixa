@@ -13,6 +13,7 @@
 /*! \file random_number.c
  *  \brief high-level RNG, relying on lower level random_number_generators.c . */
 
+/* Draw random values from a context or a separately seeded stream for each concurrent calculation. */
 #include "global_variable.h"
 #include "random_number.h"
 #include "runtime_internal.h"
@@ -109,9 +110,9 @@ crpx_random_range (crpx_global_t cglob, uint64_t n)
   return result;
 }
 
-/* in https://lemire.me/blog/2017/02/28/how-many-floating-point-numbers-are-in-the-interval-01/ he mentions 
- *    mantissa = 52 (23 for 32bits)  -->  random(0,2^53)/2^53 = [0,1) --> rnd() >> 11 / 9007199254740992
- *    and that rnd(0,1) * N is uniform(0,N) only for N < 2^53   */   
+/* in https://lemire.me/blog/2017/02/28/how-many-floating-point-numbers-are-in-the-interval-01/ he mentions mantissa =
+   52 (23 for 32bits)  -->  random(0,2^53)/2^53 = [0,1) --> rnd() >> 11 / 9007199254740992 and that rnd(0,1) * N is
+   uniform(0,N) only for N < 2^53 */
 double
 crpx_random_double (crpx_global_t cglob) // [0,1)
 {

@@ -1,12 +1,15 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* The recurrence enumerates only the observed-tree histories defined below; it is not the extinction-aware model of
+   Szöllősi et al. (2013), doi:10.1093/sysbio/syt054. */
+/* Calculate dated or undated finite-history DTL reconciliation costs with explicit tip correspondence. */
 #include "dtl.h"
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
-/* A state is an incoming species branch, or one open time segment thereof.
- * Younger states precede older states. A boundary has zero, one or two successors. */
+/* A state is an incoming species branch, or one open time segment thereof. Younger states precede older states. A
+   boundary has zero, one or two successors. */
 typedef struct {
   crpx_node_id species;
   size_t first, second, interval;
@@ -57,7 +60,7 @@ crpx_dtl_species_free (crpx_dtl_species *species)
 
 crpx_status
 crpx_dtl_species_new (const crpx_tree *tree, const double *ages, double origin_age, crpx_dtl_species **result)
-{
+{ /* Prepare species branches or dated segments for repeated reconciliations. */
   if (!result) return CRPX_ERROR_INVALID_ARGUMENT;
   *result = NULL;
   if (!tree || !crpx_tree_node_count (tree)) return CRPX_ERROR_INVALID_ARGUMENT;
@@ -252,8 +255,8 @@ reserve_dtl (crpx_dtl_workspace *workspace, size_t gene_nodes, size_t species_st
   return CRPX_OK;
 }
 
-/* Both modes enumerate exactly the same histories; only addition of alternative
- * histories differs. Products are sums of costs, or sums of log weights. */
+/* Both modes enumerate exactly the same histories; only addition of alternative histories differs. Products are sums
+   of costs, or sums of log weights. */
 static void
 consider_history (crpx_dtl_mode mode, double candidate, history_step step, double *value, history_step *chosen)
 {
@@ -285,7 +288,7 @@ transfer_allowed (const crpx_dtl_species *species, size_t donor, size_t recipien
 crpx_status
 crpx_dtl_evaluate (const crpx_tree *gene, const crpx_dtl_species *species, const crpx_node_id *tip_map,
                    const crpx_dtl_costs *costs, crpx_dtl_mode mode, crpx_dtl_workspace *workspace, double *value)
-{
+{ /* Score the same finite histories by minimisation or log-summation; gene copies keep distinct identities. */
   if (workspace) workspace->valid = false;
   if (!gene || !species || !tip_map || !costs || !workspace || !value ||
       (mode != CRPX_DTL_MINIMUM_COST && mode != CRPX_DTL_LOG_PARTITION) ||
@@ -373,7 +376,7 @@ done:
 crpx_status
 crpx_dtl_traceback (crpx_dtl_workspace *workspace, crpx_dtl_mapping *mapping,
                     size_t capacity, crpx_dtl_counts *counts)
-{
+{ /* Recover one minimum-cost event history from the most recent evaluation. */
   if (!workspace || !workspace->valid || workspace->mode != CRPX_DTL_MINIMUM_COST || !mapping || !counts)
     return CRPX_ERROR_INVALID_ARGUMENT;
   if (capacity < workspace->gene_nodes) return CRPX_ERROR_OUT_OF_RANGE;

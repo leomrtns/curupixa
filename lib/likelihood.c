@@ -1,6 +1,8 @@
 /* Copyright (C) 2006-2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later
  * Pruning follows biomcmc-recomb/guenomu, using explicit worker state and log-space scaling. */
+/* Felsenstein (1981), Evolutionary trees from DNA sequences: a maximum likelihood approach, doi:10.1007/BF01734359. */
+/* Evaluate discrete-state tree likelihoods with reusable numerical storage and optional prepared tip mapping. */
 #include "likelihood.h"
 #include "substitution_model_internal.h"
 #include "likelihood_kernel_internal.h"
@@ -92,7 +94,7 @@ static crpx_status reserve(double **array, size_t *capacity, size_t count)
 static crpx_status evaluate_core(const crpx_tree *tree, const crpx_character_data *data,
                                     const crpx_substitution_model *m, const crpx_likelihood_options *options,
                                     crpx_likelihood_workspace *w, double *result, const crpx_likelihood_binding *binding)
-{
+{ /* Reuse numerical arrays while pruning each pattern; prepared bindings skip tip remapping and traversal setup. */
   if (w) w->valid = false;
   if (!tree || !data || !m || !w || !result) return CRPX_ERROR_INVALID_ARGUMENT;
   crpx_likelihood_options defaults; crpx_likelihood_options_init(&defaults);

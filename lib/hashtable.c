@@ -1,6 +1,7 @@
 /* Reimplementation of biomcmc-lib hash containers (Leonardo de Oliveira Martins).
  * Copyright (C) 2019-2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Index byte or string keys by integer values; copied keys can represent taxa or tree splits. */
 #include "hashtable.h"
 #include <stdlib.h>
 #include <string.h>

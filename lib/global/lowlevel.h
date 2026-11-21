@@ -12,10 +12,9 @@
  * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
  */
 
-/*! \file global_logger.h 
- *  \brief threaded-safe "global" variables (i.e. all functions carry it around); contains logger and PRNG.
+/*! \file lowlevel.h
+    \brief Provide platform definitions, allocation helpers and logging used by the runtime context.
  */
-
 #ifndef _global_lowlevel_h_
 #define _global_lowlevel_h_
 #ifdef __cplusplus
@@ -112,9 +111,9 @@ extern "C" {
 #define crpx_reallocarray(...) crpx_reallocarray_with_errmsg(__FILE__, __LINE__, __VA_ARGS__)
 
 
-/* Context lifetime is reference-counted. Retain a reference before publishing it to another thread.
- * RNG calls and logging are serialised, including callers outside OpenMP. Per-worker streams avoid
- * lock contention and make results independent of scheduling. Direct field mutation requires exclusive access. */
+/* Context lifetime is reference-counted. Retain a reference before publishing it to another thread. RNG calls and
+   logging are serialised, including callers outside OpenMP. Per-worker streams avoid lock contention and make results
+   independent of scheduling. Direct field mutation requires exclusive access. */
 struct crpx_global_struct {
   size_t nthreads, rng_size;
   uint8_t loglevel_stderr, loglevel_file, error;
@@ -132,11 +131,13 @@ void *crpx_malloc_with_errmsg (const char *c_file, const int c_line, crpx_global
 /*! \brief Memory-safe calloc() function, with default error message in case of failure. Variadic args start at cglobal */
 void * crpx_calloc_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, size_t nmemb, size_t size);
 
-/*! \brief Memory-safe realloc() function, with default error message in case of failure. Variadic args start at cglobal.
- * In case of error, it does _not_ touch/free *ptr, but returns NULL; thus DO NOT "ptr = realloc (ptr)" but use a pivot/tmp pointer instead */
+/* ! \brief Memory-safe realloc() function, with default error message in case of failure. Variadic args start at
+   cglobal. In case of error, it does _not_ touch/free *ptr, but returns NULL; thus DO NOT "ptr = realloc (ptr)" but
+   use a pivot/tmp pointer instead */
 void *crpx_realloc_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, void *ptr, size_t size);
-/*! \brief Memory-safe reallocarray() function, with default error message in case of failure. Variadic args start at cglobal. 
- * In case of error, it does _not_ touch/free *ptr, but returns NULL; thus DO NOT ptr = reallocarray (ptr)  but use a pivot/tmp instead */
+/* ! \brief Memory-safe reallocarray() function, with default error message in case of failure. Variadic args start at
+   cglobal. In case of error, it does _not_ touch/free *ptr, but returns NULL; thus DO NOT ptr = reallocarray (ptr) but
+   use a pivot/tmp instead */
 void *crpx_reallocarray_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, void *ptr, size_t nmemb, size_t size);
 /*! \brief Memory-safe free() function, with default error message in case of failure. Variadic args start at cglobal. If cglobal==NULL no message is print */
 void crpx_free_with_errmsg (const char *c_file, const int c_line, crpx_global_t cglobal, void *ptr);
@@ -148,11 +149,10 @@ crpx_global_t crpx_global_retain (crpx_global_t original);
 
 void crpx_fprintf_colour (FILE *stream, int regular, int colour, const char *message, const char *normaltext, ...);
 
-/*! \brief Prints message to stderr,  and also to log file depending on global settings.
- * Thread safe when all sharing same global; maybe safe even with several globals sharing file name, since we can have several FILE*s 
- * pointed to same file in append mode.
- * Prints to sdterr in colours and to log file in plain text, without compression (since it's lowlevel). 
- * Called through macros as in crpx_logger_error(cglobal, "message") etc. variadic args start at cglobal */
+/* ! \brief Prints message to stderr, and also to log file depending on global settings. Thread safe when all sharing
+   same global; maybe safe even with several globals sharing file name, since we can have several FILE*s pointed to
+   same file in append mode. Prints to sdterr in colours and to log file in plain text, without compression (since it's
+   lowlevel). Called through macros as in crpx_logger_error(cglobal, "message") etc. variadic args start at cglobal */
 void crpx_logger_message (uint8_t level, const char *c_file, const int c_line, crpx_global_t cglobal, const char *fmt, ...);
 void crpx_logger_set_level (crpx_global_t cglobal, uint8_t level);
 void crpx_logger_set_file (crpx_global_t cglobal, const char *filename, const char *level_string);

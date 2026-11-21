@@ -1,6 +1,7 @@
 /* Two-direction reconciliation derived from guenomu/genefam-dist topology_mrca.
  * Copyright (C) 2009-2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Score alternative gene roots and extract their mappings using reusable directional messages. */
 #include "reconciliation_roots.h"
 #include <stdlib.h>
 #include <string.h>
@@ -37,8 +38,8 @@ add_counts (uint64_t first, uint64_t second, uint64_t *sum)
   return true;
 }
 
-/* Combine two sides of a gene branching. Speciations save the two outgoing
- * species edges; duplications retain their full path lengths as losses. */
+/* Combine two sides of a gene branching. Speciations save the two outgoing species edges; duplications retain their
+   full path lengths as losses. */
 static crpx_status
 combine_sides (const crpx_ancestry_index *species, const uint32_t *represented_depth,
                reconciliation_message first, reconciliation_message second, reconciliation_message *result)
@@ -197,8 +198,8 @@ reserve_workspace (crpx_reconciliation_workspace *workspace, size_t gene_nodes, 
   return CRPX_OK;
 }
 
-/* Species nodes are sorted from shallow to deep once per evaluation. Restricting
- * depths to represented branches reproduces the legacy induced-tree losses. */
+/* Species nodes are sorted from shallow to deep once per evaluation. Restricting depths to represented branches
+   reproduces the legacy induced-tree losses. */
 static void
 prepare_species_depths (crpx_reconciliation_workspace *workspace, const crpx_ancestry_index *species)
 {
@@ -276,8 +277,8 @@ calculate_directional_messages (crpx_reconciliation_workspace *workspace, const 
 {
   reconciliation_vertex *vertices = workspace->vertices;
   size_t visited = workspace->gene_nodes - 1;
-  /* First accumulate towards an arbitrary temporary root, then send the
-   * complementary messages away from it. Each directed edge is evaluated once. */
+  /* First accumulate towards an arbitrary temporary root, then send the complementary messages away from it. Each
+   directed edge is evaluated once. */
   for (size_t position = visited; position > 1;) {
     crpx_node_id node = workspace->gene_order[--position];
     size_t slot = neighbour_slot (vertices + node, workspace->gene_parent[node]);
@@ -302,7 +303,7 @@ crpx_status
 crpx_reconcile_all_roots_into (const crpx_tree *gene, const crpx_ancestry_index *species,
                               const crpx_node_id *tip_map, crpx_reconciliation_scope scope,
                               crpx_reconciliation_workspace *workspace, const crpx_root_reconciliations **result)
-{
+{ /* Reuse directional messages to score every gene-root edge without rerooting the tree. */
   if (!result) return CRPX_ERROR_INVALID_ARGUMENT;
   *result = NULL;
   if (workspace) { workspace->valid = false; workspace->result.count = 0; }
@@ -429,7 +430,7 @@ crpx_root_reconciliations_minima (const crpx_root_reconciliations *result, size_
 crpx_status
 crpx_reconciliation_root_mapping (crpx_reconciliation_workspace *workspace, crpx_node_id first,
                                   crpx_node_id second, crpx_node_id *mapping, size_t capacity)
-{
+{ /* Orient the stored messages from the selected root edge to recover all node mappings. */
   if (!workspace || !workspace->valid || !mapping) return CRPX_ERROR_INVALID_ARGUMENT;
   if (capacity < workspace->gene_nodes) return CRPX_ERROR_OUT_OF_RANGE;
   if (workspace->gene_nodes == 1) {
@@ -441,8 +442,8 @@ crpx_reconciliation_root_mapping (crpx_reconciliation_workspace *workspace, crpx
   size_t first_slot = neighbour_slot (workspace->vertices + first, second);
   size_t second_slot = neighbour_slot (workspace->vertices + second, first);
   if (first_slot == SIZE_MAX || second_slot == SIZE_MAX) return CRPX_ERROR_INVALID_ARGUMENT;
-  /* The artificial root is isolated from the unrooted graph; its spare message
-   * records the species MRCA, which is independent of the chosen gene root. */
+  /* The artificial root is isolated from the unrooted graph; its spare message records the species MRCA, which is
+   independent of the chosen gene root. */
   mapping[workspace->artificial_root] = workspace->vertices[workspace->artificial_root].outgoing[0].species_node;
   size_t visited = 2;
   workspace->gene_order[0] = first;

@@ -17,6 +17,7 @@
 
  * based on the GSL (Copyright 1996~2007 Brian Gough under a GPL3) */ 
 
+/* Enumerate and manipulate combinations and permutations of indices. */
 #include "index_arrangement.h"
 
 /* permutations (size=3) : {0 1 2} {0 2 1} {1 0 2} {1 2 0} {2 0 1} {2 1 0} */

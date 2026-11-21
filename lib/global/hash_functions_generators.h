@@ -11,9 +11,9 @@
  * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
  */
 
-/*! \file hash_functions_generators.h 
- *  \brief lower level, simple hash functions  */
-
+/*! \file hash_functions_generators.h
+    \brief Provide individual hash transformations for use by higher-level hashing functions.
+ */
 #ifndef _global_hash_functions_generators_h_ 
 #define _global_hash_functions_generators_h_
 #ifdef __cplusplus

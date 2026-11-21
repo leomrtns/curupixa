@@ -14,6 +14,7 @@
 /*! \file quasi_random.c 
  *  \brief Quasi-random number generator. Based on algorithms from the Gnu Scientific Library (GPL-3) and R's qrng*/
 
+/* Generate low-discrepancy sequences for numerical exploration. */
 #include "quasi_random.h"
 #include "quasi_random_constants.h"
 
@@ -88,8 +89,8 @@ crpx_quasi_random_next_korobov (crpx_quasi_random_t q)
   return;
 }
 
-/*! \brief Returns n_qrand quasi-random numbers in [0,1), skipping trivial [0,0,..,0]; iteration should be initialised to zero; originally works only if n_qrand < MAX_DIMENSION = 1229 
- *  here we add more dimensions by leaping */
+/* ! \brief Returns n_qrand quasi-random numbers in [0,1), skipping trivial [0,0,..,0]; iteration should be initialised
+   to zero; originally works only if n_qrand < MAX_DIMENSION = 1229 here we add more dimensions by leaping */
 void
 crpx_quasi_random_next_halton (crpx_quasi_random_t q)
 {

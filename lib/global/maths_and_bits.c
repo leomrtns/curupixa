@@ -16,6 +16,7 @@
  *  \brief Maths and bits functions.
  */
 
+/* Provide numerical and bit-manipulation primitives shared by other modules. */
 #include "lowlevel.h"
 #include "maths_and_bits.h"
 
@@ -80,10 +81,10 @@ crpx_deinterleave_64bits (uint64_t interleaved) /* [y4y3y2y1 x4x3x2x1] <-- [y4x4
 
 /* https://github.com/lemire/Code-used-on-Daniel-Lemire-s-blog/blob/master/extra/search/shotgun/shotguntest.c binary search algos */
 
-/* trick to swap a bit range within an integer, where r=swapped int; b=original int; n=length; i,j = positions to swap; x=temp var:
- *  x = ((b >> i) ^ (b >> j)) & ((1U << n) - 1); r = b ^ ((x << i) | (x << j));
- *  swaps the n consecutive bits starting at positions i and j (from the right) 
- *  See https://github.com/lemire/Code-used-on-Daniel-Lemire-s-blog/blob/master/extra/binomialcoef/binom.c for alternative */
+/* trick to swap a bit range within an integer, where r=swapped int; b=original int; n=length; i,j = positions to swap;
+   x=temp var: x = ((b >> i) ^ (b >> j)) & ((1U << n) - 1); r = b ^ ((x << i) | (x << j)); swaps the n consecutive bits
+   starting at positions i and j (from the right) See https://github.com/lemire/Code-used-on-Daniel-Lemire-s-
+   blog/blob/master/extra/binomialcoef/binom.c for alternative */
 
 int
 crpx_choose_n_k (int n, int k)

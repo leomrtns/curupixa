@@ -1,6 +1,7 @@
 /* Adapted from genefam-dist/lib/topology_splitset.c and guenomu.
  * Copyright (C) 2009-2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Calculate the historical greedy dSPR approximation from ordinary or previously prepared splitsets. */
 #include "spr_distance.h"
 #include "hashtable.h"
 #include "lowlevel_algorithms.h"

@@ -1,6 +1,7 @@
 /* Copyright (C) 2019-2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later
  * Format reference: https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md */
+/* Read GFF3 feature annotations alongside their associated sequence data. */
 #include "gff3_format.h"
 #include "file_compression.h"
 #include <ctype.h>
@@ -179,8 +180,8 @@ static bool decimal_digit(char character)
   return character >= '0' && character <= '9';
 }
 
-/* Decimal/scientific syntax only. Conversion and formatting never change or inspect
- * shared locale state. Keep 19 significant digits, as the Newick reader does. */
+/* Decimal/scientific syntax only. Conversion and formatting never change or inspect shared locale state. Keep 19
+   significant digits, as the Newick reader does. */
 static crpx_status parse_score(const char *text, double *result)
 {
   bool negative = false, decimal = false, any_digit = false, significant = false, exponent_negative = false;
@@ -216,8 +217,8 @@ static crpx_status parse_score(const char *text, double *result)
   if (exponent_negative) exponent = -exponent;
   exponent += skipped - fractional;
   long double value = mantissa;
-  /* Scale in chunks: a lone 10^-324 factor could underflow prematurely on systems
-   * where long double has the same range as double, although 5e-324 is representable. */
+  /* Scale in chunks: a lone 10^-324 factor could underflow prematurely on systems where long double has the same range
+   as double, although 5e-324 is representable. */
   while (exponent > 100 && isfinite(value) && value != 0) { value *= 1e100L; exponent -= 100; }
   while (exponent < -100 && value != 0) { value *= 1e-100L; exponent += 100; }
   if (value != 0 && isfinite(value)) value *= powl(10.0L, (long double)exponent);

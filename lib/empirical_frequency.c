@@ -1,5 +1,6 @@
 /* Copyright (C) 2019-2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Summarise observed frequencies for statistical calculations. */
 #include "empirical_frequency.h"
 #include <math.h>
 #include <stdlib.h>

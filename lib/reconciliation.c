@@ -1,6 +1,7 @@
 /* Reimplementation of biomcmc-lib reconciliation (Leonardo de Oliveira Martins).
  * Copyright (C) 2019-2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Map a fixed rooted gene tree onto a rooted species tree and count duplications, losses and extra lineages. */
 #include "reconciliation.h"
 #include <stdlib.h>
 
@@ -33,7 +34,7 @@ static crpx_node_id local_lca(const crpx_tree *species, const uint32_t *depth, c
 
 crpx_status crpx_reconcile_lca(const crpx_tree *gene, const crpx_tree *species,
                               const crpx_node_id *leaf_map, crpx_reconciliation **out)
-{
+{ /* Map each gene branching to its species ancestor, then count event costs and lineage crossings. */
   crpx_tree_workspace *gw = NULL, *sw = NULL;
   crpx_reconciliation *r = NULL;
   crpx_status status;

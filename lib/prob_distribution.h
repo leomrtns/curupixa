@@ -1,6 +1,9 @@
 /* Adapted from biomcmc-lib and the R mathematical library.
  * Copyright (C) 2019-2026 Leonardo de Oliveira Martins and the R Core Team
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/*! \file prob_distribution.h
+    \brief Evaluate probability distributions and draw variates with an explicit random stream.
+ */
 #ifndef CURUPIXA_PROB_DISTRIBUTION_H
 #define CURUPIXA_PROB_DISTRIBUTION_H
 #include <stdbool.h>
@@ -11,10 +14,9 @@
 extern "C" {
 #endif
 
-/* Pure numerical functions return NAN for invalid parameters or failure. They do
- * not log, terminate, or share mutable caches. CDFs use the lower tail. log_p means
- * log output for density/CDF functions and log input for quantile functions.
- * Gamma uses shape alpha and RATE beta, so E[X] = alpha/beta. */
+/* Pure numerical functions return NAN for invalid parameters or failure. They do not log, terminate, or share mutable
+   caches. CDFs use the lower tail. log_p means log output for density/CDF functions and log input for quantile
+   functions. Gamma uses shape alpha and RATE beta, so E[X] = alpha/beta. */
 double crpx_dgamma(double x, double alpha, double beta, bool log_p);
 double crpx_pgamma(double x, double alpha, double beta, bool log_p);
 double crpx_qgamma(double p, double alpha, double beta, bool log_p);
@@ -50,9 +52,8 @@ double crpx_rng_gamma(crpx_rng_stream *stream, double alpha, double beta);
 double crpx_rng_pois(crpx_rng_stream *stream, double lambda);
 
 typedef struct crpx_discrete_sampler_struct *crpx_discrete_sampler_t;
-/* Finite non-negative weights are normalised; at least one must be positive.
- * Independent samplers own their arrays. Concurrent reads with separate streams
- * are safe. Construction takes O(n); each sample takes O(1). */
+/* Finite non-negative weights are normalised; at least one must be positive. Independent samplers own their arrays.
+   Concurrent reads with separate streams are safe. Construction takes O(n); each sample takes O(1). */
 crpx_status crpx_discrete_sampler_new(const double *weights, size_t size, crpx_discrete_sampler_t *out);
 void crpx_discrete_sampler_free(crpx_discrete_sampler_t sampler);
 size_t crpx_discrete_sampler_size(const struct crpx_discrete_sampler_struct *sampler);

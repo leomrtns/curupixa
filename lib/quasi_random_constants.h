@@ -11,9 +11,9 @@
  * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
  */
 
-/*! \file quasi_random_constants.h 
- *  \brief primer numbers and other constants for the quasi-random number generator. */
-
+/*! \file quasi_random_constants.h
+    \brief Constant tables used by the low-discrepancy sequence generators.
+ */
 #ifndef _curupixa_quasi_random_constants_h_
 #define _curupixa_quasi_random_constants_h_
 #ifdef __cplusplus
@@ -109,8 +109,8 @@ static const int halton_prime_numbers[HALTON_MAX_DIMENSION+ 1] = { // first elem
 
 #if 0
 #define HALTON_MAX_DIMENSION 1229/* GSL original maximum allowed space dimension */
-/* prime numbers (thanks to trolltech http://doc.trolltech.com/3.2/primes.html) and converted from original GSL code using
- * `perl -pe "s/\,\ /\,\n/g;s/^\s+//g;" o | pr -ts" " --columns 24 -a ` */
+/* prime numbers (thanks to trolltech http://doc.trolltech.com/3.2/primes.html) and converted from original GSL code
+   using `perl -pe "s/\,\ /\,\n/g;s/^\s+//g;" o | pr -ts" " --columns 24 -a ` */
 static const int halton_prime_numbers[HALTON_MAX_DIMENSION+ 1] = { // first element (=1) is not prime, but was added by leomrtns to be used when leaping
   1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89,
   97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223,

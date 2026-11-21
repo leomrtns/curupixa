@@ -2,6 +2,7 @@
  * Copyright (C) 2022-today Leonardo de Oliveira Martins
  * General-purpose replacements for biomcmc-lib topology randomisation.
  */
+/* Generate or rearrange tree topologies using an explicit random stream. */
 #include "topology_randomise.h"
 #include <math.h>
 #include <stdio.h>

@@ -11,10 +11,9 @@
  * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
  */
 
-/*! \file quasi_random.h 
- *  \brief Quasi-random number generator using Halton and Korobov sequences.
- *  algorithms based on the GSL library (GPL3) and R's qrng (GPL-3) */ 
-
+/*! \file quasi_random.h
+    \brief Generate low-discrepancy sequences for numerical exploration.
+ */
 #ifndef _curupixa_quasi_random_h_
 #define _curupixa_quasi_random_h_
 #ifdef __cplusplus

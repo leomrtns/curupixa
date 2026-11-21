@@ -14,6 +14,7 @@
 /*! \file hash_functions_generators.c 
  *  \brief simple hash functions.  */
 
+/* Provide individual hash transformations for use by higher-level hashing functions. */
 #include "lowlevel.h"
 #include "maths_and_bits.h"
 #include "hash_functions_generators.h"
@@ -431,8 +432,8 @@ crpx_hash_rotating_seed32 (const void *vkey, size_t len, void *vseed)
 uint32_t
 crpx_hash_fletcher32 (const void *vkey, size_t len) // assumes vkey has pair number of number of bytes (o.w. last byte is lost) (terrible dieharder)
 { // https://github.com/maciejczyzewski/retter/tree/master/algorithms/Fletcher
-/* The Fletcher checksum cannot distinguish between blocks of all 0  bits and blocks of all 1 bits. 
- * For example, if a 16-bit block in the data word changes from 0x0000 to 0xFFFF, the Fletcher-32 checksum remains the same. */
+/* The Fletcher checksum cannot distinguish between blocks of all 0  bits and blocks of all 1 bits. For example, if a
+   16-bit block in the data word changes from 0x0000 to 0xFFFF, the Fletcher-32 checksum remains the same. */
   const uint16_t *key = (const uint16_t *) vkey;
   uint32_t sum1 = 0xffff, sum2 = 0xffff;
   len <<= 1; // len is in bytes, but we assume 16 bits per key element

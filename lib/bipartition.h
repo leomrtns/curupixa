@@ -1,6 +1,9 @@
 /* Inspired by biomcmc-lib bipartition.h (Leonardo de Oliveira Martins).
  * Copyright (C) 2019-2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/*! \file bipartition.h
+    \brief Store taxon sets as bit vectors for extracting, comparing and restricting tree splits.
+ */
 #ifndef CURUPIXA_BIPARTITION_H
 #define CURUPIXA_BIPARTITION_H
 
@@ -18,8 +21,8 @@ typedef enum {
   CRPX_BITS_OR, CRPX_BITS_AND, CRPX_BITS_ANDNOT, CRPX_BITS_XOR, CRPX_BITS_XORNOT
 } crpx_bit_operation;
 
-/* Independent ownership; concurrent reads are safe. Serialise changes to the
- * same object. Padding bits always remain zero. Output may alias either input. */
+/* Independent ownership; concurrent reads are safe. Serialise changes to the same object. Padding bits always remain
+   zero. Output may alias either input. */
 crpx_status crpx_bipartition_new(size_t bits, crpx_bipartition_t *out);
 crpx_status crpx_bipartition_clone(const struct crpx_bipartition_struct *source, crpx_bipartition_t *out);
 void crpx_bipartition_free(crpx_bipartition_t bits);

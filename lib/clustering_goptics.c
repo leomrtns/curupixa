@@ -1,5 +1,6 @@
 /* Copyright (C) 2019-2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Cluster objects from supplied distances using the generalised OPTICS calculation. */
 #include "clustering_goptics.h"
 #include "quickselect_quantile.h"
 #include <math.h>
@@ -115,9 +116,8 @@ crpx_status crpx_optics_extract_clusters(const struct crpx_optics_struct *orderi
     }
     else labels[sample] = cluster;
   }
-  /* A border point may precede the first core in its component and therefore
-   * retain infinite OPTICS reachability. Attach such points after core cluster
-   * labels are known, without altering the ordering's reachability semantics. */
+  /* A border point may precede the first core in its component and therefore retain infinite OPTICS reachability. Attach
+   such points after core cluster labels are known, without altering the ordering's reachability semantics. */
   for (size_t sample = 0; sample < ordering->size; ++sample)
     if (labels[sample] == SIZE_MAX && ordering->border_reachability[sample] <= epsilon) {
       size_t core = ordering->border_predecessors[sample];

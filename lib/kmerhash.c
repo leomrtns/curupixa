@@ -1,5 +1,6 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Hash fixed-length sequence words for repeated sequence comparisons. */
 #include "kmerhash.h"
 #include <stdlib.h>
 

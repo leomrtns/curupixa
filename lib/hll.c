@@ -3,6 +3,7 @@
  * Classic HyperLogLog estimator from Flajolet, Fusy, Gandouet and Meunier (2007):
  * https://algo.inria.fr/flajolet/Publications/FlFuGaMe07.pdf
  * Fresh implementation; no mutable lookup tables. */
+/* Estimate the number of distinct hashed observations with HyperLogLog sketches. */
 #include "hll.h"
 #include <math.h>
 #include <stdlib.h>

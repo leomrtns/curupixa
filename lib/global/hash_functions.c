@@ -14,6 +14,7 @@
 /*! \file hash_functions.c 
  *  \brief hash functions, higher level in the sense that use curupixa_global_t */
 
+/* Hash scientific data using deterministic keys and explicit context where required. */
 #include "lowlevel.h" /* configuration/feature macros must precede system headers */
 #include "hash_functions.h"
 #include "internal_random_constants.h" // not available to the user, only locally

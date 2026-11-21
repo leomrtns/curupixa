@@ -1,6 +1,7 @@
 /* Reimplementation of biomcmc-lib file_compression (Leonardo de Oliveira Martins).
  * Copyright (C) 2019-2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Read and write raw or optionally compressed streams through a common interface. */
 #include "file_compression.h"
 #include "config.h"
 #include <limits.h>

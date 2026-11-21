@@ -1,6 +1,7 @@
 /* Copyright (C) 2006-2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later
  * Derived analytic HKY process: biomcmc-recomb/src/likelihood.c and guenomu/lib/phylogeny.c. */
+/* Construct finite-state substitution models used by likelihood and ancestral reconstruction. */
 #include "substitution_model_internal.h"
 #include <math.h>
 #include <float.h>
@@ -80,8 +81,8 @@ void crpx_substitution_model_free(crpx_substitution_model *m) { if (m) { free(m-
 size_t crpx_substitution_model_states(const crpx_substitution_model *m) { return m ? m->states : 0; }
 const double *crpx_substitution_model_frequencies(const crpx_substitution_model *m) { return m ? m->pi : NULL; }
 
-/* Return 1 minus a decay factor accurately near zero. Overflow of a*t is the
- * well-defined long-edge limit rather than an arithmetic error. */
+/* Return 1 minus a decay factor accurately near zero. Overflow of a*t is the well-defined long-edge limit rather than
+   an arithmetic error. */
 static double decay_loss(double rate, double t, crpx_branch_mode mode)
 {
   double x = rate*t;
@@ -94,8 +95,8 @@ static double decay_factor(double rate, double t, crpx_branch_mode mode)
   if (mode == CRPX_BRANCH_FIXED) return exp(-x);
   return isinf(x) ? (1/rate)/t : 1/(1+x);
 }
-/* Positive algebra or a factored short-time series avoids cancellation when
- * kappa is tiny. Work in long double so log kernels retain sub-double probabilities. */
+/* Positive algebra or a factored short-time series avoids cancellation when kappa is tiny. Work in long double so log
+   kernels retain sub-double probabilities. */
 static long double loss_ratio(long double x) { return isinf(x) ? 1 : x/(1+x); }
 static long double log_denominator(long double rate, double t)
 {
@@ -152,9 +153,8 @@ void crpx_private_hky_log_matrix(const crpx_substitution_model *m, double t, crp
     else if (m->base_decay*t > 1e-8 || m->group_decay[group(i)]*t > 1e-8 || !isfinite(value)) {
       matrix[i*4+j] = NAN; /* caller reports an unrepresentable analytic kernel */
     } else {
-      /* Only an underflowed off-diagonal enters here. Its tiny-time leading
-       * terms suffice: first-order direct change, second-order transversions.
-       * This also supports platforms where long double has double's range. */
+      /* Only an underflowed off-diagonal enters here. Its tiny-time leading terms suffice: first-order direct change,
+   second-order transversions. This also supports platforms where long double has double's range. */
       double logt = log(t), logb = log(m->base_decay), logg;
       if (group(i) != group(j)) logg = logb+logt;
       else {

@@ -1,4 +1,7 @@
 /* Internal synchronisation, deliberately absent from the installed API. */
+/*! \file runtime_internal.h
+    \brief Internal locks and reference counts for synchronising runtime contexts.
+ */
 #ifndef CRPX_RUNTIME_INTERNAL_H
 #define CRPX_RUNTIME_INTERNAL_H
 #include <stdatomic.h>

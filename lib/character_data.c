@@ -1,5 +1,6 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Prepare named discrete observations and repeated patterns for likelihood, parsimony and ancestral states. */
 #include "character_data.h"
 #include "char_vector.h"
 #include "hashtable.h"

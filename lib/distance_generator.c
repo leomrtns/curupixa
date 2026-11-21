@@ -1,5 +1,6 @@
 /* Copyright (C) 2019-2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Evaluate distances through a supplied callback and reuse results in clustering calculations. */
 #include "distance_generator.h"
 #include <math.h>
 #include <stdatomic.h>

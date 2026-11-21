@@ -12,8 +12,8 @@
  */
 
 /*! \file random_number_generators.h
- *  \brief PRNGs   */
-
+    \brief Implement individual random-number generators independently of the context interface.
+ */
 #ifndef _global_random_number_generators_h_
 #define _global_random_number_generators_h_
 #ifdef __cplusplus

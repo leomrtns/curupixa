@@ -1,5 +1,6 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Compare induced quartet topologies using explicitly corresponding tips, including unresolved quartets. */
 #include "quartet_distance.h"
 #include "ancestry_index.h"
 #include <stdlib.h>
@@ -15,7 +16,7 @@ crpx_quartet_index_free (crpx_quartet_index *index)
 crpx_status
 crpx_quartet_index_new (const crpx_tree *tree, const crpx_node_id *tips,
                         size_t taxa, crpx_quartet_index **out)
-{
+{ /* Prepare topological path lengths once for repeated quartet comparisons. */
   crpx_ancestry_index *ancestry = NULL;
   crpx_quartet_index *index;
   crpx_status status;
@@ -89,7 +90,7 @@ crpx_quartet_topology (const crpx_quartet_index *index, size_t a, size_t b,
 crpx_status
 crpx_quartet_compare (const crpx_quartet_index *first, const crpx_quartet_index *second,
                       crpx_quartet_counts *counts)
-{
+{ /* Count each four-tip topology once, keeping unresolved cases separate. */
   crpx_quartet_counts result = {0};
   if (!first || !second || !counts || first->taxa != second->taxa ||
       (first->taxa && (!first->distances || !second->distances))) return CRPX_ERROR_INVALID_ARGUMENT;

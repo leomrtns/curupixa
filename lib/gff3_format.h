@@ -1,6 +1,9 @@
 /* Reimplementation of biomcmc-lib GFF3 support (Leonardo de Oliveira Martins).
  * Copyright (C) 2019-2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/*! \file gff3_format.h
+    \brief Read GFF3 feature annotations alongside their associated sequence data.
+ */
 #ifndef CURUPIXA_GFF3_FORMAT_H
 #define CURUPIXA_GFF3_FORMAT_H
 #include <stdbool.h>
@@ -25,12 +28,11 @@ typedef struct {
   uint64_t start, end; /* zero-based half-open */
 } crpx_gff3_region;
 
-/* Owns parsed data. Requires ##gff-version 3. Records preserve input order, comments
- * and unknown directives. Decodes percent escapes; comma-separated attribute values
- * remain separate, so an escaped comma remains part of one value. %00 is unsupported.
- * Scores accept finite decimal/scientific notation and always use a decimal point,
- * independently of the calling process locale. This parser checks syntax; it does
- * not validate the Sequence Ontology or Parent graph. */
+/* Owns parsed data. Requires ##gff-version 3. Records preserve input order, comments and unknown directives. Decodes
+   percent escapes; comma-separated attribute values remain separate, so an escaped comma remains part of one value.
+   %00 is unsupported. Scores accept finite decimal/scientific notation and always use a decimal point, independently
+   of the calling process locale. This parser checks syntax; it does not validate the Sequence Ontology or Parent
+   graph. */
 crpx_status crpx_gff3_from_text(const char *text, crpx_gff3 **result);
 crpx_status crpx_gff3_read(const char *path, crpx_gff3 **result);
 void crpx_gff3_free(crpx_gff3 *document);
@@ -47,13 +49,13 @@ const char *crpx_gff3_attribute_value(const crpx_gff3 *document, size_t feature,
 crpx_status crpx_gff3_find_attribute(const crpx_gff3 *document, size_t feature, const char *key, size_t *attribute);
 /* Borrowed optional FASTA, with descriptions retained in alignment names. */
 const crpx_alignment *crpx_gff3_sequences(const crpx_gff3 *document);
-/* Deep-copies sequences, linking exact first whitespace-delimited FASTA identifiers to
- * decoded seqids. Duplicate identifiers fail. Mutation requires exclusive ownership. */
+/* Deep-copies sequences, linking exact first whitespace-delimited FASTA identifiers to decoded seqids. Duplicate
+   identifiers fail. Mutation requires exclusive ownership. */
 crpx_status crpx_gff3_set_sequences(crpx_gff3 *document, const crpx_alignment *sequences);
 crpx_status crpx_gff3_sequence(const crpx_gff3 *document, const char *seqid, const char **sequence, size_t *length);
-/* Find all overlapping features, including nested/overlapping annotations. NULL seqid/type
- * matches all. count reports required capacity; OUT_OF_RANGE leaves indices untouched.
- * Immutable queries may run concurrently. Returned feature/string pointers last until free. */
+/* Find all overlapping features, including nested/overlapping annotations. NULL seqid/type matches all. count reports
+   required capacity; OUT_OF_RANGE leaves indices untouched. Immutable queries may run concurrently. Returned
+   feature/string pointers last until free. */
 crpx_status crpx_gff3_query(const crpx_gff3 *document, const char *seqid, uint64_t start, uint64_t end,
                           const char *type, size_t *indices, size_t capacity, size_t *count);
 #ifdef __cplusplus

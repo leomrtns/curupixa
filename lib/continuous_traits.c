@@ -1,6 +1,8 @@
 /* Linear Gaussian pruning and PIC adapted from branchtraits/src/continuous.c.
  * Copyright (C) 2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Fit Brownian trait models, reconstruct ancestral traits and calculate independent contrasts. */
+/* Felsenstein (1985), Phylogenies and the comparative method, doi:10.1086/284325. */
 #include "continuous_traits.h"
 #include <float.h>
 #include <math.h>
@@ -57,8 +59,8 @@ static crpx_status tree_prepare(const crpx_tree *tree, const crpx_node_id *tips,
   if (status==CRPX_OK) status=crpx_tree_workspace_refresh(index->workspace,tree);
   return status;
 }
-/* Gaussian-kernel product; infinite variance is flat, zero is an exact value.
- * Ratios avoid the overflow-prone product av*bv. */
+/* Gaussian-kernel product; infinite variance is flat, zero is an exact value. Ratios avoid the overflow-prone product
+   av*bv. */
 static void gaussian_product(double am, double av, double bm, double bv, double *mean, double *variance)
 {
   if (isinf(av)) { *mean=bm; *variance=bv; return; }
@@ -147,8 +149,8 @@ crpx_status crpx_brownian_fit(const crpx_tree *tree, const crpx_node_id *tip_nod
       if (!isfinite(r->mean[node]) || !isfinite(r->variance[node])) {
         status=CRPX_ERROR_OVERFLOW; goto done;
       }
-      /* Prefix/suffix products exclude each child without subtracting nearly
-       * equal precisions. Every edge participates in a bounded number of products. */
+      /* Prefix/suffix products exclude each child without subtracting nearly equal precisions. Every edge participates in a
+   bounded number of products. */
       double pm=um[node],pv=uv[node];
       for (crpx_node_id child=crpx_tree_first_child(tree,node);child!=CRPX_NODE_NONE;
            child=crpx_tree_next_sibling(tree,child)) {

@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  * Nelder, J.A. and Mead, R. (1965), Computer Journal 7:308-313.
  * Replaces the incomplete GSL-derived draft with an independent implementation. */
+/* Minimise a supplied numerical objective using a simplex; parameters and stopping rules are explicit. */
 #include "minimiser_simplex.h"
 #include <math.h>
 #include <stdbool.h>

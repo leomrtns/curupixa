@@ -15,6 +15,7 @@
  *  \brief high-level functions handling the global variables. 
  */
 
+/* Create and release contexts used by logging, allocation helpers and context-based random generators. */
 #include "global_variable.h"
 #include "runtime_internal.h"
 

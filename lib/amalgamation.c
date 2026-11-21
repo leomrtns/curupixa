@@ -1,5 +1,8 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Szöllősi et al. (2013), Efficient Exploration of the Space of Reconciled Gene Trees, doi:10.1093/sysbio/syt054. Only
+   the empirical conditional-clade component is implemented here. */
+/* Build a conditional-clade distribution from sampled trees; evaluate and sample amalgamated gene trees. */
 #include "amalgamation.h"
 #include <math.h>
 #include <stdlib.h>
@@ -183,7 +186,7 @@ crpx_status
 crpx_amalgamation_new (const crpx_tree *const *trees, const crpx_node_id *const *tip_nodes,
                        size_t tree_count, size_t taxa, const char *const *labels,
                        const uint64_t *weights, crpx_amalgamation **out)
-{
+{ /* Count observed clades and splits once, before evaluating or sampling trees. */
   crpx_amalgamation *model;
   crpx_amalgamation_workspace workspace = {0};
   crpx_status status = CRPX_OK;
@@ -233,7 +236,7 @@ crpx_status
 crpx_amalgamation_log_probability (const crpx_amalgamation *model, const crpx_tree *tree,
                                    const crpx_node_id *tips, crpx_amalgamation_workspace *workspace,
                                    double *log_probability)
-{
+{ /* Multiply conditional split probabilities for the supplied topology in log space. */
   if (!model || !workspace || !log_probability) return CRPX_ERROR_INVALID_ARGUMENT;
   crpx_status status = prepare_tree (model, tree, tips, workspace);
   double result = 0;
@@ -267,7 +270,7 @@ typedef struct { size_t clade; crpx_node_id parent; } pending_clade;
 crpx_status
 crpx_amalgamation_sample (const crpx_amalgamation *model, crpx_amalgamation_uniform uniform, void *state,
                           crpx_tree **out, double *log_probability)
-{
+{ /* Assemble a tree from sampled conditional splits; input sample trees need not contain this combination. */
   crpx_tree *tree = NULL;
   pending_clade *pending;
   crpx_status status;

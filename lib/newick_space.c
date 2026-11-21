@@ -2,6 +2,7 @@
  * Copyright (C) 2022-today Leonardo de Oliveira Martins
  * Reimplementation of biomcmc-lib Newick/tree collections with explicit ownership.
  */
+/* Store collections of trees parsed from Newick data. */
 #include "newick_space.h"
 #include "file_compression.h"
 #include "topology_distance.h"
@@ -374,7 +375,7 @@ stream_feed(newick_stream *stream, const char *text, size_t length)
     if (stream->quoted) continue;
     if (c == '[') { stream->comments = 1; continue; }
     /* A legal Newick label may itself begin with '#'. Inspect the complete first token
-     * before selecting NEXUS, while retaining streaming operation across header chunks.
+     before selecting NEXUS, while retaining streaming operation across header chunks.
      */
     if (!stream->format && !stream_space(c)) stream->format = c == '#' ? 3 : 1;
     if (c != ';') { if (!stream_space(c)) stream->meaningful = true; continue; }

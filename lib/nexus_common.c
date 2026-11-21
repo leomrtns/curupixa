@@ -1,5 +1,6 @@
 /* Copyright (C) 2019-2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Read NEXUS tokens and shared syntax for alignment and tree readers. */
 #include "nexus_common.h"
 #include <stdint.h>
 #include <stdlib.h>

@@ -1,6 +1,7 @@
 /* Inspired by biomcmc-lib bipartition.c (Leonardo de Oliveira Martins).
  * Copyright (C) 2019-2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Store taxon sets as bit vectors for extracting, comparing and restricting tree splits. */
 #include "bipartition.h"
 #include <stdlib.h>
 #include <string.h>

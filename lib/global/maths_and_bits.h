@@ -12,13 +12,9 @@
  * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
  */
 
-/*! \file maths_and_bits.h 
- *  \brief Low-level mathematical and bitwise functions.
- *  
- *  This file shold go together with `lowlevel.h` since there are no dependencies. 
- *  Includes a few tricks from https://graphics.stanford.edu/~seander/bithacks.html
+/*! \file maths_and_bits.h
+    \brief Provide numerical and bit-manipulation primitives shared by other modules.
  */
-
 #ifndef _global_maths_and_bits_h_
 #define _global_maths_and_bits_h_
 #ifdef __cplusplus

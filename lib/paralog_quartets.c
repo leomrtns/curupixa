@@ -1,5 +1,8 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Zhang et al. (2020), ASTRAL-Pro, doi:10.1093/molbev/msaa139, Definitions 1–5. Rooting and event tags are supplied by
+   the application. */
+/* Prepare and score ASTRAL-Pro quartet classes from rooted, tagged multi-copy gene trees. */
 #include "paralog_quartets.h"
 #include "ancestry_index.h"
 #include <stdlib.h>
@@ -25,7 +28,7 @@ crpx_status
 crpx_paralog_quartets_new (const crpx_tree *gene, const size_t *species_of_node,
                            size_t species_taxa, const uint8_t *duplication_nodes,
                            crpx_paralog_quartets **out)
-{
+{ /* Collect speciation-driven quartets and merge equivalent gene-copy records (Zhang et al. 2020). */
   crpx_ancestry_index *ancestry = NULL;
   crpx_quartet_index *paths = NULL;
   crpx_paralog_quartets *quartets = NULL;
@@ -80,8 +83,8 @@ crpx_paralog_quartets_new (const crpx_tree *gene, const size_t *species_of_node,
       if (!distinct) continue;
       bool eligible = true;
       uint32_t deepest = 0;
-      /* In the balanced case all triple LCAs coincide. In the unbalanced case
-       * the deepest triple excludes the outgroup and identifies anchor LCA. */
+      /* In the balanced case all triple LCAs coincide. In the unbalanced case the deepest triple excludes the outgroup and
+   identifies anchor LCA. */
       for (size_t omitted = 0; omitted < 4; omitted++) {
         crpx_node_id ancestor = CRPX_NODE_NONE;
         for (size_t i = 0; i < 4; i++) if (i != omitted) {
@@ -131,7 +134,7 @@ done:
 crpx_status
 crpx_paralog_quartets_score (const crpx_paralog_quartets *quartets, const crpx_quartet_index *species,
                              crpx_paralog_quartet_score *score)
-{
+{ /* Score a candidate species topology against the classes prepared for this gene family. */
   crpx_paralog_quartet_score result = {0};
   if (!quartets || !species || !score || quartets->species_taxa != species->taxa)
     return CRPX_ERROR_INVALID_ARGUMENT;

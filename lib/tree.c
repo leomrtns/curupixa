@@ -2,6 +2,7 @@
  * Copyright (C) 2022-today Leonardo de Oliveira Martins
  * General-purpose tree operations reimplemented from biomcmc-lib's topology and Newick modules.
  */
+/* Construct, traverse and rearrange trees with optional labels and branch lengths; analyses use separate workspaces. */
 #include "tree.h"
 #include <math.h>
 #include <stdio.h>
@@ -790,7 +791,7 @@ ascii_digit(char c)
 }
 
 /* Decimal conversion deliberately avoids strtod's process-locale dependency and shared errno.
- * Retain 19 significant digits in long double; format/parse round trips are within floating-point rounding.
+ Retain 19 significant digits in long double; format/parse round trips are within floating-point rounding.
  */
 static crpx_status
 parse_length(const char *text, size_t *position, double *result)
@@ -963,7 +964,7 @@ write_suffix(const crpx_tree *tree, crpx_node_id node, tree_string *string)
     count = snprintf(number, sizeof(number), "%.17g", tree->lengths[node]);
     if (count < 0 || (size_t) count >= sizeof(number)) return CRPX_ERROR_OVERFLOW;
     /* %g uses ASCII digits and a locale-specific decimal separator. Replace that separator
-     * without calling setlocale or localeconv, both of which expose shared locale state.
+     without calling setlocale or localeconv, both of which expose shared locale state.
      */
     while (number[source]) {
       if (ascii_digit(number[source]) || number[source] == '+' || number[source] == '-' ||

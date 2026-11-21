@@ -1,5 +1,8 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/*! \file status.h
+    \brief Describe recoverable C API errors so applications and language bindings can report failed calculations.
+ */
 #ifndef CURUPIXA_STATUS_H
 #define CURUPIXA_STATUS_H
 
@@ -7,8 +10,8 @@
 extern "C" {
 #endif
 
-/* New APIs return a status and leave ownership with the caller. No process-global
- * last-error variable, callbacks, logging, MPI calls or process termination. */
+/* New APIs return a status and leave ownership with the caller. No process-global last-error variable, callbacks,
+   logging, MPI calls or process termination. */
 typedef enum crpx_status {
   CRPX_OK = 0,
   CRPX_ERROR_INVALID_ARGUMENT,

@@ -1,5 +1,6 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Prepare a tree for repeated ancestor and least-common-ancestor queries without storing an all-pairs table. */
 #include "ancestry_index.h"
 #include <stdlib.h>
 struct crpx_ancestry_index {

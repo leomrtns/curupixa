@@ -1,6 +1,7 @@
 /* Reimplementation of biomcmc-lib char_vector (Leonardo de Oliveira Martins).
  * Copyright (C) 2019-2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Own and resize collections of strings, including taxon names and sequences. */
 #include "char_vector.h"
 #include <stdint.h>
 #include <stdlib.h>

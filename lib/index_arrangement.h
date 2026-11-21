@@ -11,11 +11,9 @@
  * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
  */
 
-/*! \file index_arrangement.h 
- *  \brief combinations C(M) and permutations P(k,N) for an index vector (i.e. assuming indices 0...M-1 or 0...k-1)
- *  Permutations order all indices 0...M-1; combinations select k indices out of N in increasing order.
- *  algorithms based on the GSL library (GPL3) */ 
-
+/*! \file index_arrangement.h
+    \brief Enumerate and manipulate combinations and permutations of indices.
+ */
 #ifndef _curupixa_index_arrangement_h_
 #define _curupixa_index_arrangement_h_
 #ifdef __cplusplus

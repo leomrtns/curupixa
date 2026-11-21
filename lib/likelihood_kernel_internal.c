@@ -1,4 +1,5 @@
 /* Shared by pruning and full-data reconstruction. SPDX-License-Identifier: GPL-3.0-or-later */
+/* Internal transition and projection calculations shared by likelihood and ancestral reconstruction. */
 #include "likelihood_kernel_internal.h"
 #include <math.h>
 double crpx_private_likelihood_log_add(double a, double b)

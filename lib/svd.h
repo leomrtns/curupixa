@@ -1,5 +1,8 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/*! \file svd.h
+    \brief Decompose numerical matrices and solve related linear-algebra problems with reusable storage.
+ */
 #ifndef CURUPIXA_SVD_H
 #define CURUPIXA_SVD_H
 #include <stddef.h>
@@ -12,8 +15,8 @@ typedef struct crpx_matrix_struct *crpx_matrix_t;
 typedef struct crpx_sparse_matrix_struct *crpx_sparse_matrix_t;
 typedef struct crpx_svd_struct *crpx_svd_t;
 
-/* Matrices own their storage. Dense arrays use row-major order. Concurrent reads
- * are safe; callers serialise changes and destruction of the same matrix. */
+/* Matrices own their storage. Dense arrays use row-major order. Concurrent reads are safe; callers serialise changes
+   and destruction of the same matrix. */
 crpx_status crpx_matrix_new(size_t rows, size_t columns, crpx_matrix_t *out);
 crpx_status crpx_matrix_from_array(const double *values, size_t rows, size_t columns, crpx_matrix_t *out);
 void crpx_matrix_free(crpx_matrix_t matrix);
@@ -28,9 +31,8 @@ crpx_status crpx_matrix_transpose(const struct crpx_matrix_struct *matrix, crpx_
 crpx_status crpx_matrix_multiply_vector(const struct crpx_matrix_struct *matrix, const double *input,
                                       size_t input_size, double *output, size_t output_size);
 
-/* Compressed sparse columns: offsets has columns+1 entries, starts at zero,
- * ends at nonzero, and is non-decreasing. Row indices must be strictly increasing
- * within each column. Construction copies all arrays. */
+/* Compressed sparse columns: offsets has columns+1 entries, starts at zero, ends at nonzero, and is non-decreasing.
+   Row indices must be strictly increasing within each column. Construction copies all arrays. */
 crpx_status crpx_sparse_matrix_new(size_t rows, size_t columns, size_t nonzero, const size_t *offsets,
                                   const size_t *row_indices, const double *values, crpx_sparse_matrix_t *out);
 void crpx_sparse_matrix_free(crpx_sparse_matrix_t matrix);
@@ -47,13 +49,11 @@ crpx_status crpx_sparse_matrix_transpose(const struct crpx_sparse_matrix_struct 
 crpx_status crpx_sparse_matrix_multiply_vector(const struct crpx_sparse_matrix_struct *matrix, const double *input,
                                              size_t input_size, double *output, size_t output_size);
 
-/* Thin SVD A = U diag(s) Vt. Singular values decrease. U has rows*rank entries,
- * Vt has rank*columns entries. rank=0 keeps min(rows,columns). tolerance=0 uses
- * 8*DBL_EPSILON; sweeps=0 uses 100. All workspaces are local and failures leave
- * *out=NULL. CRPX_ERROR_CONVERGENCE reports an exhausted sweep limit.
- * This dependency-free dense Jacobi backend targets small/moderate matrices;
- * sparse input is explicitly materialised, so storage is O(rows*columns).
- * Columns for exact zero singular values may be zero vectors. */
+/* Thin SVD A = U diag(s) Vt. Singular values decrease. U has rows*rank entries, Vt has rank*columns entries. rank=0
+   keeps min(rows,columns). tolerance=0 uses 8*DBL_EPSILON; sweeps=0 uses 100. All workspaces are local and failures
+   leave *out=NULL. CRPX_ERROR_CONVERGENCE reports an exhausted sweep limit. This dependency-free dense Jacobi backend
+   targets small/moderate matrices; sparse input is explicitly materialised, so storage is O(rows*columns). Columns for
+   exact zero singular values may be zero vectors. */
 crpx_status crpx_svd_decompose(const struct crpx_matrix_struct *matrix, size_t rank, double tolerance,
                               size_t sweeps, crpx_svd_t *out);
 crpx_status crpx_svd_decompose_sparse(const struct crpx_sparse_matrix_struct *matrix, size_t rank,

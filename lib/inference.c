@@ -1,5 +1,6 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Evaluate conditional DTL-history probabilities and acceptance decisions; include sampling and tree-search APIs. */
 #include "inference.h"
 #include <math.h>
 
@@ -7,7 +8,7 @@ crpx_status
 crpx_dtl_minimum_log_probability (const crpx_tree *gene, const crpx_dtl_species *species,
                                   const crpx_node_id *tip_map, const crpx_dtl_costs *costs,
                                   crpx_dtl_workspace *workspace, crpx_dtl_history_probability *result)
-{
+{ /* Normalise one selected minimum-cost history against all histories of the supplied trees. */
   crpx_dtl_history_probability probability;
   if (!result) return CRPX_ERROR_INVALID_ARGUMENT;
   crpx_status status = crpx_dtl_evaluate (gene, species, tip_map, costs, CRPX_DTL_LOG_PARTITION,

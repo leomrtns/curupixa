@@ -23,6 +23,7 @@
  * shuf primers.txt | perl -pe "s/\s//g;"  | fold -w 16 | head -128 | xargs printf '0x%sULL\n' | pr -ts", " --columns 4 | gawk '{print $0","}'
  */
 
+/* Internal constant tables for random-number and hash algorithms. */
 #include "internal_random_constants.h"
 
 const uint32_t crpx_list_of_256_random_prime32[] = {

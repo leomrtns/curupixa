@@ -11,9 +11,9 @@
  * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
  */
 
-/*! \file hash_functions.h 
- *  \brief higher level hash functions (use curupixa_global_t etc.) */
-
+/*! \file hash_functions.h
+    \brief Hash scientific data using deterministic keys and explicit context where required.
+ */
 #ifndef _global_hash_functions_h_ 
 #define _global_hash_functions_h_
 #ifdef __cplusplus

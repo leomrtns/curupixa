@@ -2,6 +2,7 @@
  * Copyright (C) 2019-2026 Leonardo de Oliveira Martins and the R Core Team.
  * R algorithms and their references are retained below.
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Evaluate probability distributions and draw variates with an explicit random stream. */
 #include "prob_distribution.h"
 #include <float.h>
 #include <math.h>
@@ -30,16 +31,16 @@ static const double M_cutoff = R_LN2 * DBL_MAX_EXP / DBL_EPSILON;/*=3.196577e18*
 
 /* log gamma correction factor for x >= 10 so that log(gamma(x)) = .5*log(2*pi) + (x-.5)*log(x) -x + lgammacor(x) */
 static double lgammacor (double x);
-/* determines the number of terms for the double precision orthogonal series "dos" needed to insure
- * the error is no larger than "eta".  Ordinarily eta will be chosen to be one-tenth machine precision. */
+/* determines the number of terms for the double precision orthogonal series "dos" needed to insure the error is no
+   larger than "eta".  Ordinarily eta will be chosen to be one-tenth machine precision. */
 
 /* evaluates the n-term Chebyshev series "a" at "x" */
 static double chebyshev_eval (double x, const double *a, const int n);
 /* This function calculates the minimum and maximum legal bounds for x in crpx_gammafn(x). These are not the only
- * bounds, but they are the only non-trivial ones to calculate. */
+   bounds, but they are the only non-trivial ones to calculate. */
 
 /* Continued fraction for calculation of 1/i + x/(i+d) + x^2/(i+2*d) + x^3/(i+3*d) + ... = sum_{k=0}^Inf x^k/(i+k*d)
- * auxilary in crpx_log1pmx() and lgamma1p(); eps = relative tolerance */
+   auxilary in crpx_log1pmx() and lgamma1p(); eps = relative tolerance */
 static double logcf (double x, double i, double d, double eps);
 /* Compute  log(gamma(a+1))  accurately also for small a (0 < a < 0.5). */
 static double lgamma1p (double a);
@@ -50,7 +51,7 @@ static double dpois_raw (double x, double lambda, bool log_p);
 /* computes the log of the error term in Stirling's formula. */
 static double stirlerr (double n);
 /* Evaluates the "deviance part" bd0(x,M) =  M * D0(x/M) = M*[ x/M * log(x/M) + 1 - (x/M) ] =  x * log(x/M) + M - x
- *  where M = E[X] = n*p (or = lambda), for   x, M > 0 */
+   where M = E[X] = n*p (or = lambda), for   x, M > 0 */
 static double bd0 (double x, double np);
 /* auxiliary function for pgamma() */
 static double pgamma_smallx (double x, double alph, bool log_p);
@@ -131,8 +132,8 @@ lgammacor (double x)
   return 1. / (x * 12.);
 }
 
-/* determines the number of terms for the double precision orthogonal series "dos" needed to insure
-   the error is no larger than "eta".  Ordinarily eta will be chosen to be one-tenth machine precision. */
+/* determines the number of terms for the double precision orthogonal series "dos" needed to insure the error is no
+   larger than "eta".  Ordinarily eta will be chosen to be one-tenth machine precision. */
 static double
 chebyshev_eval (double x, const double *a, const int n)
 {
@@ -153,7 +154,7 @@ chebyshev_eval (double x, const double *a, const int n)
 }
 
 /* Continued fraction for calculation of 1/i + x/(i+d) + x^2/(i+2*d) + x^3/(i+3*d) + ... = sum_{k=0}^Inf x^k/(i+k*d)
- * auxilary in crpx_log1pmx() and lgamma1p(); eps = relative tolerance */
+   auxilary in crpx_log1pmx() and lgamma1p(); eps = relative tolerance */
 static double
 logcf (double x, double i, double d, double eps)
 {
@@ -230,19 +231,16 @@ dpois_raw (double x, double lambda, bool log_p)
   exp (-stirlerr (x) - bd0 (x,lambda)) / sqrt (R_2PI * x);
 }
 
-/* stirlerr(n) = log(n!) - log( sqrt(2*pi*n)*(n/e)^n )
- *             = log Gamma(n+1) - 1/2 * [log(2*pi) + log(n)] - n*[log(n) - 1]
- *             = log Gamma(n+1) - (n + 1/2) * log(n) + n - log(2*pi)/2
- * see also lgammacor() in which computes almost the same! */
+/* stirlerr(n) = log(n!) - log( sqrt(2*pi*n)*(n/e)^n ) = log Gamma(n+1) - 1/2 * [log(2*pi) + log(n)] - n*[log(n) - 1] =
+   log Gamma(n+1) - (n + 1/2) * log(n) + n - log(2*pi)/2 see also lgammacor() in which computes almost the same! */
 static double
 stirlerr (double n)
 {
   static const double S[5] = {1./12. ,1./360., 1./1260., 1./1680., 1./1188};
   double nn;
 
-  /* For n > 15, uses the series 1/12n - 1/360n^3 + ...
-   * For n <=15, integers or half-integers, uses stored values.
-   * For other n < 15, uses lgamma directly */
+  /* For n > 15, uses the series 1/12n - 1/360n^3 + ... For n <=15, integers or half-integers, uses stored values. For
+   other n < 15, uses lgamma directly */
   if (n <= 15.0) {
     nn = n + n;
     if (nn == (int)nn) return stirl_sferr_halves[(int)nn];
@@ -255,12 +253,10 @@ stirlerr (double n)
   return ((S[0]-(S[1]-(S[2]-(S[3]-S[4]/nn)/nn)/nn)/nn)/n); /* 15 < n <= 35 : */
 }
 
-/* Evaluates the "deviance part"
- *  bd0(x,M) :=  M * D0(x/M) = M*[ x/M * log(x/M) + 1 - (x/M) ] =  x * log(x/M) + M - x
- *  where M = E[X] = n*p (or = lambda), for   x, M > 0
- *  In a manner that should be stable (with small relative error) for all x and M=np. In particular for x/np close
- *  to 1, direct evaluation fails, and evaluation is based on the Taylor series of log((1+v)/(1-v)) with
- *  v = (x-np)/(x+np). */
+/* Evaluates the "deviance part" bd0(x,M) :=  M * D0(x/M) = M*[ x/M * log(x/M) + 1 - (x/M) ] =  x * log(x/M) + M - x
+   where M = E[X] = n*p (or = lambda), for   x, M > 0 In a manner that should be stable (with small relative error) for
+   all x and M=np. In particular for x/np close to 1, direct evaluation fails, and evaluation is based on the Taylor
+   series of log((1+v)/(1-v)) with v = (x-np)/(x+np). */
 static double
 bd0 (double x, double np)
 {
@@ -313,8 +309,8 @@ pd_upper_series (double x, double y, bool log_p)
   double term = x / y;
   double sum = term;
 
-  /* sum =  \sum_{n=1}^ oo  x^n     / (y*(y+1)*...*(y+n-1))    =  \sum_{n=0}^ oo  x^(n+1) / (y*(y+1)*...*(y+n)) =
-   *	   =  x/y * (1 + \sum_{n=1}^oo	x^n / ((y+1)*...*(y+n))) ~  x/y + o(x/y) {which happens when alph -> Inf} */
+  /* sum =  \sum_{n=1}^ oo  x^n     / (y*(y+1)*...*(y+n-1))    =  \sum_{n=0}^ oo  x^(n+1) / (y*(y+1)*...*(y+n)) = =  x/y
+   * (1 + \sum_{n=1}^oo        x^n / ((y+1)*...*(y+n))) ~  x/y + o(x/y) {which happens when alph -> Inf} */
   do { y += 1.; term *= x / y; sum += term; } while (term > sum * DBL_EPSILON);
   return log_p ? log (sum) : sum;
 }
@@ -324,8 +320,8 @@ pd_lower_series (double lambda, double y)
 {
   double term = 1, sum = 0;
 
-  /* sum =  \sum_{n=0}^ oo  y*(y-1)*...*(y - n) / lambda^(n+1)
-   *     =  y/lambda * (1 + \sum_{n=1}^Inf  (y-1)*...*(y-n) / lambda^n   ~  y/lambda + o(y/lambda) */
+  /* sum =  \sum_{n=0}^ oo  y*(y-1)*...*(y - n) / lambda^(n+1) =  y/lambda * (1 + \sum_{n=1}^Inf  (y-1)*...*(y-n) /
+   lambda^n   ~  y/lambda + o(y/lambda) */
   while (y >= 1 && term > sum * DBL_EPSILON) { term *= y / lambda; sum += term; y -= 1.; }
 
   if (y != floor (y)) {
@@ -375,13 +371,13 @@ pd_lower_cf (double i, double d)
 }
 
 /* Compute the following ratio with higher accuracy that would be had from doing it directly.
- *   \f$ \frac{ dnorm (x, 0, 1, FALSE) } { pnorm (x, 0, 1, FALSE) } \f$
- * Abramowitz & Stegun 26.2.12 */
+   \f$ \frac{ dnorm (x, 0, 1, FALSE) } { pnorm (x, 0, 1, FALSE) } \f$
+ Abramowitz & Stegun 26.2.12 */
 static double
 dpnorm (double x, double lp)
 {
-  /* So as not to repeat a pnorm call, we expect lp == pnorm (x, 0, 1, TRUE)
-   * but use it only in the non-critical case where either x is small or p==exp(lp) is close to 1. */
+  /* So as not to repeat a pnorm call, we expect lp == pnorm (x, 0, 1, TRUE) but use it only in the non-critical case
+   where either x is small or p==exp(lp) is close to 1. */
   bool upper_tail = false;
   if (x < 0) { x = -x; upper_tail = true; }
   if ((x > 10) && upper_tail) {
@@ -396,12 +392,12 @@ dpnorm (double x, double lp)
   else return crpx_dnorm (x, 0, 1, false) / exp (lp);
 }
 
-/* Asymptotic expansion to calculate the probability that Poisson variate has value <= x.
- * Various assertions about this are made (without proof) at http://members.aol.com/iandjmsmith/PoissonApprox.htm */
+/* Asymptotic expansion to calculate the probability that Poisson variate has value <= x. Various assertions about this
+   are made (without proof) at http://members.aol.com/iandjmsmith/PoissonApprox.htm */
 static double
 ppois_asymp (double x, double lambda, bool log_p)
-{ /* It is called by pgamma_raw with (lower_tail = false); needs change if it is possible to be called with
-     lower_tail = T */
+{ /* It is called by pgamma_raw with (lower_tail = false); needs change if it is possible to be called with lower_tail =
+   T */
   static const double coefs_a[8] = {
     -1e99, /* placeholder used for 1-indexing */
     2/3., -4/135., 8/2835., 16/8505., -8992/12629925., -334144/492567075., 698752/1477701225. };
@@ -414,9 +410,8 @@ ppois_asymp (double x, double lambda, bool log_p)
   int i;
 
   dfm = lambda - x;
-  /* If lambda is large, the distribution is highly concentrated about lambda.  So representation error in x or
-   * lambda can lead to arbitrarily large values of pt_ and hence divergence of the coefficients of this
-   * approximation. */
+  /* If lambda is large, the distribution is highly concentrated about lambda.  So representation error in x or lambda
+   can lead to arbitrarily large values of pt_ and hence divergence of the coefficients of this approximation. */
   pt_ = - crpx_log1pmx (dfm / x);
   s2pt = sqrt (2 * x * pt_);
   if (dfm < 0) s2pt = -s2pt;
@@ -483,8 +478,8 @@ pgamma_raw (double x, double alph, bool log_p)
   }
   else res = ppois_asymp (alph - 1, x, log_p); /* x > 1 and x fairly near alph. */
 
-  /* We lose a fair amount of accuracy to underflow in the cases where the final result is very close to DBL_MIN.
-   * In those cases, simply redo via log space. with(.Machine, double.xmin / double.eps) #|-> 1.002084e-292 */
+  /* We lose a fair amount of accuracy to underflow in the cases where the final result is very close to DBL_MIN. In
+   those cases, simply redo via log space. with(.Machine, double.xmin / double.eps) #|-> 1.002084e-292 */
   if (!log_p && res < DBL_MIN / DBL_EPSILON) return exp (pgamma_raw (x, alph, true));
   else return res;
 }
@@ -529,8 +524,8 @@ qchisq_appr (double p, double nu, double g, bool log_p, double tol)
 
 void pnorm_both(double x, double *cum, double *ccum, int i_tail, bool log_p)
 {
-  /* i_tail in {0,1,2} means: "lower", "upper", or "both" :
-     if(lower) return  *cum := P[X <= x] ; if(upper) return *ccum := P[X >  x] = 1 - P[X <= x] */
+  /* i_tail in {0,1,2} means: "lower", "upper", or "both" : if(lower) return  *cum := P[X <= x] ; if(upper) return *ccum
+   := P[X >  x] = 1 - P[X <= x] */
   static const double a[5] = {
     2.2352520354606839287, 161.02823106855587881, 1067.6894854603709582, 18154.981253343561249, 0.065682337918207449113
   };
@@ -608,8 +603,8 @@ void pnorm_both(double x, double *cum, double *ccum, int i_tail, bool log_p)
     if (x > 0.) { temp = *cum; if(lower) *cum = *ccum; *ccum = temp; }
   }
 
-  /* else	|x| > sqrt(32) = 5.657 : the next two case differentiations were really for lower=T, log=F
-   * Particularly *not* for log_p ! Note that we do want symmetry(0), lower/upper -> hence use y */
+  /* else    |x| > sqrt(32) = 5.657 : the next two case differentiations were really for lower=T, log=F Particularly
+   *not* for log_p ! Note that we do want symmetry(0), lower/upper -> hence use y */
   else if(log_p || (lower && -37.5193 < x  &&  x < 8.2924) || (upper && -8.2924  < x  &&  x < 37.5193) ) {
     /* Evaluate pnorm for x in (-37.5, -5.657) union (5.657, 37.5) */
     xsq = 1.0 / (x * x);
@@ -731,12 +726,10 @@ crpx_dgamma (double x, double alpha, double beta, bool log_p)
   return log_p ? (pr + log(beta)) : (pr * beta);
 }
 
-/* Compute the quantile function of the gamma distribution. This function is based on the Applied Statistics
- * Algorithm AS 91 ("ppchi2") and via pgamma(.) AS 239.
- * R core improvements: lower_tail, log_p; non-trivial result for p outside [0.000002, 0.999998];
- * p ~ 1 no longer gives +Inf; final Newton step(s)
- * Best, D. J. and D. E. Roberts (1975). Percentage Points of the Chi-Squared Distribution.
- * Applied Statistics 24, page 385.  */
+/* Compute the quantile function of the gamma distribution. This function is based on the Applied Statistics Algorithm
+   AS 91 ("ppchi2") and via pgamma(.) AS 239. R core improvements: lower_tail, log_p; non-trivial result for p outside
+   [0.000002, 0.999998]; p ~ 1 no longer gives +Inf; final Newton step(s) Best, D. J. and D. E. Roberts (1975).
+   Percentage Points of the Chi-Squared Distribution. Applied Statistics 24, page 385. */
 double
 crpx_qgamma (double p, double alpha, double beta, bool log_p)
 {
@@ -788,9 +781,9 @@ crpx_qgamma (double p, double alpha, double beta, bool log_p)
   }
 
 END:
-  /* PR# 2214 :	 From: Morten Welinder <terra@diku.dk>, Fri, 25 Oct 2002 16:50 To: R-bugs@biostat.ku.dk
-   * With a final Newton step, double accuracy, e.g. for (p= 7e-4; nu= 0.9)
-   * Improved (MM): - only if rel.Err > EPS_N (= 1e-15); optionally *iterate* Newton */
+  /* PR# 2214 :       From: Morten Welinder <terra@diku.dk>, Fri, 25 Oct 2002 16:50 To: R-bugs@biostat.ku.dk With a final
+   Newton step, double accuracy, e.g. for (p= 7e-4; nu= 0.9) Improved (MM): - only if rel.Err > EPS_N (= 1e-15);
+   optionally *iterate* Newton */
   x = 0.5*ch/beta;
 
   if (max_it_Newton) {
@@ -801,9 +794,8 @@ END:
       p1 = p_ - p;
       if(fabs(p1) < fabs(EPS_N * p)) break;
       if((g = crpx_dgamma (x, alpha, beta, log_p)) == mInf) break;
-      /* delta x = f(x)/f'(x);
-       * if(log_p) f(x) := log P(x) - p; f'(x) = d/dx log P(x) = P' / P
-       * ==> f(x)/f'(x) = f*P / P' = f*exp(p_) / P' (since p_ = log P(x)) */
+      /* delta x = f(x)/f'(x); if(log_p) f(x) := log P(x) - p; f'(x) = d/dx log P(x) = P' / P ==> f(x)/f'(x) = f*P / P' =
+   f*exp(p_) / P' (since p_ = log P(x)) */
       t = x - (p1 * exp(p_ - g));/* = x - delta x" */
       p_ = crpx_pgamma (t, alpha, beta, log_p);
       if (fabs(p_ - p) > fabs(p1) || ((i > 1) && (fabs(p_ - p) == fabs(p1)))) break; /* against flip-flop */
@@ -840,13 +832,11 @@ crpx_dnorm (double x, double mu, double sigma, bool log_p)
   return (log_p? -(R_LN_SQRT_2PI +  0.5 * x * x + log(sigma)) : (R_1_SQRT_2PI * exp(-0.5 * x * x)  /   sigma));
 }
 
-/*	Compute the quantile function for the normal distribution. For small to moderate probabilities, algorithm
- *	referenced below is used to obtain an initial approximation which is polished with a final Newton step.
- *	For very large arguments, an algorithm of Wichura is used.
- *	Beasley, J. D. and S. G. Springer (1977).
- *	Algorithm AS 111: The percentage points of the normal distribution, Applied Statistics, 26, 118-121.
- *  Wichura, M.J. (1988).
- *  Algorithm AS 241: The Percentage Points of the Normal Distribution. Applied Statistics, 37, 477-484. */
+/* Compute the quantile function for the normal distribution. For small to moderate probabilities, algorithm referenced
+   below is used to obtain an initial approximation which is polished with a final Newton step. For very large
+   arguments, an algorithm of Wichura is used. Beasley, J. D. and S. G. Springer (1977). Algorithm AS 111: The
+   percentage points of the normal distribution, Applied Statistics, 26, 118-121. Wichura, M.J. (1988). Algorithm AS
+   241: The Percentage Points of the Normal Distribution. Applied Statistics, 37, 477-484. */
 double
 crpx_qnorm (double p, double mu, double sigma, bool log_p)
 {
@@ -863,9 +853,8 @@ crpx_qnorm (double p, double mu, double sigma, bool log_p)
   else p_ = p;
   q = p_ - 0.5;
 
-  /* use AS 241: double ppnd16_(double *p, long *ifault) ALGORITHM AS241  APPL. STATIST. (1988) VOL. 37, NO. 3
-     Produces the normal deviate Z corresponding to a given lower tail area of P; Z is accurate to about 1 part
-     in 10**16. */
+  /* use AS 241: double ppnd16_(double *p, long *ifault) ALGORITHM AS241  APPL. STATIST. (1988) VOL. 37, NO. 3 Produces
+   the normal deviate Z corresponding to a given lower tail area of P; Z is accurate to about 1 part in 10**16. */
   if (fabs(q) <= .425) {/* 0.075 <= p <= 0.925 */
     r = .180625 - q * q;
     val =
@@ -908,13 +897,12 @@ crpx_qnorm (double p, double mu, double sigma, bool log_p)
   return mu + sigma * val;
 }
 
-/* The main computation evaluates near-minimax approximations derived from those in "Rational Chebyshev
- * approximations for the error function" by W. J. Cody, Math. Comp., 1969, 631-637.  This transportable program
- * uses rational functions that theoretically approximate the normal distribution function to at least 18
- * significant decimal digits.  The accuracy achieved depends on the arithmetic system, the compiler, the intrinsic
- * functions, and proper selection of the machine-dependent constants.
- * REFERENCE: Cody, W. D. (1993). ALGORITHM 715: SPECFUN - A Portable FORTRAN Package of Special Function Routines
- * and Test Drivers". ACM Transactions on Mathematical Software. 19, 22-32.*/
+/* The main computation evaluates near-minimax approximations derived from those in "Rational Chebyshev approximations
+   for the error function" by W. J. Cody, Math. Comp., 1969, 631-637.  This transportable program uses rational
+   functions that theoretically approximate the normal distribution function to at least 18 significant decimal digits.
+   The accuracy achieved depends on the arithmetic system, the compiler, the intrinsic functions, and proper selection
+   of the machine-dependent constants. REFERENCE: Cody, W. D. (1993). ALGORITHM 715: SPECFUN - A Portable FORTRAN
+   Package of Special Function Routines and Test Drivers". ACM Transactions on Mathematical Software. 19, 22-32. */
 double
 crpx_pnorm (double x, double mu, double sigma, bool log_p)
 {
@@ -973,9 +961,9 @@ crpx_dpois (double x, double lambda, bool log_p)
   return dpois_raw (x, lambda, log_p);
 }
 
-/*The quantile function of the Poisson distribution. Uses the Cornish-Fisher Expansion to include a skewness
- *correction to a normal approximation.  This gives an initial value which never seems to be off by more than
- *1 or 2. A search is then conducted of values close to this initial start point [ do_poisson_search() ] . */
+/* The quantile function of the Poisson distribution. Uses the Cornish-Fisher Expansion to include a skewness
+   correction to a normal approximation.  This gives an initial value which never seems to be off by more than 1 or 2.
+   A search is then conducted of values close to this initial start point [ do_poisson_search() ] . */
 double
 crpx_qpois (double p, double lambda, bool log_p)
 {
@@ -1029,8 +1017,8 @@ crpx_ppois (double x, double lambda, bool log_p)
 
   double shape = x + 1, upper;
   if (x < lambda && shape < 0.8 * (lambda + 50)) {
-    /* Evaluate the upper gamma tail directly, preserving log P[X<=x] even
-     * when ordinary probabilities underflow (e.g. x=0, lambda=1000). */
+    /* Evaluate the upper gamma tail directly, preserving log P[X<=x] even when ordinary probabilities underflow (e.g. x=0,
+   lambda=1000). */
     upper = dpois_wrap(shape, lambda, true) + log1p(pd_lower_series(lambda, shape - 1));
   }
   else {
@@ -1158,8 +1146,8 @@ double crpx_rng_lnorm(crpx_rng_stream *stream, double meanlog, double sdlog)
   return exp(crpx_rng_norm(stream, meanlog, sdlog));
 }
 
-/* Marsaglia and Tsang, A Simple Method for Generating Gamma Variables (2000).
- * All proposal state is local; shape < 1 uses the standard power transformation. */
+/* Marsaglia and Tsang, A Simple Method for Generating Gamma Variables (2000). All proposal state is local; shape < 1
+   uses the standard power transformation. */
 double crpx_rng_gamma(crpx_rng_stream *stream, double alpha, double beta)
 {
   if (!stream || !isfinite(alpha) || !isfinite(beta) || alpha < 0 || beta <= 0) return NAN;

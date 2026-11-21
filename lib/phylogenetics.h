@@ -1,4 +1,7 @@
 /* General phylogenetics interfaces. SPDX-License-Identifier: GPL-3.0-or-later */
+/*! \file phylogenetics.h
+    \brief Collect general tree, sequence and numerical interfaces, usable on gene trees as well as species trees.
+ */
 #ifndef CURUPIXA_PHYLOGENETICS_H
 #define CURUPIXA_PHYLOGENETICS_H
 #include "global/global_variable.h"

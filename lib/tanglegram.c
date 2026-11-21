@@ -1,5 +1,6 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Minimise crossings between explicit tip links by reordering both trees, including unequal tree sizes. */
 #include "tanglegram.h"
 #include <stdlib.h>
 #include <string.h>
@@ -74,7 +75,7 @@ crpx_status
 crpx_tanglegram_workspace_new (const crpx_tree *first, const crpx_tree *second,
                               const crpx_tanglegram_link *links, size_t count,
                               crpx_tanglegram_workspace **result)
-{
+{ /* Snapshot both topologies and group links by endpoint for repeated crossing counts. */
   crpx_tanglegram_workspace *workspace;
   crpx_status status;
   if (!result) return CRPX_ERROR_INVALID_ARGUMENT;
@@ -106,8 +107,8 @@ crpx_tanglegram_workspace_new (const crpx_tree *first, const crpx_tree *second,
   for (size_t i = 0; i < count; i++) workspace->link_offsets[links[i].first + 1]++;
   for (size_t node = 1; node <= workspace->first.nodes; node++)
     workspace->link_offsets[node] += workspace->link_offsets[node - 1];
-  /* The traversal stack is free scratch during construction. Fill backwards so
-   * the offsets themselves remain available without another allocation. */
+  /* The traversal stack is free scratch during construction. Fill backwards so the offsets themselves remain available
+   without another allocation. */
   for (size_t node = 0; node < workspace->first.nodes; node++)
     workspace->first.stack[node] = (crpx_node_id) workspace->link_offsets[node + 1];
   for (size_t i = 0; i < count; i++)
@@ -149,8 +150,8 @@ evaluate_order (crpx_tanglegram_workspace *workspace)
       for (size_t position = rank; position; position &= position - 1) prefix += workspace->fenwick[position];
       crossings += previous - prefix;
     }
-    /* Query the whole group before inserting it: links sharing this endpoint
-     * cannot cross. Inclusive prefix sums similarly exclude equal right tips. */
+    /* Query the whole group before inserting it: links sharing this endpoint cannot cross. Inclusive prefix sums similarly
+   exclude equal right tips. */
     for (size_t link = start; link < end; link++) {
       size_t rank = workspace->second.rank[workspace->targets[link]] + 1;
       for (size_t position = rank; position <= workspace->second.leaves; position += position & (~position + 1))
@@ -212,8 +213,8 @@ compare_nodes (const void *first, const void *second)
   return (a > b) - (a < b);
 }
 
-/* Advance one digit of a mixed-radix enumeration of child permutations.
- * Exhausted digits return to ascending order before carrying to the next. */
+/* Advance one digit of a mixed-radix enumeration of child permutations. Exhausted digits return to ascending order
+   before carrying to the next. */
 static bool
 next_order (ordered_tree *tree)
 {
@@ -237,7 +238,7 @@ next_order (ordered_tree *tree)
 crpx_status
 crpx_tanglegram_optimise (crpx_tanglegram_workspace *workspace, size_t max_evaluations,
                          crpx_tanglegram_result *result)
-{
+{ /* Improve both orders, then enumerate permutations until completion or the evaluation limit. */
   ordered_tree *trees[2];
   bool complete = false;
   if (!workspace || !result) return CRPX_ERROR_INVALID_ARGUMENT;

@@ -1,5 +1,6 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Describe recoverable C API errors so applications and language bindings can report failed calculations. */
 #include "status.h"
 
 const char *crpx_status_string(crpx_status status)

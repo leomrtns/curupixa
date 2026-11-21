@@ -1,4 +1,7 @@
 /* Private closed-form kernel cache. SPDX-License-Identifier: GPL-3.0-or-later */
+/*! \file substitution_model_internal.h
+    \brief Internal model representation shared by numerical transition calculations.
+ */
 #ifndef CURUPIXA_SUBSTITUTION_MODEL_INTERNAL_H
 #define CURUPIXA_SUBSTITUTION_MODEL_INTERNAL_H
 #include "substitution_model.h"

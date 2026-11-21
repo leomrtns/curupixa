@@ -1,6 +1,7 @@
 /* Full-data messages inspired by branchtraits/src/discrete.c, generalised to
  * curupixa model/data contracts. Copyright (C) 2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Reconstruct marginal ancestral probabilities or optimal parsimony states from discrete observations. */
 #include "reconstruction.h"
 #include "likelihood_kernel_internal.h"
 #include <float.h>
@@ -58,8 +59,8 @@ static crpx_status prepare(const crpx_tree *tree,const crpx_character_data *data
   if (kernels) w->kernels=grow(w->kernels,&w->kernel_capacity,n,sizeof(crpx_log_kernel),&status);
   if (status==CRPX_OK && !w->traversal)
     status=crpx_tree_workspace_new(CRPX_TREE_WORKSPACE_TRAVERSAL,&w->traversal);
-  /* Likelihood evaluation already validates/maps observations. Parsimony owns
-   * that setup here; avoid a redundant map in the likelihood reconstruction. */
+  /* Likelihood evaluation already validates/maps observations. Parsimony owns that setup here; avoid a redundant map in
+   the likelihood reconstruction. */
   if (status==CRPX_OK && !kernels) status=crpx_character_data_map_tips(data,tree,w->tips,t);
   if (status==CRPX_OK) status=crpx_tree_workspace_refresh(w->traversal,tree);
   return status;

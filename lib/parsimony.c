@@ -1,6 +1,8 @@
 /* Reimplementation of biomcmc-lib parsimony (Leonardo de Oliveira Martins).
  * Copyright (C) 2019-2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
+/* Calculate discrete-character parsimony scores on a supplied tree. */
+/* Sankoff (1975), Minimal mutation trees of sequences, doi:10.1137/0128004. */
 #include "parsimony.h"
 #include <stdlib.h>
 #include <string.h>
@@ -32,7 +34,7 @@ crpx_status crpx_parsimony_score(const crpx_tree *tree, const crpx_node_id *tips
                                 unsigned int states, size_t patterns, const uint64_t *masks,
                                 const size_t *weights, crpx_parsimony_workspace *w,
                                 uint64_t *total, uint64_t *per_pattern)
-{
+{ /* Accumulate minimum state-change costs; branch lengths do not enter this calculation. */
   const uint64_t infinity = UINT64_MAX / 4;
   crpx_status status;
   size_t nodes = crpx_tree_node_count(tree);
