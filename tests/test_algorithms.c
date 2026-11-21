@@ -1,3 +1,4 @@
+#include "gene_species_distances.h"
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 #ifdef NDEBUG
 #undef NDEBUG
@@ -90,6 +91,16 @@ static void test_splits(void)
     char name[2] = {label && *label ? *label : '?', 0}; mapping[node] = leaf(a, name);
   }
   assert(crpx_gene_species_split_distances(b, a, mapping, &rf, &h) == CRPX_OK && rf == 0 && h == 0);
+  crpx_tanglegram_workspace *tanglegram;
+  crpx_tanglegram_result ordered;
+  assert(crpx_gene_species_tanglegram_new(b, a, mapping, &tanglegram) == CRPX_OK);
+  assert(crpx_tanglegram_optimise(tanglegram, 100, &ordered) == CRPX_OK);
+  assert(ordered.exact && !ordered.crossings && ordered.first_leaves == 5 && ordered.second_leaves == 4);
+  crpx_tanglegram_workspace_free(tanglegram);
+  assert(crpx_gene_species_splitsets(b, a, mapping, &x, &y) == CRPX_OK);
+  for (size_t repeat = 0; repeat < 5; repeat++)
+    assert(crpx_splitset_compare(x, y, &rf, NULL) == CRPX_OK && rf == 0);
+  crpx_splitset_free(x); crpx_splitset_free(y);
   crpx_tree_free(a); crpx_tree_free(b);
 }
 static void balanced_subtree(crpx_tree *tree, crpx_node_id parent, crpx_node_id *tips, size_t first, size_t count)

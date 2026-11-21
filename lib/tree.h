@@ -145,6 +145,8 @@ enum { CRPX_TREE_UPDATED_UP = 1u, CRPX_TREE_UPDATED_DOWN = 2u, CRPX_TREE_UPDATED
  */
 crpx_status crpx_tree_workspace_new(uint32_t features, crpx_tree_workspace **result);
 void crpx_tree_workspace_free(crpx_tree_workspace *workspace);
+/* Retained object and array capacity, excluding allocator overhead. */
+size_t crpx_tree_workspace_storage_size (const crpx_tree_workspace *workspace);
 /* Release the borrowed tree identity while retaining allocated arrays for reuse. Call before freeing
  * a bound tree if the workspace must survive; it then reports zero nodes and requires refresh.
  */

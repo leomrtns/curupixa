@@ -1,3 +1,4 @@
+#include "gene_species_distances.h"
 /* Compile against an installed package:
  * cc -std=c17 gene_species_distances.c $(pkg-config --cflags --libs --static curupixa)
  * SPDX-License-Identifier: GPL-3.0-or-later */

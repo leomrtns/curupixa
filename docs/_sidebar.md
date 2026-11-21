@@ -1,4 +1,6 @@
 - [Curupixá](README.md)
+- [Library organisation](library-architecture.md)
+- [Comparison and inference interfaces](comparison-and-inference.md)
 - [Source and installed files](general_structure.md)
 - [Migration coverage](migration.md)
 - [Tree design](tree-design.md)

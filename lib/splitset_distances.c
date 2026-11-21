@@ -150,23 +150,3 @@ done:
   crpx_hashtable_free(common); crpx_bipartition_free(difference);
   return status;
 }
-
-crpx_status crpx_gene_species_split_distances(const crpx_tree *gene, const crpx_tree *species,
-                                             const crpx_node_id *mapping, size_t *rf, uint64_t *assignment_cost)
-{
-  size_t taxa = crpx_tree_leaf_count(gene), count = 0;
-  if (!gene || !species || !mapping || !taxa || (!rf && !assignment_cost)) return CRPX_ERROR_INVALID_ARGUMENT;
-  if (taxa > SIZE_MAX/sizeof(crpx_node_id)) return CRPX_ERROR_OVERFLOW;
-  crpx_node_id *gene_tips = malloc(taxa*sizeof(*gene_tips)), *species_tips = malloc(taxa*sizeof(*species_tips));
-  crpx_splitset *a = NULL, *b = NULL;
-  if (!gene_tips || !species_tips) { free(gene_tips); free(species_tips); return CRPX_ERROR_ALLOCATION; }
-  for (size_t node = 0; node < crpx_tree_node_count(gene); ++node)
-    if (crpx_tree_first_child(gene, (crpx_node_id)node) == CRPX_NODE_NONE) {
-      gene_tips[count] = (crpx_node_id)node; species_tips[count++] = mapping[node];
-    }
-  crpx_status status = crpx_splitset_from_tree(gene, gene_tips, taxa, &a);
-  if (status == CRPX_OK) status = crpx_splitset_from_tree(species, species_tips, taxa, &b);
-  if (status == CRPX_OK) status = crpx_splitset_compare(a, b, rf, assignment_cost);
-  crpx_splitset_free(a); crpx_splitset_free(b); free(gene_tips); free(species_tips);
-  return status;
-}

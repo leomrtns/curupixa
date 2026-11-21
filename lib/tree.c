@@ -1056,6 +1056,20 @@ crpx_tree_workspace_free(crpx_tree_workspace *workspace)
   free(workspace);
 }
 
+size_t
+crpx_tree_workspace_storage_size (const crpx_tree_workspace *workspace)
+{
+  size_t bytes;
+  if (!workspace) return 0;
+  bytes = sizeof (*workspace);
+  if (workspace->preorder) bytes += workspace->capacity * sizeof (*workspace->preorder);
+  if (workspace->postorder) bytes += workspace->capacity * sizeof (*workspace->postorder);
+  if (workspace->sisters) bytes += workspace->capacity * sizeof (*workspace->sisters);
+  if (workspace->depth) bytes += workspace->capacity * sizeof (*workspace->depth);
+  if (workspace->updated) bytes += workspace->capacity * sizeof (*workspace->updated);
+  return bytes;
+}
+
 void
 crpx_tree_workspace_reset(crpx_tree_workspace *workspace)
 {

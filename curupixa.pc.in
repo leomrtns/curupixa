@@ -4,8 +4,9 @@ libdir=@libdir@
 includedir=@includedir@
 
 Name: curupixa
-Description: Low-level phylogenetics library with recoverable errors and explicit state
+Description: All available Curupixa interfaces
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lcurupixa
-Libs.private: @CURUPIXA_PC_LIBS_PRIVATE@
+Requires: @CURUPIXA_PC_TOP@
+Libs:
+Libs.private:
 Cflags: -I${includedir} -I${includedir}/curupixa @CURUPIXA_PC_CFLAGS@

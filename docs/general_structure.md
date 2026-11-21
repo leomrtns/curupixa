@@ -10,7 +10,7 @@ See [Build-system decision](build-systems.md) for the CMake and Autotools workfl
 ## Installed files
 An installation places public headers in `${prefix}/include/curupixa` and the library in `${prefix}/${CMAKE_INSTALL_LIBDIR}`. The library directory is usually `lib`, but packaging toolchains can select another location.
 
-Static builds produce `libcurupixa.a`. Shared builds use the platform's normal shared-library names. CMake package configuration is installed below the library directory's `cmake/curupixa` folder; pkg-config metadata is installed as `pkgconfig/curupixa.pc`.
+Static builds produce `libcurupixa_phylogenetics.a`, `libcurupixa_gene_species.a` and `libcurupixa_inference.a`. Shared builds use the corresponding platform-specific shared-library names. See [Library organisation](library-architecture.md) for component dependencies and optional builds. CMake package configuration is installed below the library directory's `cmake/curupixa` folder; pkg-config metadata is installed as `pkgconfig/curupixa.pc`.
 ## Using the API
 CMake consumers link `curupixa::curupixa`, either through `add_subdirectory()` or `find_package(curupixa CONFIG REQUIRED)`. This target supplies the include paths and link requirements.
 

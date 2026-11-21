@@ -32,11 +32,6 @@ crpx_status crpx_splitset_spr_distance(const crpx_splitset *a, const crpx_splits
 /* Same unique leaf labels, independent of their node order. */
 crpx_status crpx_tree_spr_distance(const crpx_tree *a, const crpx_tree *b,
                                   crpx_spr_workspace *workspace, crpx_spr_result *result);
-/* Explicit mapping indexed by gene node; leaves identify species leaf nodes.
- * Species tips are expanded into gene-copy bits; absent species add no bits. */
-crpx_status crpx_gene_species_spr_distance(const crpx_tree *gene, const crpx_tree *species,
-                                          const crpx_node_id *gene_to_species,
-                                          crpx_spr_workspace *workspace, crpx_spr_result *result);
 #ifdef __cplusplus
 }
 #endif

@@ -4,14 +4,14 @@ CMake is the primary build system for curupixa. The developer workflow starts fr
 | Requirement | CMake | Autotools |
 | --- | --- | --- |
 | Fresh Git checkout | CMake and C17 compiler; no bootstrap. | Autoconf, Automake and Libtool generate the build scripts, then configure/make. |
-| Embed a submodule | `add_subdirectory()` and an imported-style target carrying usage requirements. | Recursive configuration or downstream Makefile integration with the convenience library. |
+| Embed a submodule | `add_subdirectory()` and an imported-style target carrying usage requirements. | Recursive configuration or downstream Makefile integration with component libraries. |
 | Installed developer use | Exported CMake config/target plus pkg-config. | pkg-config and normal installed library/headers. |
 | Static/shared and Python extension linkage | Static PIC by default; shared switch; dependencies propagated by targets. | Libtool supplies static/shared and convenience libraries; use `--with-pic` when an archive will enter a shared extension. |
 | Conda, Galaxy dependency package or container prefix | Non-interactive configure/build/install with an explicit prefix; supports staging. | Non-interactive configure/make/install with an explicit prefix; supports staging. |
 | Source-release archive | Compiler and CMake required by the documented workflow. | Distributed generated `configure` supports compiler/make without installing bootstrap tools. |
 | Maintenance | Source/header/test lists and optional dependency switches. | Equivalent lists/switches plus generated-script bootstrap and distribution checks. |
 
-Both systems successfully build and test the same implementation. The recommendation follows curupixa's developer/submodule use case, rather than a numerical performance difference: both compile the same C sources. New downstream projects should use CMake. Existing Autotools integrations do not need to migrate solely for this update.
+The component targets and package names are listed in [Library organisation](library-architecture.md). Historical validation below predates the component split. Both systems compile the same implementation. The recommendation follows curupixa's developer/submodule use case, rather than a numerical performance difference: both compile the same C sources. New downstream projects should use CMake. Existing Autotools integrations do not need to migrate solely for this update.
 OpenMP is an optional private compilation feature. The current C implementation owns its worker state and calls no OpenMP runtime functions, so installed packages do not force OpenMP discovery, consumer compiler flags or an extra C compiler in a C++-only consuming project. Applications that use OpenMP select it in their own build. Introducing OpenMP runtime calls inside the library would require updating the exported link requirements.
 ## Optional codecs
 The dependency-free default uses raw file streams. Enable individual codecs with `CURUPIXA_ENABLE_ZLIB`, `CURUPIXA_ENABLE_BZIP2` and `CURUPIXA_ENABLE_LZMA` in CMake, or `--enable-zlib`, `--enable-bzip2` and `--enable-lzma` in Autotools. The build checks for the selected development headers and libraries and fails clearly if they are unavailable. It downloads or installs nothing.

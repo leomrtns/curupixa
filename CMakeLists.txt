@@ -11,7 +11,12 @@ else()
   set(CURUPIXA_TOP_LEVEL OFF)
 endif()
 
-option(BUILD_SHARED_LIBS "Build a shared curupixa library" OFF)
+option(BUILD_SHARED_LIBS "Build shared curupixa libraries" OFF)
+option(CURUPIXA_BUILD_GENE_SPECIES "Build gene/species-tree algorithms" ON)
+option(CURUPIXA_BUILD_INFERENCE "Build inference algorithms" ${CURUPIXA_BUILD_GENE_SPECIES})
+if(CURUPIXA_BUILD_INFERENCE AND NOT CURUPIXA_BUILD_GENE_SPECIES)
+  message(FATAL_ERROR "Inference requires CURUPIXA_BUILD_GENE_SPECIES")
+endif()
 option(CURUPIXA_BUILD_TESTS "Build dependency-free regression tests" ${CURUPIXA_TOP_LEVEL})
 option(CURUPIXA_ENABLE_OPENMP "Enable optional OpenMP compilation" OFF)
 option(CURUPIXA_ENABLE_SSE42 "Require SSE4.2 on the target CPU" OFF)
@@ -22,11 +27,14 @@ option(CURUPIXA_ENABLE_BZIP2 "Enable bzip2 file streams" OFF)
 option(CURUPIXA_ENABLE_LZMA "Enable XZ file streams" OFF)
 option(CURUPIXA_INSTALL "Generate installation rules" ${CURUPIXA_TOP_LEVEL})
 
-set(curupixa_sources
+set(curupixa_phylogenetics_sources
   lib/index_arrangement.c
   lib/quasi_random.c
   lib/status.c
   lib/tree.c
+  lib/quartet_distance.c
+  lib/tanglegram.c
+  lib/dtl.c
   lib/bipartition.c
   lib/char_vector.c
   lib/distance_matrix.c
@@ -38,7 +46,6 @@ set(curupixa_sources
   lib/nexus_common.c
   lib/gff3_format.c
   lib/parsimony.c
-  lib/reconciliation.c
   lib/minimiser_simplex.c
   lib/svd.c
   lib/distance_generator.c
@@ -48,8 +55,6 @@ set(curupixa_sources
   lib/lowlevel_algorithms.c
   lib/spr_distance.c
   lib/ancestry_index.c
-  lib/reconciliation_roots.c
-  lib/taxon_map.c
   lib/splitset_distances.c
   lib/character_data.c
   lib/character_analysis.c
@@ -73,8 +78,12 @@ set(curupixa_sources
   lib/global/hash_functions.c
   lib/global/random_number.c
   lib/global/random_number_generators.c)
+set(curupixa_gene_species_sources
+  lib/reconciliation.c lib/reconciliation_roots.c lib/taxon_map.c lib/gene_species_distances.c lib/paralog_quartets.c)
+set(curupixa_inference_sources lib/inference.c lib/amalgamation.c lib/tree_search.c)
 set(curupixa_headers
-  lib/curupixa.h lib/status.h lib/tree.h lib/bipartition.h lib/char_vector.h
+  lib/curupixa.h lib/phylogenetics.h lib/gene_species.h lib/inference.h lib/amalgamation.h
+  lib/tree_search.h lib/paralog_quartets.h lib/gene_species_distances.h lib/quartet_distance.h lib/tanglegram.h lib/dtl.h lib/status.h lib/tree.h lib/bipartition.h lib/char_vector.h
   lib/distance_matrix.h lib/hashtable.h lib/index_arrangement.h lib/quasi_random.h
   lib/quickselect_quantile.h lib/empirical_frequency.h lib/prob_distribution.h lib/file_compression.h
   lib/hll.h lib/kmerhash.h lib/rolling_hash.h lib/suffix_tree.h
@@ -89,23 +98,43 @@ set(curupixa_global_headers
   lib/global/hash_functions_generators.h
   lib/global/hash_functions.h lib/global/random_number.h lib/global/random_number_generators.h)
 
-add_library(curupixa ${curupixa_sources})
+# Compile each implementation once. Higher layers link the lower layer directly.
+set(curupixa_libraries curupixa_phylogenetics)
+add_library(curupixa_phylogenetics ${curupixa_phylogenetics_sources})
+add_library(curupixa::phylogenetics ALIAS curupixa_phylogenetics)
+set_target_properties(curupixa_phylogenetics PROPERTIES EXPORT_NAME phylogenetics)
+if(CURUPIXA_BUILD_GENE_SPECIES)
+  add_library(curupixa_gene_species ${curupixa_gene_species_sources})
+  add_library(curupixa::gene_species ALIAS curupixa_gene_species)
+  set_target_properties(curupixa_gene_species PROPERTIES EXPORT_NAME gene_species)
+  target_link_libraries(curupixa_gene_species PUBLIC curupixa_phylogenetics)
+  list(APPEND curupixa_libraries curupixa_gene_species)
+endif()
+if(CURUPIXA_BUILD_INFERENCE)
+  add_library(curupixa_inference ${curupixa_inference_sources})
+  add_library(curupixa::inference ALIAS curupixa_inference)
+  set_target_properties(curupixa_inference PROPERTIES EXPORT_NAME inference)
+  target_link_libraries(curupixa_inference PUBLIC curupixa_gene_species)
+  list(APPEND curupixa_libraries curupixa_inference)
+endif()
+add_library(curupixa INTERFACE)
 add_library(curupixa::curupixa ALIAS curupixa)
-target_compile_features(curupixa PUBLIC c_std_17)
-set_target_properties(curupixa PROPERTIES
-  C_EXTENSIONS OFF
-  POSITION_INDEPENDENT_CODE ON
-  VERSION ${PROJECT_VERSION}
-  SOVERSION 0)
-target_compile_definitions(curupixa PRIVATE _DEFAULT_SOURCE)
-target_include_directories(curupixa PUBLIC
-  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/lib>
-  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/curupixa/global>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/curupixa>)
+list(GET curupixa_libraries -1 curupixa_top_library)
+target_link_libraries(curupixa INTERFACE ${curupixa_top_library})
+foreach(library IN LISTS curupixa_libraries)
+  target_compile_features(${library} PUBLIC c_std_17)
+  set_target_properties(${library} PROPERTIES C_EXTENSIONS OFF POSITION_INDEPENDENT_CODE ON
+    VERSION ${PROJECT_VERSION} SOVERSION 0)
+  target_compile_definitions(${library} PRIVATE _DEFAULT_SOURCE)
+  target_include_directories(${library} PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/lib>
+    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/curupixa/global>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/curupixa>)
+endforeach()
 
 if(UNIX)
-  target_link_libraries(curupixa PUBLIC m)
+  target_link_libraries(curupixa_phylogenetics PUBLIC m)
 endif()
 set(CURUPIXA_PC_LIBS_PRIVATE "")
 set(CURUPIXA_PC_CFLAGS "")
@@ -117,24 +146,24 @@ if(CURUPIXA_ENABLE_OPENMP)
   # Current implementation carries/synchronises its own state and calls no
   # OpenMP runtime API. Keep this compiler feature private to this build; an
   # installed C++ consumer should not need to enable the C compiler or OpenMP.
-  target_link_libraries(curupixa PRIVATE $<BUILD_INTERFACE:OpenMP::OpenMP_C>)
+  target_link_libraries(curupixa_phylogenetics PRIVATE $<BUILD_INTERFACE:OpenMP::OpenMP_C>)
 endif()
 if(CURUPIXA_ENABLE_ZLIB)
   find_package(ZLIB REQUIRED)
   set(HAVE_ZLIB 1)
-  target_link_libraries(curupixa PRIVATE ZLIB::ZLIB)
+  target_link_libraries(curupixa_phylogenetics PRIVATE ZLIB::ZLIB)
   string(APPEND CURUPIXA_PC_LIBS_PRIVATE " -lz")
 endif()
 if(CURUPIXA_ENABLE_BZIP2)
   find_package(BZip2 REQUIRED)
   set(HAVE_BZIP2 1)
-  target_link_libraries(curupixa PRIVATE BZip2::BZip2)
+  target_link_libraries(curupixa_phylogenetics PRIVATE BZip2::BZip2)
   string(APPEND CURUPIXA_PC_LIBS_PRIVATE " -lbz2")
 endif()
 if(CURUPIXA_ENABLE_LZMA)
   find_package(LibLZMA REQUIRED)
   set(HAVE_LZMA 1)
-  target_link_libraries(curupixa PRIVATE LibLZMA::LibLZMA)
+  target_link_libraries(curupixa_phylogenetics PRIVATE LibLZMA::LibLZMA)
   string(APPEND CURUPIXA_PC_LIBS_PRIVATE " -llzma")
 endif()
 
@@ -156,7 +185,7 @@ foreach(feature SSE42 AVX2 RDRAND)
       if(NOT CURUPIXA_HAS_${flag_identifier})
         message(FATAL_ERROR "The selected compiler does not support ${flag}")
       endif()
-      target_compile_options(curupixa PRIVATE "${flag}")
+      target_compile_options(curupixa_phylogenetics PRIVATE "${flag}")
     endforeach()
   endif()
 endforeach()
@@ -168,9 +197,22 @@ if(CURUPIXA_BUILD_TESTS)
   find_package(Threads REQUIRED)
   foreach(test_name core tree runtime statistics probability hashing suffix_index topology alignment
       compression gff3 phylogenetics minimiser svd clustering algorithms
-      character_analysis substitution_model likelihood spr reconciliation_roots likelihood_prepared continuous_traits reconstruction tree_extensions tree_allocation)
+      character_analysis substitution_model likelihood likelihood_prepared continuous_traits reconstruction tree_extensions tree_allocation
+      spr reconciliation_roots quartet tanglegram dtl amalgamation inference tree_search paralog_quartets)
+    if(NOT CURUPIXA_BUILD_GENE_SPECIES AND test_name MATCHES "^(algorithms|phylogenetics|spr|reconciliation_roots|paralog_quartets)$")
+      continue()
+    endif()
+    if(NOT CURUPIXA_BUILD_INFERENCE AND test_name MATCHES "^(amalgamation|inference|tree_search)$")
+      continue()
+    endif()
     add_executable(test_${test_name} tests/test_${test_name}.c)
-    target_link_libraries(test_${test_name} PRIVATE curupixa::curupixa Threads::Threads)
+    set(test_library curupixa_phylogenetics)
+    if(test_name MATCHES "^(algorithms|phylogenetics|spr|reconciliation_roots|paralog_quartets)$")
+      set(test_library curupixa_gene_species)
+    elseif(test_name MATCHES "^(amalgamation|inference|tree_search)$")
+      set(test_library curupixa_inference)
+    endif()
+    target_link_libraries(test_${test_name} PRIVATE ${test_library} Threads::Threads)
     if(MSVC)
       target_compile_options(test_${test_name} PRIVATE /UNDEBUG)
     else()
@@ -188,7 +230,7 @@ if(CURUPIXA_BUILD_TESTS)
 endif()
 
 if(CURUPIXA_INSTALL)
-  install(TARGETS curupixa EXPORT curupixaTargets
+  install(TARGETS curupixa ${curupixa_libraries} EXPORT curupixaTargets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
@@ -222,13 +264,29 @@ if(CURUPIXA_INSTALL)
     set(includedir "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
   endif()
   set(PACKAGE_VERSION "${PROJECT_VERSION}")
+  set(CURUPIXA_PC_TOP curupixa-phylogenetics)
+  set(curupixa_pc_files curupixa-phylogenetics.pc)
+  configure_file(curupixa-phylogenetics.pc.in curupixa-phylogenetics.pc @ONLY)
+  if(CURUPIXA_BUILD_GENE_SPECIES)
+    configure_file(curupixa-gene-species.pc.in curupixa-gene-species.pc @ONLY)
+    list(APPEND curupixa_pc_files curupixa-gene-species.pc)
+    set(CURUPIXA_PC_TOP curupixa-gene-species)
+  endif()
+  if(CURUPIXA_BUILD_INFERENCE)
+    configure_file(curupixa-inference.pc.in curupixa-inference.pc @ONLY)
+    list(APPEND curupixa_pc_files curupixa-inference.pc)
+    set(CURUPIXA_PC_TOP curupixa-inference)
+  endif()
   configure_file(curupixa.pc.in curupixa.pc @ONLY)
+  list(APPEND curupixa_pc_files curupixa.pc)
   if(IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
     # An absolute libdir stays fixed when --prefix changes. Record the actual
     # installation prefix for relative headers while preserving that libdir.
     configure_file(cmake/InstallPkgConfig.cmake.in InstallPkgConfig.cmake @ONLY)
     install(SCRIPT "${PROJECT_BINARY_DIR}/InstallPkgConfig.cmake")
   else()
-    install(FILES "${PROJECT_BINARY_DIR}/curupixa.pc" DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+    foreach(pc_file IN LISTS curupixa_pc_files)
+      install(FILES "${PROJECT_BINARY_DIR}/${pc_file}" DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+    endforeach()
   endif()
 endif()

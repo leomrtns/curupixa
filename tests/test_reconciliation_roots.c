@@ -36,12 +36,13 @@ typedef struct { crpx_node_id adjacent[32][3]; size_t degree[32]; } graph;
 static void link_nodes(graph *g,crpx_node_id a,crpx_node_id b)
 { g->adjacent[a][g->degree[a]++]=b; g->adjacent[b][g->degree[b]++]=a; }
 static void copy_component(const graph *g,const crpx_tree *source,crpx_tree *target,
-                            crpx_node_id node,crpx_node_id previous,crpx_node_id parent)
+                            crpx_node_id node,crpx_node_id previous,crpx_node_id parent,crpx_node_id *old_to_new)
 {
   crpx_node_id added; OK(crpx_tree_add_node(target,parent,&added));
+  old_to_new[node]=added;
   if(crpx_tree_first_child(source,node)==CRPX_NODE_NONE) OK(crpx_tree_set_label(target,added,crpx_tree_label(source,node)));
   for(size_t i=0;i<g->degree[node];++i) if(g->adjacent[node][i]!=previous)
-    copy_component(g,source,target,g->adjacent[node][i],node,added);
+    copy_component(g,source,target,g->adjacent[node][i],node,added,old_to_new);
 }
 static char *induced(const crpx_tree *species,crpx_node_id node,const bool *present)
 {
@@ -77,13 +78,18 @@ static void case_roots(const char *newick,const char *species_newick)
   link_nodes(&g,left,crpx_tree_next_sibling(gene,left));
   for(unsigned scope=0;scope<2;++scope) {
     crpx_root_reconciliations *r; OK(crpx_reconcile_all_roots(gene,index,map,(crpx_reconciliation_scope)scope,&r));
+    crpx_reconciliation_workspace *workspace;
+    const crpx_root_reconciliations *view;
+    OK(crpx_reconciliation_workspace_new(&workspace));
+    OK(crpx_reconcile_all_roots_into(gene,index,map,(crpx_reconciliation_scope)scope,workspace,&view));
     size_t count; const crpx_root_reconciliation_score *scores=crpx_root_reconciliations_scores(r,&count);
     assert(count==2*crpx_tree_leaf_count(gene)-3);
     for(size_t i=0;i<count;++i) {
       crpx_tree *oriented; crpx_node_id newroot;
       OK(crpx_tree_new(&oriented)); OK(crpx_tree_add_node(oriented,CRPX_NODE_NONE,&newroot));
-      copy_component(&g,gene,oriented,scores[i].first,scores[i].second,newroot);
-      copy_component(&g,gene,oriented,scores[i].second,scores[i].first,newroot);
+      crpx_node_id old_to_new[32]; old_to_new[root]=newroot;
+      copy_component(&g,gene,oriented,scores[i].first,scores[i].second,newroot,old_to_new);
+      copy_component(&g,gene,oriented,scores[i].second,scores[i].first,newroot,old_to_new);
       crpx_node_id mapped[32]; crpx_reconciliation *expected,*coal;
       const crpx_tree *loss_species=scope?reduced:species;
       OK(crpx_gene_species_map_labels(oriented,loss_species,'|',0,mapped,32));
@@ -93,12 +99,21 @@ static void case_roots(const char *newick,const char *species_newick)
       OK(crpx_gene_species_map_labels(oriented,reduced,'|',0,mapped,32));
       OK(crpx_reconcile_lca(oriented,reduced,mapped,&coal));
       assert(scores[i].extra_lineages==crpx_reconciliation_extra_lineages(coal));
+      crpx_node_id selected_mapping[32];
+      crpx_reconciliation *full_mapping;
+      OK(crpx_gene_species_map_labels(oriented,species,'|',0,mapped,32));
+      OK(crpx_reconcile_lca(oriented,species,mapped,&full_mapping));
+      OK(crpx_reconciliation_root_mapping(workspace,scores[i].first,scores[i].second,selected_mapping,32));
+      for(size_t node=0;node<n;node++)
+        assert(selected_mapping[node]==crpx_reconciliation_mapping(full_mapping)[old_to_new[node]]);
+      crpx_reconciliation_free(full_mapping);
       crpx_reconciliation_free(expected); crpx_reconciliation_free(coal); crpx_tree_free(oriented);
     }
     size_t d,l,c; OK(crpx_root_reconciliations_minima(r,&d,&l,&c));
     for(size_t i=0;i<count;++i) assert(scores[d].duplications<=scores[i].duplications &&
       scores[l].losses<=scores[i].losses && scores[c].extra_lineages<=scores[i].extra_lineages);
     crpx_root_reconciliations_free(r);
+    crpx_reconciliation_workspace_free(workspace);
   }
   crpx_node_id bad[32]; memcpy(bad,map,n*sizeof(*bad)); bad[leaf(gene,"A|1")]=CRPX_NODE_NONE;
   crpx_root_reconciliations *r=(void *)1;
@@ -132,9 +147,64 @@ static void test_single_and_polytomy(void)
   assert(crpx_reconcile_all_roots(g,index,many,CRPX_RECONCILE_ALL_SPECIES,&r)==CRPX_ERROR_UNSUPPORTED && !r);
   crpx_tree_free(g); crpx_tree_free(s); crpx_ancestry_index_free(index);
 }
+static void test_workspace(void)
+{
+  crpx_reconciliation_workspace *workspace;
+  OK(crpx_reconciliation_workspace_new(&workspace));
+  const char *genes[]={"((A|1,B|1),(A|2,C|1));", "(A|1,C|1);", "A|1;",
+    "(((A|1,A|2),(B|1,C|1)),(B|2,C|2));"};
+  crpx_tree *species;
+  crpx_ancestry_index *index;
+  OK(crpx_tree_from_newick("((A,B),(C,D));",&species,NULL));
+  OK(crpx_ancestry_index_new(species,&index));
+  for(size_t example=0;example<sizeof(genes)/sizeof(*genes);example++) {
+    crpx_tree *gene;
+    OK(crpx_tree_from_newick(genes[example],&gene,NULL));
+    size_t nodes=crpx_tree_node_count(gene);
+    crpx_node_id tip_map[32],mapping[32];
+    OK(crpx_gene_species_map_labels(gene,species,'|',0,tip_map,32));
+    const crpx_root_reconciliations *view;
+    OK(crpx_reconcile_all_roots_into(gene,index,tip_map,CRPX_RECONCILE_ALL_SPECIES,workspace,&view));
+    size_t storage=crpx_reconciliation_workspace_storage_size(workspace);
+    crpx_root_reconciliations *owned;
+    OK(crpx_reconcile_all_roots(gene,index,tip_map,CRPX_RECONCILE_ALL_SPECIES,&owned));
+    assert(view->count==owned->count);
+    for(size_t candidate=0;candidate<view->count;candidate++) {
+      assert(view->scores[candidate].first==owned->scores[candidate].first);
+      assert(view->scores[candidate].second==owned->scores[candidate].second);
+      assert(view->scores[candidate].duplications==owned->scores[candidate].duplications);
+      assert(view->scores[candidate].losses==owned->scores[candidate].losses);
+      assert(view->scores[candidate].extra_lineages==owned->scores[candidate].extra_lineages);
+    }
+    crpx_node_id root=crpx_tree_root(gene),first=crpx_tree_first_child(gene,root);
+    crpx_node_id second=first==CRPX_NODE_NONE?CRPX_NODE_NONE:crpx_tree_next_sibling(gene,first);
+    OK(crpx_reconciliation_root_mapping(workspace,first,second,mapping,32));
+    crpx_reconciliation *rooted;
+    OK(crpx_reconcile_lca(gene,species,tip_map,&rooted));
+    assert(!memcmp(mapping,crpx_reconciliation_mapping(rooted),nodes*sizeof(*mapping)));
+    crpx_reconciliation_free(rooted);
+    OK(crpx_reconcile_all_roots_into(gene,index,tip_map,CRPX_RECONCILE_REPRESENTED_SPECIES,workspace,&view));
+    assert(storage==crpx_reconciliation_workspace_storage_size(workspace));
+    crpx_node_id bad[32]; memcpy(bad,tip_map,nodes*sizeof(*bad));
+    for(size_t node=0;node<nodes;node++) if(crpx_tree_first_child(gene,(crpx_node_id)node)==CRPX_NODE_NONE) {
+      bad[node]=CRPX_NODE_NONE; break;
+    }
+    assert(crpx_reconcile_all_roots_into(gene,index,bad,CRPX_RECONCILE_ALL_SPECIES,workspace,&view)==
+      CRPX_ERROR_INVALID_ARGUMENT && !view);
+    assert(crpx_reconciliation_root_mapping(workspace,first,second,mapping,32)==CRPX_ERROR_INVALID_ARGUMENT);
+    OK(crpx_reconcile_all_roots_into(gene,index,tip_map,CRPX_RECONCILE_ALL_SPECIES,workspace,&view));
+    assert(storage==crpx_reconciliation_workspace_storage_size(workspace));
+    crpx_root_reconciliations_free(owned);
+    crpx_tree_free(gene);
+  }
+  crpx_reconciliation_workspace_clear(workspace);
+  crpx_reconciliation_workspace_free(workspace);
+  crpx_ancestry_index_free(index);
+  crpx_tree_free(species);
+}
 int main(void)
 {
-  test_index(); test_map(); test_single_and_polytomy();
+  test_index(); test_map(); test_single_and_polytomy(); test_workspace();
   const char *trees[]={"((A|1,B|1),(C|1,D|1));","((A|1,C|1),(B|1,D|1));",
     "(((A|1,A|2),C|1),(B|1,D|1));","((A|1,C|1),(A|2,C|2));","(A|1,C|1);",
     "(((A|1,A|2),A|3),A|4);"};

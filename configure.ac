@@ -86,6 +86,19 @@ CURUPIXA_PC_LIBS_PRIVATE="$LIBS"
 CURUPIXA_PC_CFLAGS=""
 AC_SUBST([CURUPIXA_PC_LIBS_PRIVATE])
 AC_SUBST([CURUPIXA_PC_CFLAGS])
+AC_ARG_ENABLE([gene-species], AS_HELP_STRING([--disable-gene-species], [build general phylogenetics only]), [],
+  [enable_gene_species=yes])
+AC_ARG_ENABLE([inference], AS_HELP_STRING([--disable-inference], [omit inference algorithms]), [],
+  [enable_inference=$enable_gene_species])
+AS_IF([test "x$enable_inference" = xyes && test "x$enable_gene_species" != xyes],
+  [AC_MSG_ERROR([inference requires gene-species])])
+AM_CONDITIONAL([BUILD_GENE_SPECIES], [test "x$enable_gene_species" = xyes])
+AM_CONDITIONAL([BUILD_INFERENCE], [test "x$enable_inference" = xyes])
+CURUPIXA_PC_TOP=curupixa-phylogenetics
+AS_IF([test "x$enable_gene_species" = xyes], [CURUPIXA_PC_TOP=curupixa-gene-species])
+AS_IF([test "x$enable_inference" = xyes], [CURUPIXA_PC_TOP=curupixa-inference])
+AC_SUBST([CURUPIXA_PC_TOP])
 AC_SUBST([AM_CFLAGS])
-AC_CONFIG_FILES([Makefile lib/Makefile lib/global/Makefile tests/Makefile curupixa.pc])
+AC_CONFIG_FILES([Makefile lib/Makefile lib/global/Makefile tests/Makefile curupixa.pc
+  curupixa-phylogenetics.pc curupixa-gene-species.pc curupixa-inference.pc])
 AC_OUTPUT

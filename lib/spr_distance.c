@@ -292,19 +292,3 @@ crpx_status crpx_tree_spr_distance(const crpx_tree *a,const crpx_tree *b,
   crpx_splitset_free(x); crpx_splitset_free(y); crpx_hashtable_free(labels); crpx_hashtable_free(seen);
   free(left); free(right); return status;
 }
-crpx_status crpx_gene_species_spr_distance(const crpx_tree *gene,const crpx_tree *species,
-                                          const crpx_node_id *map,crpx_spr_workspace *w,crpx_spr_result *result)
-{
-  if (!gene || !species || !map || !w || !result) return CRPX_ERROR_INVALID_ARGUMENT;
-  size_t taxa=crpx_tree_leaf_count(gene),n=0;
-  if (!taxa) return CRPX_ERROR_INVALID_ARGUMENT;
-  if (taxa>SIZE_MAX/sizeof(crpx_node_id)) return CRPX_ERROR_OVERFLOW;
-  crpx_node_id *a=malloc(taxa*sizeof(*a)),*b=malloc(taxa*sizeof(*b));
-  if (!a || !b) { free(a); free(b); return CRPX_ERROR_ALLOCATION; }
-  for (size_t i=0;i<crpx_tree_node_count(gene);++i)
-    if (crpx_tree_first_child(gene,(crpx_node_id)i)==CRPX_NODE_NONE) { a[n]=(crpx_node_id)i; b[n++]=map[i]; }
-  crpx_splitset *x=NULL,*y=NULL; crpx_status status=crpx_splitset_from_tree(gene,a,taxa,&x);
-  if (status==CRPX_OK) status=crpx_splitset_from_tree(species,b,taxa,&y);
-  if (status==CRPX_OK) status=crpx_splitset_spr_distance(x,y,w,result);
-  crpx_splitset_free(x); crpx_splitset_free(y); free(a); free(b); return status;
-}

@@ -1,4 +1,5 @@
 <img src="recipe/curupixa.png" height="220" align="right" alt="Curupixá">
+The three component libraries and their dependency boundaries are described in [Library organisation](docs/library-architecture.md). Link `curupixa::phylogenetics`, `curupixa::gene_species`, `curupixa::inference`, or the umbrella target `curupixa::curupixa`.
 # Curupixá
 Curupixa provides low-level C objects and algorithms for phylogenetic software. It is a modern reimplementation of [biomcmc-lib](https://github.com/quadram-institute-bioscience/biomcmc-lib), with explicit state and recoverable errors for use from C, C++, language bindings, MPI processes and worker threads. The [migration inventory](docs/migration.md) records implemented capabilities, API changes and remaining gaps against each biomcmc-lib header.
 

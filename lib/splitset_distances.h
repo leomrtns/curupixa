@@ -27,10 +27,6 @@ const struct crpx_bipartition_struct *crpx_splitset_get(const crpx_splitset *spl
  * number of split words; assignment additionally builds the quadratic cost matrix. */
 crpx_status crpx_splitset_compare(const crpx_splitset *a, const crpx_splitset *b,
                                  size_t *rf, uint64_t *assignment_cost);
-/* gene_to_species is indexed by gene node ID; only gene leaves are used. */
-crpx_status crpx_gene_species_split_distances(const crpx_tree *gene, const crpx_tree *species,
-                                             const crpx_node_id *gene_to_species,
-                                             size_t *rf, uint64_t *assignment_cost);
 #ifdef __cplusplus
 }
 #endif
