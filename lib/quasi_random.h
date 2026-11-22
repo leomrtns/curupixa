@@ -24,12 +24,14 @@ extern "C" {
 #include "quasi_sequence.h"
 
 /* Legacy context-based interface. Use quasi_sequence.h for deterministic reset, seek,
-   checked dimensions and Sobol points. Legacy additive slopes are initialised randomly. */
+   checked dimensions and Sobol points. Legacy additive slopes are initialised randomly. Dimensions are checked at 1..2048;
+   exhaustion fills the result with NAN. */
 
 typedef struct {
   size_t size, leap, rem, iteration; /*!< leap and remainder are used by halton */
   double *r, *ko; /*!< r = vector with quasi-random, ko = korobov aux vector with weights (random generators) */
   crpx_global_t cglob;
+  crpx_quasi_sequence *halton, *reverse;
 } crpx_quasi_random_struct, *crpx_quasi_random_t;
 
 crpx_quasi_random_t new_crpx_quasi_random (crpx_global_t cglob, size_t size);

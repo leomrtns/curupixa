@@ -63,6 +63,9 @@ set(curupixa_phylogenetics_sources
   lib/likelihood_kernel_internal.c
   lib/continuous_traits.c
   lib/reconstruction.c
+  lib/probability_sampling.c
+  lib/probability_extra.c
+  lib/probability_special_internal.c
   lib/prob_distribution.c
   lib/hll.c
   lib/kmerhash.c
@@ -246,6 +249,8 @@ elseif(UNIX)
 endif()
 
 if(CURUPIXA_INSTALL)
+  install(FILES LICENSES/SciPy-BSD-3-Clause.txt LICENSES/Cephes-BSD-3-Clause.txt
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/curupixa)
   install(TARGETS curupixa ${curupixa_libraries} EXPORT curupixaTargets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

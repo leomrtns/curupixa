@@ -14,7 +14,7 @@ phylogenetics_headers = index_arrangement.h quasi_random.h status.h tree.h bipar
   gaussian.h phylogenetic_regression.h trait_association.h stochastic_mapping.h tip_correspondence.h
 phylogenetics_sources = index_arrangement.c quasi_random.c status.c tree.c bipartition.c \
   char_vector.c distance_matrix.c hashtable.c quickselect_quantile.c empirical_frequency.c \
-  prob_distribution.c hll.c kmerhash.c rolling_hash.c suffix_tree.c \
+  probability_sampling.c probability_extra.c probability_special_internal.c prob_distribution.c hll.c kmerhash.c rolling_hash.c suffix_tree.c \
   topology_distance.c topology_randomise.c file_compression.c alignment.c nexus_common.c \
   gff3_format.c parsimony.c minimiser_simplex.c svd.c distance_generator.c \
   clustering_goptics.c upgma.c newick_space.c lowlevel_algorithms.c splitset_distances.c \
@@ -26,14 +26,14 @@ gene_species_headers = reconciliation.h reconciliation_roots.h taxon_map.h gene_
 gene_species_sources = reconciliation.c reconciliation_roots.c taxon_map.c gene_species_distances.c paralog_quartets.c
 inference_headers = inference.h amalgamation.h tree_search.h tree_prior.h molecular_clock.h
 inference_sources = inference.c amalgamation.c tree_search.c tree_prior.c molecular_clock.c
-noinst_HEADERS = parsimony_internal.h substitution_model_internal.h likelihood_kernel_internal.h \
+noinst_HEADERS = probability_special_internal.h probability_coefficients_internal.h parsimony_internal.h substitution_model_internal.h likelihood_kernel_internal.h \
   topology_counts_internal.h gaussian_internal.h
 
 otherincludedir = $(includedir)/curupixa
 otherinclude_HEADERS = curupixa.h $(phylogenetics_headers) $(gene_species_headers) $(inference_headers)
 
 lib_LTLIBRARIES = libcurupixa_phylogenetics.la
-libcurupixa_phylogenetics_la_SOURCES = $(phylogenetics_sources) $(phylogenetics_headers) quasi_random_constants.h
+libcurupixa_phylogenetics_la_SOURCES = $(phylogenetics_sources) $(phylogenetics_headers)
 libcurupixa_phylogenetics_la_LIBADD = global/libcrpxglobal.la
 libcurupixa_phylogenetics_la_LDFLAGS = -version-info 0:0:0 @OPENMP_CFLAGS@
 

@@ -20,6 +20,7 @@ Embedding needs no separate installation or bootstrap. Alternatively, configure 
 - [Library organisation](library-architecture.md)
 - [Comparison and inference interfaces](comparison-and-inference.md)
 - [Comparisons, ancestral states and comparative methods](comparative-methods.md)
+- [Probability kernels and provenance](probability-numerics.md)
 - [Molecular clocks and particle weights](molecular-clocks.md)
 - [Tree sampling and numerical sequences](tree-sampling.md)
 - [Source and installed files](general_structure.md) — Repository layout, public headers and installation paths.
