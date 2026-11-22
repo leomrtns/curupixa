@@ -4,11 +4,12 @@
 Curupixa is a C17 library for developers writing phylogenetic software. It succeeds [biomcmc-lib](https://github.com/quadram-institute-bioscience/biomcmc-lib) and provides three libraries that can be used together or separately.
 | Library | What you can calculate |
 | --- | --- |
-| `curupixa_phylogenetics` | Likelihood, parsimony, ancestral states, comparative methods, tree distances, quartet comparisons, tanglegram crossings and DTL reconciliation. |
+| `curupixa_phylogenetics` | Likelihood, parsimony, ancestral states, comparative methods, tree distances, weighted and triplet/quartet comparisons, tanglegram crossings and DTL reconciliation. |
 | `curupixa_gene_species` | Gene/species mappings, reconciliation over alternative gene roots, mapped distances and paralogy-aware quartet scores. |
-| `curupixa_inference` | Conditional-clade tree probabilities and sampling, conditional DTL-history probabilities, and tree search with a score supplied by your program. |
+| `curupixa_inference` | Tree priors and conditional-clade sampling, conditional DTL-history probabilities, and tree search with a score supplied by your program. |
 Gene/species methods use general phylogenetics; inference uses both. Shared calculations have one implementation. Ordinary tree operations also work on gene trees: each gene copy is a distinct tip. Species membership is supplied separately when a calculation needs it.
 The tree representation supports multifurcations and optional branch lengths. Individual calculations have specific requirements. DTL currently uses a finite-history model, and quartet scoring includes the ASTRAL-Pro objective rather than the full ASTRAL search. Tanglegrams accept unequal tree sizes and explicit tip links. See [functions and assumptions](docs/comparison-and-inference.md) before selecting a method.
+For regression, binary-trait association, joint ancestral states and branch histories, see [comparative methods](docs/comparative-methods.md). [Tree sampling](docs/tree-sampling.md) covers biological priors, constrained resolutions and numerical low-discrepancy sequences.
 ## Build and test
 You need CMake 3.16 or later and a C17 compiler. GCC and Clang on POSIX systems are tested. From this checkout:
 ```sh

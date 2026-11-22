@@ -98,6 +98,14 @@ set(curupixa_global_headers
   lib/global/hash_functions_generators.h
   lib/global/hash_functions.h lib/global/random_number.h lib/global/random_number_generators.h)
 
+list(APPEND curupixa_phylogenetics_sources
+  lib/tip_correspondence.c lib/stochastic_mapping.c lib/sampling.c lib/quasi_sequence.c
+  lib/tree_comparison.c lib/triplet_distance.c lib/gaussian.c lib/phylogenetic_regression.c lib/trait_association.c)
+list(APPEND curupixa_inference_sources lib/tree_prior.c)
+list(APPEND curupixa_headers
+  lib/tip_correspondence.h lib/stochastic_mapping.h lib/sampling.h lib/quasi_sequence.h lib/tree_comparison.h
+  lib/triplet_distance.h lib/gaussian.h lib/phylogenetic_regression.h lib/trait_association.h lib/tree_prior.h)
+
 # Compile each implementation once. Higher layers link the lower layer directly.
 set(curupixa_libraries curupixa_phylogenetics)
 add_library(curupixa_phylogenetics ${curupixa_phylogenetics_sources})
@@ -198,18 +206,18 @@ if(CURUPIXA_BUILD_TESTS)
   foreach(test_name core tree runtime statistics probability hashing suffix_index topology alignment
       compression gff3 phylogenetics minimiser svd clustering algorithms
       character_analysis substitution_model likelihood likelihood_prepared continuous_traits reconstruction tree_extensions tree_allocation
-      spr reconciliation_roots quartet tanglegram dtl amalgamation inference tree_search paralog_quartets)
+      spr reconciliation_roots quartet tanglegram dtl amalgamation inference tree_search paralog_quartets comparative tree_priors asr_sampling)
     if(NOT CURUPIXA_BUILD_GENE_SPECIES AND test_name MATCHES "^(algorithms|phylogenetics|spr|reconciliation_roots|paralog_quartets)$")
       continue()
     endif()
-    if(NOT CURUPIXA_BUILD_INFERENCE AND test_name MATCHES "^(amalgamation|inference|tree_search)$")
+    if(NOT CURUPIXA_BUILD_INFERENCE AND test_name MATCHES "^(amalgamation|inference|tree_search|tree_priors)$")
       continue()
     endif()
     add_executable(test_${test_name} tests/test_${test_name}.c)
     set(test_library curupixa_phylogenetics)
     if(test_name MATCHES "^(algorithms|phylogenetics|spr|reconciliation_roots|paralog_quartets)$")
       set(test_library curupixa_gene_species)
-    elseif(test_name MATCHES "^(amalgamation|inference|tree_search)$")
+    elseif(test_name MATCHES "^(amalgamation|inference|tree_search|tree_priors)$")
       set(test_library curupixa_inference)
     endif()
     target_link_libraries(test_${test_name} PRIVATE ${test_library} Threads::Threads)

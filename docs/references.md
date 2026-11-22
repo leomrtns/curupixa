@@ -146,5 +146,18 @@ The [Sequence Ontology GFF3 specification](https://github.com/The-Sequence-Ontol
 BioNJ follows [Gascuel (1997)](https://academic.oup.com/mbe/article-pdf/14/7/685/11165731/1gasc.pdf); the [tree design](tree-design.md) records corrections to the local legacy implementation.
 
 
+### Comparative methods and sampling additions
+The new functions follow the mathematical methods below. Numerical regression uses Cholesky whitening and Householder QR; the Scoary pairing recurrence is independently implemented and tested against exhaustive path pairings. The `caper` implementation was consulted to identify the adjusted-branch convention for D, without incorporating its source.
+| Method | Reference |
+| --- | --- |
+| Kendall–Colijn tree metric | [Kendall and Colijn (2016)](https://doi.org/10.1093/molbev/msw124). |
+| Contrasting binary-trait pairs | [Brynildsrud et al. (2016), Scoary](https://doi.org/10.1186/s13059-016-1108-8). |
+| Binary phylogenetic signal D | [Fritz and Purvis (2010)](https://doi.org/10.1111/j.1523-1739.2010.01455.x); [caper reference source](https://cran.r-project.org/package=caper). |
+| Penalised quasi-likelihood | [Breslow and Clayton (1993)](https://doi.org/10.2307/2290687). |
+| Endpoint-conditioned CTMC histories | [Hobolth and Stone (2009)](https://doi.org/10.1214/09-AOAS247). |
+| Conditioned reconstructed birth–death trees | [Gernhard (2008)](https://doi.org/10.1016/j.jtbi.2008.04.005). |
+| Kingman coalescent | [Kingman (1982)](https://doi.org/10.1016/0304-4149(82)90011-4). |
+| Sobol sequence direction numbers | [Bratley and Fox (1988)](https://doi.org/10.1145/42288.214372). |
+The corresponding headers identify their references; [comparative methods](comparative-methods.md) and [sampling](tree-sampling.md) state the implemented conditioning and remaining limits.
 ### Github page
 [https://github.com/leomrtns/curupixa](https://github.com/leomrtns/curupixa)

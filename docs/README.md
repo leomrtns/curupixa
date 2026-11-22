@@ -1,5 +1,5 @@
 # Curupixá
-Curupixa is a low-level C library for phylogenetic software, with explicit object ownership, recoverable errors and caller-owned state for MPI and threaded applications. It is being developed as the successor to biomcmc-lib. The [migration inventory](migration.md) records implemented capabilities, deliberate changes and remaining algorithms.
+Curupixa provides three C libraries for developers writing phylogenetic software. Calculations return errors to your program; separate workspaces let you run them concurrently. It is being developed as the successor to biomcmc-lib. The [migration inventory](migration.md) records implemented capabilities, deliberate changes and remaining algorithms.
 ## Developer build
 Use CMake 3.16 or later and a C17 GCC/Clang toolchain on a POSIX system. From the checkout root:
 ```sh
@@ -19,6 +19,8 @@ Embedding needs no separate installation or bootstrap. Alternatively, configure 
 - [Language bindings](language-bindings.md)
 - [Library organisation](library-architecture.md)
 - [Comparison and inference interfaces](comparison-and-inference.md)
+- [Comparisons, ancestral states and comparative methods](comparative-methods.md)
+- [Tree sampling and numerical sequences](tree-sampling.md)
 - [Source and installed files](general_structure.md) — Repository layout, public headers and installation paths.
 - [Migration coverage](migration.md) — Module coverage and API changes from biomcmc-lib.
 - [Tree design](tree-design.md) — Connectivity, ownership, workspaces and rearrangements.

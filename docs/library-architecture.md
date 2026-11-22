@@ -17,14 +17,17 @@ RF and quartet measures with optimised correspondence between repeated labels ar
 | Functions or headers | Component | Shared dependencies |
 | --- | --- | --- |
 | `tree.h`, `ancestry_index.h`, `topology_randomise.h`, `newick_space.h` | General phylogenetics | Status codes; topology workspaces and numerical primitives where needed. |
-| `topology_distance.h`, `splitset_distances.h`, `spr_distance.h`, `quartet_distance.h`, `tanglegram.h` | General phylogenetics | Tree connectivity, split/bit operations, assignment or ancestry primitives. |
+| `topology_distance.h`, `splitset_distances.h`, `spr_distance.h`, `quartet_distance.h`, `triplet_distance.h`, `tree_comparison.h`, `tanglegram.h` | General phylogenetics | Tree connectivity, split/bit operations, assignment or ancestry primitives. |
 | `alignment.h`, `character_data.h`, `substitution_model.h`, `likelihood.h`, `character_analysis.h` | General phylogenetics | Data storage, mappings from observations to tips and caller-owned numerical workspaces. |
 | `continuous_traits.h`, `reconstruction.h`, `parsimony.h` | General phylogenetics | Trees and the existing trait or discrete-state calculations. |
+| `gaussian.h`, `phylogenetic_regression.h`, `trait_association.h` | General phylogenetics | Covariance factors and Gaussian messages; tree preparation is separate from regression. |
+| `sampling.h`, `quasi_sequence.h`, `stochastic_mapping.h` | General phylogenetics | Explicit random callbacks, tree builders and existing substitution generators. |
+| `tree_prior.h` | Inference | General tree constructors, draws and comparison indices. |
 | `dtl.h` | General phylogenetics | Explicit correspondence and prepared host-tree states; no inference dependency. |
 | `reconciliation.h`, `reconciliation_roots.h` | Gene/species methods | Trees and ancestry indices from general phylogenetics. |
 | `taxon_map.h`, `gene_species_distances.h`, `paralog_quartets.h` | Gene/species methods | Exact label matching or explicit maps; shared split and dSPR functions. |
 | `amalgamation.h`, `tree_search.h`, `inference.h` | Inference | General trees, caller-owned state and the lower-level reconciliation kernel. |
-The [comparison and inference guide](comparison-and-inference.md) describes the new function contracts and explicitly records the reference implementations and remaining algorithms.
+The [comparative methods guide](comparative-methods.md) describes the shared scoring and reconstruction primitives, regression and association. The [sampling guide](tree-sampling.md) describes prior conditioning and the lower-level constructors. The [comparison and inference guide](comparison-and-inference.md) describes the new function contracts and explicitly records the reference implementations and remaining algorithms.
 Remaining numerical, hashing, random-stream, compression, distance-matrix and clustering modules belong to general phylogenetics. Numerical minimisation in `minimiser_simplex.h` remains a general primitive. Species-tree search is a higher-level client of an explicit objective.
 ## Repeated evaluations and ownership
 Prepare immutable data separately from mutable worker storage. Different workers may share a prepared ancestry index, quartet index or conditional-clade model; they need independent mutable workspaces. No calculation in this branch starts worker threads. OpenMP remains an optional compilation setting; concurrency is controlled by the downstream program.

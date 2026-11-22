@@ -28,26 +28,26 @@ typedef struct {
 } crpx_likelihood_options;
 /* Initialise fixed-length mode, no override array/root collapse, retained partials; exponential mean/root value
    defaults to 0.1. NULL options means these defaults. */
-void crpx_likelihood_options_init(crpx_likelihood_options *options);
-crpx_status crpx_likelihood_workspace_new(crpx_likelihood_workspace **out);
-void crpx_likelihood_workspace_free(crpx_likelihood_workspace *workspace);
+void crpx_likelihood_options_init (crpx_likelihood_options *options);
+crpx_status crpx_likelihood_workspace_new (crpx_likelihood_workspace **out);
+void crpx_likelihood_workspace_free (crpx_likelihood_workspace *workspace);
 /* Release retained numerical capacities and invalidate borrowed result views. */
-void crpx_likelihood_workspace_clear(crpx_likelihood_workspace *workspace);
-size_t crpx_likelihood_workspace_storage_size(const crpx_likelihood_workspace *workspace);
+void crpx_likelihood_workspace_clear (crpx_likelihood_workspace *workspace);
+size_t crpx_likelihood_workspace_storage_size (const crpx_likelihood_workspace *workspace);
 /* Prepare a fixed topology and its correspondence to the observations for repeated parameter fitting. The binding
    copies the tree and keeps a reference to the data, so you may release the original inputs. Rebuild it after changing
    the topology or the copied labels/lengths. Several threads can share a binding if each uses its own numerical
    workspace. */
-crpx_status crpx_likelihood_binding_new(const crpx_tree *tree, const crpx_character_data *data,
-                                       crpx_likelihood_binding **out);
-void crpx_likelihood_binding_free(crpx_likelihood_binding *binding);
+crpx_status crpx_likelihood_binding_new (const crpx_tree *tree, const crpx_character_data *data,
+                                         crpx_likelihood_binding **out);
+void crpx_likelihood_binding_free (crpx_likelihood_binding *binding);
 /* Same numerical/options contract as evaluate(); edge overrides use snapshot node IDs. After warm-up for fixed
    dimensions, evaluation performs no mapping, tree validation, traversal construction or capacity allocations.
    Changing models/edge values rebuilds kernels, never stale model-pointer caches. */
-crpx_status crpx_likelihood_evaluate_prepared(const crpx_likelihood_binding *binding,
-                                             const crpx_substitution_model *model,
-                                             const crpx_likelihood_options *options,
-                                             crpx_likelihood_workspace *workspace, double *log_likelihood);
+crpx_status crpx_likelihood_evaluate_prepared (const crpx_likelihood_binding *binding,
+                                               const crpx_substitution_model *model,
+                                               const crpx_likelihood_options *options,
+                                               crpx_likelihood_workspace *workspace, double *log_likelihood);
 /* Standard pruning on any rooted tree, including unary nodes and polytomies. Fixed mode uses tree edge lengths unless
    edge_values supplies one value per node (root entry ignored). Missing/negative/nonfinite lengths return an error.
    Exponential mode uses per-node prior means, or mean_branch_length for every edge. It integrates lengths
@@ -59,22 +59,21 @@ crpx_status crpx_likelihood_evaluate_prepared(const crpx_likelihood_binding *bin
    workspace per concurrent worker. Log-space partials prevent product underflow. Zero-probability data return OK with
    -INFINITY; zero-weight patterns do not contribute to the total. On failure the scalar output is unchanged and cached
    views become invalid. */
-crpx_status crpx_likelihood_evaluate(const crpx_tree *tree, const crpx_character_data *data,
-                                    const crpx_substitution_model *model, const crpx_likelihood_options *options,
-                                    crpx_likelihood_workspace *workspace, double *log_likelihood);
-const double *crpx_likelihood_workspace_pattern_log_likelihoods(const crpx_likelihood_workspace *workspace,
-                                                               size_t *count);
+crpx_status crpx_likelihood_evaluate (const crpx_tree *tree, const crpx_character_data *data,
+                                      const crpx_substitution_model *model, const crpx_likelihood_options *options,
+                                      crpx_likelihood_workspace *workspace, double *log_likelihood);
+const double *crpx_likelihood_workspace_pattern_log_likelihoods (const crpx_likelihood_workspace *workspace,
+                                                                 size_t *count);
 /* Returned log partials are normalised by max(log partial)=0; add log_scale to recover their original logs. All
    -INFINITY denotes an impossible subtree. Views remain valid until the next evaluation/free. Retention costs
    O(patterns*nodes*states); retain_partials=false uses O(nodes*states) working storage on a fresh workspace and makes
    partial queries return NOT_FOUND. Allocated capacities are retained for reuse until workspace destruction. */
-crpx_status crpx_likelihood_workspace_log_partial(const crpx_likelihood_workspace *workspace,
-                                                 crpx_node_id node, size_t pattern,
-                                                 const double **values, double *log_scale);
+crpx_status crpx_likelihood_workspace_log_partial (const crpx_likelihood_workspace *workspace, crpx_node_id node,
+                                                   size_t pattern, const double **values, double *log_scale);
 /* Scaled ordinary values exp(log partial), with the same log_scale. The borrowed scratch vector is overwritten by the
    next ordinary-partial query/evaluation. Use log_partial to retain extremely small state contributions. */
-crpx_status crpx_likelihood_workspace_partial(crpx_likelihood_workspace *workspace, crpx_node_id node,
-                                             size_t pattern, const double **values, double *log_scale);
+crpx_status crpx_likelihood_workspace_partial (crpx_likelihood_workspace *workspace, crpx_node_id node, size_t pattern,
+                                               const double **values, double *log_scale);
 #ifdef __cplusplus
 }
 #endif

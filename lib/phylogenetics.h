@@ -46,4 +46,13 @@
 #include "quartet_distance.h"
 #include "tanglegram.h"
 #include "dtl.h"
+#include "sampling.h"
+#include "tip_correspondence.h"
+#include "stochastic_mapping.h"
+#include "quasi_sequence.h"
+#include "tree_comparison.h"
+#include "triplet_distance.h"
+#include "gaussian.h"
+#include "phylogenetic_regression.h"
+#include "trait_association.h"
 #endif

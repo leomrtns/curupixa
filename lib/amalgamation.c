@@ -64,15 +64,29 @@ crpx_amalgamation_free (crpx_amalgamation *model)
     free (model->clades[i].mask);
     free (model->clades[i].splits);
   }
-  if (model->labels) for (size_t i = 0; i < model->taxa; i++) free (model->labels[i]);
+  if (model->labels)
+    for (size_t i = 0; i < model->taxa; i++)
+      free (model->labels[i]);
   free (model->labels);
   free (model->clades);
   free (model);
 }
 
-size_t crpx_amalgamation_taxa (const crpx_amalgamation *model) { return model ? model->taxa : 0; }
-size_t crpx_amalgamation_clades (const crpx_amalgamation *model) { return model ? model->clade_count : 0; }
-uint64_t crpx_amalgamation_samples (const crpx_amalgamation *model) { return model ? model->samples : 0; }
+size_t
+crpx_amalgamation_taxa (const crpx_amalgamation *model)
+{
+  return model ? model->taxa : 0;
+}
+size_t
+crpx_amalgamation_clades (const crpx_amalgamation *model)
+{
+  return model ? model->clade_count : 0;
+}
+uint64_t
+crpx_amalgamation_samples (const crpx_amalgamation *model)
+{
+  return model ? model->samples : 0;
+}
 
 static crpx_status
 prepare_tree (const crpx_amalgamation *model, const crpx_tree *tree, const crpx_node_id *tips,
@@ -103,13 +117,14 @@ prepare_tree (const crpx_amalgamation *model, const crpx_tree *tree, const crpx_
   status = crpx_tree_workspace_refresh (workspace->traversal, tree);
   if (status != CRPX_OK) return status;
   memset (workspace->masks, 0, mask_words * sizeof (*workspace->masks));
-  for (size_t i = 0; i < nodes; i++) workspace->clades[i] = SIZE_MAX;
+  for (size_t i = 0; i < nodes; i++)
+    workspace->clades[i] = SIZE_MAX;
   for (size_t taxon = 0; taxon < model->taxa; taxon++) {
     crpx_node_id node = tips[taxon];
-    if (node >= nodes || crpx_tree_first_child (tree, node) != CRPX_NODE_NONE ||
-        workspace->clades[node] != SIZE_MAX) return CRPX_ERROR_INVALID_ARGUMENT;
+    if (node >= nodes || crpx_tree_first_child (tree, node) != CRPX_NODE_NONE || workspace->clades[node] != SIZE_MAX)
+      return CRPX_ERROR_INVALID_ARGUMENT;
     workspace->clades[node] = taxon;
-    workspace->masks[(size_t) node * model->words + taxon / 64] |= UINT64_C(1) << (taxon % 64);
+    workspace->masks[(size_t) node * model->words + taxon / 64] |= UINT64_C (1) << (taxon % 64);
   }
   const crpx_node_id *order = crpx_tree_workspace_postorder (workspace->traversal);
   for (size_t i = 0; i < nodes; i++) {
@@ -120,8 +135,7 @@ prepare_tree (const crpx_amalgamation *model, const crpx_tree *tree, const crpx_
       return CRPX_ERROR_UNSUPPORTED;
     for (size_t word = 0; word < model->words; word++)
       workspace->masks[(size_t) node * model->words + word] =
-        workspace->masks[(size_t) left * model->words + word] |
-        workspace->masks[(size_t) right * model->words + word];
+        workspace->masks[(size_t) left * model->words + word] | workspace->masks[(size_t) right * model->words + word];
   }
   return CRPX_OK;
 }
@@ -135,8 +149,7 @@ find_clade (const crpx_amalgamation *model, const uint64_t *mask)
 }
 
 static crpx_status
-record_tree (crpx_amalgamation *model, const crpx_tree *tree, crpx_amalgamation_workspace *workspace,
-             uint64_t weight)
+record_tree (crpx_amalgamation *model, const crpx_tree *tree, crpx_amalgamation_workspace *workspace, uint64_t weight)
 {
   size_t nodes = crpx_tree_node_count (tree);
   const crpx_node_id *order = crpx_tree_workspace_postorder (workspace->traversal);
@@ -162,7 +175,11 @@ record_tree (crpx_amalgamation *model, const crpx_tree *tree, crpx_amalgamation_
     if (left != CRPX_NODE_NONE) {
       crpx_node_id right = crpx_tree_next_sibling (tree, left);
       size_t first = workspace->clades[left], second = workspace->clades[right];
-      if (first > second) { size_t swap = first; first = second; second = swap; }
+      if (first > second) {
+        size_t swap = first;
+        first = second;
+        second = swap;
+      }
       size_t split = 0;
       for (; split < clade->split_count; split++)
         if (clade->splits[split].left == first && clade->splits[split].right == second) break;
@@ -171,7 +188,7 @@ record_tree (crpx_amalgamation *model, const crpx_tree *tree, crpx_amalgamation_
         clade_split *grown = realloc (clade->splits, (split + 1) * sizeof (*grown));
         if (!grown) return CRPX_ERROR_ALLOCATION;
         clade->splits = grown;
-        clade->splits[split] = (clade_split) {first, second, 0};
+        clade->splits[split] = (clade_split){first, second, 0};
         clade->split_count++;
       }
       clade->splits[split].count += weight;
@@ -183,9 +200,8 @@ record_tree (crpx_amalgamation *model, const crpx_tree *tree, crpx_amalgamation_
 }
 
 crpx_status
-crpx_amalgamation_new (const crpx_tree *const *trees, const crpx_node_id *const *tip_nodes,
-                       size_t tree_count, size_t taxa, const char *const *labels,
-                       const uint64_t *weights, crpx_amalgamation **out)
+crpx_amalgamation_new (const crpx_tree *const *trees, const crpx_node_id *const *tip_nodes, size_t tree_count,
+                       size_t taxa, const char *const *labels, const uint64_t *weights, crpx_amalgamation **out)
 { /* Count observed clades and splits once, before evaluating or sampling trees. */
   crpx_amalgamation *model;
   crpx_amalgamation_workspace workspace = {0};
@@ -203,7 +219,8 @@ crpx_amalgamation_new (const crpx_tree *const *trees, const crpx_node_id *const 
   }
   for (size_t i = 0; i < taxa; i++) {
     if (!labels[i] || !*labels[i]) return CRPX_ERROR_INVALID_ARGUMENT;
-    for (size_t j = 0; j < i; j++) if (!strcmp (labels[i], labels[j])) return CRPX_ERROR_INVALID_ARGUMENT;
+    for (size_t j = 0; j < i; j++)
+      if (!strcmp (labels[i], labels[j])) return CRPX_ERROR_INVALID_ARGUMENT;
   }
   model = calloc (1, sizeof (*model));
   if (!model) return CRPX_ERROR_ALLOCATION;
@@ -211,11 +228,17 @@ crpx_amalgamation_new (const crpx_tree *const *trees, const crpx_node_id *const 
   model->words = taxa / 64 + (taxa % 64 != 0);
   model->samples = samples;
   model->labels = calloc (taxa, sizeof (*model->labels));
-  if (!model->labels) { crpx_amalgamation_free (model); return CRPX_ERROR_ALLOCATION; }
+  if (!model->labels) {
+    crpx_amalgamation_free (model);
+    return CRPX_ERROR_ALLOCATION;
+  }
   for (size_t i = 0; i < taxa; i++) {
     size_t length = strlen (labels[i]) + 1;
     model->labels[i] = malloc (length);
-    if (!model->labels[i]) { status = CRPX_ERROR_ALLOCATION; goto done; }
+    if (!model->labels[i]) {
+      status = CRPX_ERROR_ALLOCATION;
+      goto done;
+    }
     memcpy (model->labels[i], labels[i], length);
   }
   for (size_t i = 0; i < tree_count; i++) {
@@ -233,9 +256,8 @@ done:
 }
 
 crpx_status
-crpx_amalgamation_log_probability (const crpx_amalgamation *model, const crpx_tree *tree,
-                                   const crpx_node_id *tips, crpx_amalgamation_workspace *workspace,
-                                   double *log_probability)
+crpx_amalgamation_log_probability (const crpx_amalgamation *model, const crpx_tree *tree, const crpx_node_id *tips,
+                                   crpx_amalgamation_workspace *workspace, double *log_probability)
 { /* Multiply conditional split probabilities for the supplied topology in log space. */
   if (!model || !workspace || !log_probability) return CRPX_ERROR_INVALID_ARGUMENT;
   crpx_status status = prepare_tree (model, tree, tips, workspace);
@@ -247,16 +269,26 @@ crpx_amalgamation_log_probability (const crpx_amalgamation *model, const crpx_tr
       crpx_node_id node = order[i], left = crpx_tree_first_child (tree, node);
       size_t clade_id = find_clade (model, workspace->masks + (size_t) node * model->words);
       workspace->clades[node] = clade_id;
-      if (clade_id == SIZE_MAX) { result = -INFINITY; break; }
+      if (clade_id == SIZE_MAX) {
+        result = -INFINITY;
+        break;
+      }
       if (left == CRPX_NODE_NONE) continue;
       crpx_node_id right = crpx_tree_next_sibling (tree, left);
       size_t first = workspace->clades[left], second = workspace->clades[right];
-      if (first > second) { size_t swap = first; first = second; second = swap; }
+      if (first > second) {
+        size_t swap = first;
+        first = second;
+        second = swap;
+      }
       const conditional_clade *clade = model->clades + clade_id;
       size_t split = 0;
       for (; split < clade->split_count; split++)
         if (clade->splits[split].left == first && clade->splits[split].right == second) break;
-      if (split == clade->split_count) { result = -INFINITY; break; }
+      if (split == clade->split_count) {
+        result = -INFINITY;
+        break;
+      }
       result += log ((double) clade->splits[split].count) - log ((double) clade->count);
     }
   }
@@ -265,7 +297,10 @@ crpx_amalgamation_log_probability (const crpx_amalgamation *model, const crpx_tr
   return status;
 }
 
-typedef struct { size_t clade; crpx_node_id parent; } pending_clade;
+typedef struct {
+  size_t clade;
+  crpx_node_id parent;
+} pending_clade;
 
 crpx_status
 crpx_amalgamation_sample (const crpx_amalgamation *model, crpx_amalgamation_uniform uniform, void *state,
@@ -282,7 +317,7 @@ crpx_amalgamation_sample (const crpx_amalgamation *model, crpx_amalgamation_unif
   if (model->taxa > SIZE_MAX / 2 / sizeof (*pending)) return CRPX_ERROR_OVERFLOW;
   pending = malloc (2 * model->taxa * sizeof (*pending));
   if (!pending) return CRPX_ERROR_ALLOCATION;
-  pending[0] = (pending_clade) {model->root, CRPX_NODE_NONE};
+  pending[0] = (pending_clade){model->root, CRPX_NODE_NONE};
   status = crpx_tree_new (&tree);
   if (status == CRPX_OK) status = crpx_tree_reserve (tree, 2 * model->taxa - 1);
   while (status == CRPX_OK && used) {
@@ -297,8 +332,9 @@ crpx_amalgamation_sample (const crpx_amalgamation *model, crpx_amalgamation_unif
     }
     size_t split = 0;
     if (clade->split_count > 1) {
-      double draw = uniform (state);
-      if (!isfinite (draw) || draw < 0 || draw >= 1) { status = CRPX_ERROR_INVALID_ARGUMENT; break; }
+      double draw;
+      status = crpx_sample_uniform (uniform, state, &draw);
+      if (status != CRPX_OK) break;
       long double target = (long double) draw * clade->count;
       uint64_t cumulative = 0;
       for (; split + 1 < clade->split_count; split++) {
@@ -308,11 +344,14 @@ crpx_amalgamation_sample (const crpx_amalgamation *model, crpx_amalgamation_unif
     }
     const clade_split *selected = clade->splits + split;
     result += log ((double) selected->count) - log ((double) clade->count);
-    pending[used++] = (pending_clade) {selected->right, node};
-    pending[used++] = (pending_clade) {selected->left, node};
+    pending[used++] = (pending_clade){selected->right, node};
+    pending[used++] = (pending_clade){selected->left, node};
   }
   free (pending);
-  if (status != CRPX_OK) { crpx_tree_free (tree); return status; }
+  if (status != CRPX_OK) {
+    crpx_tree_free (tree);
+    return status;
+  }
   *out = tree;
   if (log_probability) *log_probability = result;
   return CRPX_OK;
