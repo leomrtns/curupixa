@@ -11,7 +11,7 @@ endif
 EXTRA_DIST = CMakeLists.txt cmake/config.h.in cmake/curupixaConfig.cmake.in cmake/InstallPkgConfig.cmake.in \
   curupixa.pc.in curupixa-phylogenetics.pc.in curupixa-gene-species.pc.in curupixa-inference.pc.in \
   docs/261107.mit-licence-audit.md docs/261107.licence-provenance-findings.csv \
-  docs/graph-clustering.md docs/sequence-hashing.md docs/licence-provenance-update.md docs/random-hashing.md docs/probability-numerics.md docs/molecular-clocks.md docs/comparative-methods.md docs/tree-sampling.md \
+  docs/rooting.md docs/graph-clustering.md docs/sequence-hashing.md docs/licence-provenance-update.md docs/random-hashing.md docs/probability-numerics.md docs/molecular-clocks.md docs/comparative-methods.md docs/tree-sampling.md \
   docs/runtime-and-hashing.md docs/migration.md docs/api-migration.csv docs/likelihood-design.md \
   docs/tree-design.md docs/README.md docs/general_structure.md docs/_sidebar.md docs/references.md docs/validation.md \
   docs/language-bindings.md docs/library-architecture.md docs/comparison-and-inference.md docs/build-systems.md docs/character-analysis.md docs/likelihood-reference-audit.md \

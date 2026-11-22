@@ -5,6 +5,7 @@
 - [Comparative methods](comparative-methods.md)
 - [Probability kernels and provenance](probability-numerics.md)
 - [Molecular clocks and particle weights](molecular-clocks.md)
+- [Midpoint, minimum-variance and MAD rooting](rooting.md)
 - [Tree sampling](tree-sampling.md)
 - [Source and installed files](general_structure.md)
 - [Migration coverage](migration.md)

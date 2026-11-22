@@ -13,6 +13,7 @@
 #include "hashtable.h"
 #include "distance_matrix.h"
 #include "tree.h"
+#include "rooting.h"
 #include "quickselect_quantile.h"
 #include "empirical_frequency.h"
 #include "file_compression.h"

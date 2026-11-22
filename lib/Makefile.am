@@ -2,7 +2,7 @@ SUBDIRS = global
 AM_CPPFLAGS = -I$(top_builddir)/lib/global
 AM_CFLAGS = @AM_CFLAGS@ @OPENMP_CFLAGS@
 
-phylogenetics_headers = assignment.h graph.h kmedoids.h hdbscan.h index_arrangement.h quasi_random.h status.h tree.h bipartition.h \
+phylogenetics_headers = rooting.h assignment.h graph.h kmedoids.h hdbscan.h index_arrangement.h quasi_random.h status.h tree.h bipartition.h \
   char_vector.h distance_matrix.h hashtable.h quickselect_quantile.h empirical_frequency.h \
   prob_distribution.h hll.h kmerhash.h rolling_hash.h sequence_hash.h suffix_tree.h \
   topology_distance.h topology_randomise.h file_compression.h alignment.h nexus_common.h \
@@ -12,7 +12,7 @@ phylogenetics_headers = assignment.h graph.h kmedoids.h hdbscan.h index_arrangem
   likelihood.h continuous_traits.h reconstruction.h quartet_distance.h tanglegram.h \
   dtl.h phylogenetics.h clock.h particle_weights.h sampling.h quasi_sequence.h tree_comparison.h triplet_distance.h \
   gaussian.h phylogenetic_regression.h trait_association.h stochastic_mapping.h tip_correspondence.h
-phylogenetics_sources = assignment.c graph.c kmedoids.c hdbscan.c index_arrangement.c quasi_random.c status.c tree.c bipartition.c \
+phylogenetics_sources = rooting.c assignment.c graph.c kmedoids.c hdbscan.c index_arrangement.c quasi_random.c status.c tree.c bipartition.c \
   char_vector.c distance_matrix.c hashtable.c quickselect_quantile.c empirical_frequency.c \
   probability_sampling.c probability_extra.c probability_special_internal.c prob_distribution.c hll.c kmerhash.c rolling_hash.c sequence_hash.c suffix_tree.c \
   topology_distance.c topology_randomise.c file_compression.c alignment.c nexus_common.c \

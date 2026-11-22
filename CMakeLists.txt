@@ -32,6 +32,7 @@ set(curupixa_phylogenetics_sources
   lib/quasi_random.c
   lib/status.c
   lib/tree.c
+  lib/rooting.c
   lib/quartet_distance.c
   lib/tanglegram.c
   lib/dtl.c
@@ -93,7 +94,7 @@ set(curupixa_gene_species_sources
 set(curupixa_inference_sources lib/inference.c lib/amalgamation.c lib/tree_search.c)
 set(curupixa_headers
   lib/curupixa.h lib/phylogenetics.h lib/gene_species.h lib/inference.h lib/amalgamation.h
-  lib/tree_search.h lib/paralog_quartets.h lib/gene_species_distances.h lib/quartet_distance.h lib/tanglegram.h lib/dtl.h lib/status.h lib/tree.h lib/bipartition.h lib/char_vector.h
+  lib/tree_search.h lib/paralog_quartets.h lib/gene_species_distances.h lib/quartet_distance.h lib/tanglegram.h lib/dtl.h lib/status.h lib/rooting.h lib/tree.h lib/bipartition.h lib/char_vector.h
   lib/distance_matrix.h lib/hashtable.h lib/index_arrangement.h lib/quasi_random.h
   lib/quickselect_quantile.h lib/empirical_frequency.h lib/prob_distribution.h lib/file_compression.h
   lib/hll.h lib/kmerhash.h lib/rolling_hash.h lib/sequence_hash.h lib/suffix_tree.h
@@ -215,7 +216,7 @@ configure_file(cmake/config.h.in include/curupixa/global/config.h)
 if(CURUPIXA_BUILD_TESTS)
   enable_testing()
   find_package(Threads REQUIRED)
-  foreach(test_name core tree runtime statistics probability hashing rng_hash graph assignment kmedoids density_clustering sequence_hash suffix_index topology alignment
+  foreach(test_name rooting core tree runtime statistics probability hashing rng_hash graph assignment kmedoids density_clustering sequence_hash suffix_index topology alignment
       compression gff3 phylogenetics minimiser svd clustering algorithms
       character_analysis substitution_model likelihood likelihood_prepared continuous_traits reconstruction tree_extensions tree_allocation
       spr reconciliation_roots quartet tanglegram dtl amalgamation inference tree_search paralog_quartets comparative tree_priors asr_sampling clocks)
