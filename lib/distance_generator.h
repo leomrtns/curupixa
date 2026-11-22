@@ -21,7 +21,7 @@ typedef crpx_status (*crpx_distance_callback)(void *data, size_t first, size_t s
    Diagonal distances are zero without a call. data remains caller-owned and must outlive use of the generator.
    Calls/reset/replacement are serialised, including callback execution. The callback must not recursively access this
    generator. Destruction requires exclusive ownership. Cached vectors are allocated only on first use; the optional
-   pointer index requires O(samples^2) storage. cache=false uses O(1) persistent storage. Different generators may
+   pointer index requires O(samples^2) storage. cache=false reuses O(components) storage, without an allocation per query. Different generators may
    share data only if it is safe. */
 crpx_status crpx_distance_generator_new(size_t samples, size_t components, crpx_distance_callback callback,
                                        void *data, bool cache, crpx_distance_generator_t *out);

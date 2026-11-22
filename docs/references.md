@@ -83,15 +83,14 @@ The original message follows:
 
 #### Probability distributions
 
-The probability distribution functions and auxiliary mathematical functions are derived from the (R project for Statistical Computing)[http://www.r-project.org/],
-version 2.9.1, available under the GPL license.
+Earlier probability kernels derived from the [R project for Statistical Computing](https://www.r-project.org/), version 2.9.1, under GPL. The [current probability kernels](probability-numerics.md) use the later replacements and recorded permissive numerical sources.
 The historical discrete sampler credits the [GNU Scientific Library](https://www.gnu.org/software/gsl/), version 1.14. The current opaque sampler builds a Walker alias table and uses an explicit caller-owned stream.
 
 #### Random number generation
 
-The basic algorithms for random number generation come from the [GNU Scientific Library](https://www.gnu.org/software/gsl/), version 1.14, with 
+The historical RNG collection credited the [GNU Scientific Library](https://www.gnu.org/software/gsl/), version 1.14, with
 motivation for the uncorrelated parallel streams from the [Scalable Parallel Pseudo Random Number Generators Library (SPRNG)](http://www.sprng.org/).
-Other references:
+The [current RNG/hash guide](random-hashing.md) records replacements and their grants. Other historical references:
 
 * http://www.mcs.anl.gov/~itf/dbpp/text/node119.html (random tree method)
 * http://ianbullard.squarespace.com/journal/2009/4/28/why-you-should-never-use-rand.html (gamerand)

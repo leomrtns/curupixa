@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 /* Update sequence hashes as a window moves through a sequence. */
 #include "rolling_hash.h"
+#include "global/hash_functions_generators.h"
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -25,14 +26,6 @@ static uint64_t power(uint64_t base, size_t exponent)
   return result;
 }
 
-static uint64_t next_seed(uint64_t *state)
-{
-  uint64_t value = (*state += UINT64_C(0x9e3779b97f4a7c15));
-  value = (value ^ (value >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
-  value = (value ^ (value >> 27)) * UINT64_C(0x94d049bb133111eb);
-  return value ^ (value >> 31);
-}
-
 crpx_status crpx_rolling_hash_new(size_t window, uint64_t seed, crpx_rolling_hash **result)
 {
   if (!result) return CRPX_ERROR_INVALID_ARGUMENT;
@@ -42,7 +35,7 @@ crpx_status crpx_rolling_hash_new(size_t window, uint64_t seed, crpx_rolling_has
   if (!iterator) return CRPX_ERROR_ALLOCATION;
   iterator->window = window;
   iterator->power = power(CRPX_ROLLING_BASE, window - 1);
-  for (size_t i = 0; i < 256; i++) iterator->table[i] = next_seed(&seed);
+  for (size_t i = 0; i < 256; i++) iterator->table[i] = crpx_hashint_splitmix64 (seed += UINT64_C(0x9e3779b97f4a7c15));
   *result = iterator;
   return CRPX_OK;
 }

@@ -11,6 +11,7 @@ Gene/species methods use general phylogenetics; inference uses both. Shared calc
 The tree representation supports multifurcations and optional branch lengths. Individual calculations have specific requirements. DTL currently uses a finite-history model, and quartet scoring includes the ASTRAL-Pro objective rather than the full ASTRAL search. Tanglegrams accept unequal tree sizes and explicit tip links. See [functions and assumptions](docs/comparison-and-inference.md) before selecting a method.
 For regression, binary-trait association, joint ancestral states and branch histories, see [comparative methods](docs/comparative-methods.md). [Tree sampling](docs/tree-sampling.md) covers biological priors, constrained resolutions and numerical low-discrepancy sequences.
 The [molecular-clock guide](docs/molecular-clocks.md) describes strict and relaxed rates, date conversion and reusable particle-weight calculations.
+Generic [graphs, assignment and clustering](docs/graph-clustering.md) include shortest paths, spanning trees, OPTICS, HDBSCAN and k-medoids. [Sequence hashing](docs/sequence-hashing.md) covers byte, DNA and protein rolling hashes.
 The guides to [probability kernels](docs/probability-numerics.md) and [random generators and hashes](docs/random-hashing.md) describe the APIs, permissive numerical sources, changed sequences and measured performance.
 ## Build and test
 You need CMake 3.16 or later and a C17 compiler. GCC and Clang on POSIX systems are tested. From this checkout:

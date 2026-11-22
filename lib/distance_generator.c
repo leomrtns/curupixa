@@ -13,6 +13,7 @@ struct crpx_distance_generator_struct {
   crpx_distance_callback callback;
   void *data;
   double **cache;
+  double *scratch;
   atomic_flag lock;
 };
 
@@ -47,13 +48,17 @@ crpx_status crpx_distance_generator_new(size_t samples, size_t components, crpx_
     generator->cache = calloc(pairs, sizeof(double *));
     if (!generator->cache) { free(generator); return CRPX_ERROR_ALLOCATION; }
   }
+  if (!cache) {
+    generator->scratch = malloc (components * sizeof (*generator->scratch));
+    if (!generator->scratch) { free (generator); return CRPX_ERROR_ALLOCATION; }
+  }
   *out = generator;
   return CRPX_OK;
 }
 
 void crpx_distance_generator_free(crpx_distance_generator_t generator)
 {
-  if (generator) { reset_generator(generator); free(generator->cache); free(generator); }
+  if (generator) { reset_generator(generator); free(generator->cache); free(generator->scratch); free(generator); }
 }
 size_t crpx_distance_generator_samples(const struct crpx_distance_generator_struct *generator)
 { return generator ? generator->samples : 0; }
@@ -61,24 +66,22 @@ size_t crpx_distance_generator_components(const struct crpx_distance_generator_s
 { return generator ? generator->components : 0; }
 
 static crpx_status calculate_locked(crpx_distance_generator_t generator, size_t first, size_t second,
-                                     double **values, bool *temporary)
+                                     double **values)
 {
   if (first > second) { size_t swap = first; first = second; second = swap; }
   size_t a = second, b = second - 1;
   if (a % 2) b /= 2; else a /= 2;
   size_t index = a * b + first;
-  *temporary = false;
   if (generator->cache && generator->cache[index]) { *values = generator->cache[index]; return CRPX_OK; }
-  double *result = malloc(generator->components * sizeof(double));
+  double *result = generator->cache ? malloc(generator->components * sizeof(double)) : generator->scratch;
   if (!result) return CRPX_ERROR_ALLOCATION;
   for (size_t i = 0; i < generator->components; ++i) result[i] = NAN;
   crpx_status status = generator->callback(generator->data, first, second, result, generator->components);
   if (status == CRPX_OK)
     for (size_t i = 0; i < generator->components; ++i)
       if (!isfinite(result[i])) { status = CRPX_ERROR_INVALID_ARGUMENT; break; }
-  if (status != CRPX_OK) { free(result); return status; }
+  if (status != CRPX_OK) { if (generator->cache) free(result); return status; }
   if (generator->cache) generator->cache[index] = result;
-  else *temporary = true;
   *values = result;
   return CRPX_OK;
 }
@@ -91,9 +94,9 @@ crpx_status crpx_distance_generator_get(crpx_distance_generator_t generator, siz
     return CRPX_ERROR_OUT_OF_RANGE;
   if (first == second) { *out = 0; return CRPX_OK; }
   lock_generator(generator);
-  double *values; bool temporary;
-  crpx_status status = calculate_locked(generator, first, second, &values, &temporary);
-  if (status == CRPX_OK) { *out = values[component]; if (temporary) free(values); }
+  double *values;
+  crpx_status status = calculate_locked(generator, first, second, &values);
+  if (status == CRPX_OK) { *out = values[component]; }
   unlock_generator(generator);
   return status;
 }
@@ -106,9 +109,9 @@ crpx_status crpx_distance_generator_get_all(crpx_distance_generator_t generator,
     return CRPX_ERROR_OUT_OF_RANGE;
   if (first == second) { for (size_t i = 0; i < generator->components; ++i) out[i] = 0; return CRPX_OK; }
   lock_generator(generator);
-  double *values; bool temporary;
-  crpx_status status = calculate_locked(generator, first, second, &values, &temporary);
-  if (status == CRPX_OK) { memcpy(out, values, generator->components * sizeof(double)); if (temporary) free(values); }
+  double *values;
+  crpx_status status = calculate_locked(generator, first, second, &values);
+  if (status == CRPX_OK) { memcpy(out, values, generator->components * sizeof(double)); }
   unlock_generator(generator);
   return status;
 }

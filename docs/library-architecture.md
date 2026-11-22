@@ -47,3 +47,5 @@ find_package(curupixa CONFIG REQUIRED)
 target_link_libraries(my_program PRIVATE curupixa::phylogenetics)
 ```
 Use `curupixa::gene_species`, `curupixa::inference` or `curupixa::curupixa` when those interfaces are needed. The pkg-config packages are `curupixa-phylogenetics`, `curupixa-gene-species`, `curupixa-inference` and the umbrella `curupixa`. There is no longer a monolithic `-lcurupixa`; raw linker users must select component libraries in dependency order or obtain the flags from pkg-config. No compatibility constraint from the experimental previous interface is imposed on the split.
+
+General graph, assignment and clustering interfaces also belong to `curupixa_phylogenetics`: see [their kernels and dependencies](graph-clustering.md). The [sequence-hashing guide](sequence-hashing.md) covers the additional split-rotation iterator and its shared integer mixer.

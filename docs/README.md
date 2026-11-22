@@ -16,6 +16,9 @@ target_link_libraries(my_phylogeny PRIVATE curupixa::curupixa)
 ```
 Embedding needs no separate installation or bootstrap. Alternatively, configure with the package manager's `CMAKE_INSTALL_PREFIX`, build, then run `cmake --install` for conda, Galaxy dependency packages or container images. Installed CMake consumers use `find_package(curupixa CONFIG REQUIRED)`; other build systems can use pkg-config.
 ## API guides
+- [Graphs, assignment and clustering](graph-clustering.md)
+- [Rolling DNA, protein and byte hashes](sequence-hashing.md)
+- [Current provenance review](licence-provenance-update.md)
 - [Language bindings](language-bindings.md)
 - [Library organisation](library-architecture.md)
 - [Comparison and inference interfaces](comparison-and-inference.md)

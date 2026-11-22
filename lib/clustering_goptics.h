@@ -13,11 +13,18 @@ extern "C" {
 #endif
 
 typedef struct crpx_optics_struct *crpx_optics_t;
-/* OPTICS ordering with O(n) workspace and O(n^2) distance queries. Distances must be finite and non-negative.
+/* OPTICS ordering with a heap, O(n) workspace and O(n^2) distance queries in the default full scan. Distances must be finite and non-negative.
    min_points includes the query point itself and must lie in 1..n. Neighbourhoods include distance == epsilon. Ties
    use sample ID. The result owns all arrays; it does not retain the generator. */
 crpx_status crpx_optics_run(crpx_distance_generator_t generator, size_t component, size_t min_points,
                            double epsilon, crpx_optics_t *out);
+/* Optional indexed radius search: return every other sample at distance <= epsilon exactly once. IDs and distances
+   have capacity entries; query itself is omitted and contributes the implicit distance zero. The callback may use a
+   spatial/metric index and may return neighbours in any order. The callback and its data must remain valid until run_neighbours returns. */
+typedef crpx_status (*crpx_neighbour_callback) (void *data, size_t query, double epsilon, size_t *ids,
+                                               double *distances, size_t capacity, size_t *count);
+crpx_status crpx_optics_run_neighbours (size_t samples, crpx_neighbour_callback neighbours, void *data,
+                                       size_t min_points, double epsilon, crpx_optics_t *out);
 void crpx_optics_free(crpx_optics_t ordering);
 size_t crpx_optics_size(const struct crpx_optics_struct *ordering);
 /* order[position] identifies an original sample. The remaining arrays use original sample indices, with INFINITY for

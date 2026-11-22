@@ -52,6 +52,10 @@ set(curupixa_phylogenetics_sources
   lib/clustering_goptics.c
   lib/upgma.c
   lib/newick_space.c
+  lib/assignment.c
+  lib/graph.c
+  lib/kmedoids.c
+  lib/hdbscan.c
   lib/lowlevel_algorithms.c
   lib/spr_distance.c
   lib/ancestry_index.c
@@ -70,6 +74,7 @@ set(curupixa_phylogenetics_sources
   lib/hll.c
   lib/kmerhash.c
   lib/rolling_hash.c
+  lib/sequence_hash.c
   lib/suffix_tree.c
   lib/topology_distance.c
   lib/topology_randomise.c
@@ -91,9 +96,10 @@ set(curupixa_headers
   lib/tree_search.h lib/paralog_quartets.h lib/gene_species_distances.h lib/quartet_distance.h lib/tanglegram.h lib/dtl.h lib/status.h lib/tree.h lib/bipartition.h lib/char_vector.h
   lib/distance_matrix.h lib/hashtable.h lib/index_arrangement.h lib/quasi_random.h
   lib/quickselect_quantile.h lib/empirical_frequency.h lib/prob_distribution.h lib/file_compression.h
-  lib/hll.h lib/kmerhash.h lib/rolling_hash.h lib/suffix_tree.h
+  lib/hll.h lib/kmerhash.h lib/rolling_hash.h lib/sequence_hash.h lib/suffix_tree.h
   lib/topology_distance.h lib/topology_randomise.h lib/alignment.h lib/nexus_common.h
   lib/gff3_format.h lib/parsimony.h lib/reconciliation.h lib/minimiser_simplex.h lib/svd.h
+  lib/assignment.h lib/graph.h lib/kmedoids.h lib/hdbscan.h
   lib/distance_generator.h lib/clustering_goptics.h lib/upgma.h lib/newick_space.h lib/lowlevel_algorithms.h
   lib/splitset_distances.h lib/spr_distance.h lib/ancestry_index.h lib/reconciliation_roots.h lib/taxon_map.h
   lib/character_data.h lib/character_analysis.h
@@ -209,7 +215,7 @@ configure_file(cmake/config.h.in include/curupixa/global/config.h)
 if(CURUPIXA_BUILD_TESTS)
   enable_testing()
   find_package(Threads REQUIRED)
-  foreach(test_name core tree runtime statistics probability hashing rng_hash suffix_index topology alignment
+  foreach(test_name core tree runtime statistics probability hashing rng_hash graph assignment kmedoids density_clustering sequence_hash suffix_index topology alignment
       compression gff3 phylogenetics minimiser svd clustering algorithms
       character_analysis substitution_model likelihood likelihood_prepared continuous_traits reconstruction tree_extensions tree_allocation
       spr reconciliation_roots quartet tanglegram dtl amalgamation inference tree_search paralog_quartets comparative tree_priors asr_sampling clocks)
@@ -252,6 +258,8 @@ endif()
 
 if(CURUPIXA_INSTALL)
   install(FILES
+    LICENSES/Assignment-SciPy-BSD-3-Clause.txt
+    LICENSES/ntHash-MIT.txt
     LICENSES/Apache-2.0.txt
     LICENSES/Blackman-Vigna.txt
     LICENSES/Cephes-BSD-3-Clause.txt
