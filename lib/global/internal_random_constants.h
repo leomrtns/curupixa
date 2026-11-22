@@ -26,12 +26,6 @@ extern "C" {
 #define ROTL64(x, b) (uint64_t)(((x) << (b)) | ((x) >> (64 - (b))))
 #define ROTR64(x, b) (uint64_t)(((x) >> (b)) | ((x) << (64 - (b))))
 #define ROTL32(x, b) (uint32_t)(((x) << (b)) | ((x) >> (32 - (b))))
-#define MIX32(a,b,c) { a -= b; a -= c; a ^= (c>>13);        \
-b -= c; b -= a; b ^= (a<<8);  c -= a; c -= b; c ^= (b>>13); \
-a -= b; a -= c; a ^= (c>>12); b -= c; b -= a; b ^= (a<<16); \
-c -= a; c -= b; c ^= (b>>5);  a -= b; a -= c; a ^= (c>>3);  \
-b -= c; b -= a; b ^= (a<<10); c -= a; c -= b; c ^= (b>>15); }
-
 extern const uint32_t crpx_list_of_256_random_prime32[];
 extern const uint64_t crpx_list_of_128_random_prime64[];
 extern const uint64_t crpx_list_of_128_random64[];

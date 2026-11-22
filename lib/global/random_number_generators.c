@@ -1,27 +1,15 @@
-/* This file is part of curupixa, a low-level library for phylogenomic analysis.
- * Copyright (C) 2022-today  Leonardo de Oliveira Martins [ leomrtns at gmail.com;  http://www.leomartins.org ]
- * SPDX-License-Identifier: GPL-3.0-or-later
- *
- * curupixa is free software; you can redistribute it and/or modify it under the terms of the GNU General Public
- * License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later
- * version.
- *
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
- * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html). 
- */
-
+/* Copyright (C) 2022-2026 Leonardo de Oliveira Martins
+ * SPDX-License-Identifier: GPL-3.0-or-later */
 /*! \file random_number_generators.c
- *  \brief 64 bits random number generators from integers. */
-
-/* Implement individual random-number generators independently of the context interface. */
-#include "lowlevel.h"
-#include "hash_functions_generators.h"
+    Small stateful generators. Original permissive sources and notices are recorded in docs/random-hashing.md.
+    Blackman and Vigna's xoshiro256++ is the default; the other generators retain their historical identifiers. */
 #include "random_number_generators.h"
-#include "internal_random_constants.h" // not available to the user, only locally
+#include "hash_functions_generators.h"
+#include "internal_random_constants.h"
 
 uint64_t 
 crpx_rng_wyhash_state64 (void *vstate)
-{  // https://github.com/lemire/testingRNG/blob/master/wyhash.c
+{
   uint64_t *state = (uint64_t *)vstate;
   *state += UINT64_C(0x60bee2bee120fc15);
   __uint128_t tmp;
@@ -34,7 +22,7 @@ crpx_rng_wyhash_state64 (void *vstate)
 
 uint64_t
 crpx_rng_splitmix_seed64 (void *vstate)
-{ // https://github.com/lemire/testingRNG/blob/master/splitmix64.c
+{
   uint64_t *state = (uint64_t *) vstate;
   uint64_t z = (*state += UINT64_C(0x9E3779B97F4A7C15));
   z = (z ^ (z >> 30)) * UINT64_C(0xBF58476D1CE4E5B9);
@@ -44,7 +32,7 @@ crpx_rng_splitmix_seed64 (void *vstate)
 
 uint64_t 
 crpx_rng_lehmer_seed128 (void *vstate)
-{ // https://github.com/lemire/testingRNG/blob/master/source/lehmer64.h
+{
   __uint128_t state;
   memcpy(&state, vstate, sizeof(state));
   state *= UINT64_C(0xda942042e4dd58b5);
@@ -54,7 +42,7 @@ crpx_rng_lehmer_seed128 (void *vstate)
 
 uint64_t 
 crpx_rng_wyrand_seed64 (void *vstate)
-{ // https://github.com/lemire/testingRNG/blob/master/source/wyrand.h
+{
   uint64_t *state = (uint64_t *) vstate;
   *state += UINT64_C(0xa0761d6478bd642f);
   __uint128_t t = (__uint128_t)(*state) * ((*state) ^ UINT64_C(0xe7037ed1a0b428db));
@@ -63,7 +51,7 @@ crpx_rng_wyrand_seed64 (void *vstate)
 
 uint64_t 
 crpx_rng_jenkins13_seed256 (void *vstate) // 13 bits of avalanche
-{ // http://burtleburtle.net/bob/rand/smallprng.html see "64 bits variants" (and testingRNG below) 
+{
   uint64_t *s = (uint64_t *) vstate; 
   uint64_t e = s[0] - ROTL64(s[1], 39);
   s[0] = s[1] ^ ROTL64(s[2], 11);
@@ -75,7 +63,7 @@ crpx_rng_jenkins13_seed256 (void *vstate) // 13 bits of avalanche
 
 uint64_t 
 crpx_rng_jenkins19_seed256 (void *vstate) // 18.4 bits of avalanche
-{ // https://github.com/lemire/testingRNG/blob/master/source/jenkinssmall.h
+{
   uint64_t *s = (uint64_t *) vstate; 
   uint64_t e = s[0] - ROTL64(s[1], 7);
   s[0] = s[1] ^ ROTL64(s[2], 13);
@@ -87,7 +75,7 @@ crpx_rng_jenkins19_seed256 (void *vstate) // 18.4 bits of avalanche
 
 uint64_t
 crpx_rng_rrmixer_seed64 (void *vstate)
-{ // general hash-to-rng trick: increment state and hash it 
+{
   uint64_t *state = (uint64_t *) vstate;
   uint64_t k = (*state += UINT64_C(0x2adca2f5d6da1507)); // large prime by @leomrtns
   k ^= ROTR64(k, 49) ^ ROTR64(k, 24);
@@ -99,7 +87,7 @@ crpx_rng_rrmixer_seed64 (void *vstate)
 
 uint64_t
 crpx_rng_moremur_seed64 (void *vstate)
-{ 
+{
   uint64_t *state = (uint64_t *) vstate;
   uint64_t x = (*state += UINT64_C(0x0be40fe266ab1ec7)); // large prime by @leomrtns
   x ^= x >> 27;
@@ -111,54 +99,8 @@ crpx_rng_moremur_seed64 (void *vstate)
 }
 
 uint64_t
-crpx_rng_romu_seed256 (void *vstate) // romu_quad: 4 x uint64_t 
-{ // https://github.com/opencoff/portable-lib/blob/master/src/romu-rand.c 
-  uint64_t *r = (uint64_t *) vstate;
-  uint64_t x = r[0], y = r[1], z = r[2], w=r[3];
-  r[3] = 15241094284759029579ULL * z;
-  r[0] = z + ROTL64(w, 52);
-  r[1] = y - x;
-  r[2] = ROTL64(y+w, 19);
-  return x;
-}
-
-uint64_t
-crpx_rng_romu_seed192 (void *vstate) // romu_trio: 3 x uint64_t 
-{ // https://github.com/opencoff/portable-lib/blob/master/src/romu-rand.c 
-  uint64_t *r = (uint64_t *) vstate;
-  uint64_t x = r[0], y = r[1], z = r[2];
-  r[0] = 15241094284759029579ULL * z;
-  r[1] = ROTL64(y - x, 12);
-  r[2] = ROTL64(z - y, 44);
-  return x;
-}
-
-uint64_t
-crpx_rng_romu_seed128 (void *vstate) // romu_duo: 2 x uint64_t 
-{ // https://github.com/opencoff/portable-lib/blob/master/src/romu-rand.c 
-  uint64_t *r = (uint64_t *) vstate;
-  uint64_t x = r[0];
-  r[0] = 15241094284759029579u * r[1];
-  r[1] = ROTL64(r[1], 36) + ROTL64(r[1], 15) - x;
-  return x;
-}
-
-/* See also http://prng.di.unimi.it/xoroshiro128plusplus.c and http://xoroshiro.di.unimi.it/xoroshiro128plus.c
-   https://github.com/quadram-institute-bioscience/biomcmc-lib/blob/master/lib/random_number_gen.c contains others, and
-   jump functions */
-uint64_t
-crpx_xoroshiro_pv6_seed128 (void *vstate) // 128+ V 2016
-{ // https://github.com/opencoff/portable-lib/blob/master/src/xoroshiro.c
-  uint64_t *v = (uint64_t *) vstate;
-  uint64_t v0 = v[0], v1 = v[1];
-  uint64_t result = v[0] + v[1]; 
-  v1 ^= v0; v[0] = ROTL64(v0, 55) ^ v1 ^ (v1 << 14); v[1] = ROTL64(v1, 36);
-  return result;
-}
-
-uint64_t
 crpx_xoroshiro_pv8_seed128 (void *vstate) // 128+ V 2018
-{// https://github.com/quadram-institute-bioscience/biomcmc-lib/blob/master/lib/random_number_gen.c
+{
   uint64_t *v = (uint64_t *) vstate;
   uint64_t v0 = v[0], v1 = v[1];
   uint64_t result = v[0] + v[1]; 
@@ -168,7 +110,7 @@ crpx_xoroshiro_pv8_seed128 (void *vstate) // 128+ V 2018
 
 uint64_t
 crpx_xoroshiro_pp_seed128 (void *vstate) // 128++
-{// https://github.com/quadram-institute-bioscience/biomcmc-lib/blob/master/lib/random_number_gen.c
+{
   uint64_t *v = (uint64_t *) vstate;
   uint64_t v0 = v[0], v1 = v[1];
   uint64_t result = ROTL64(v0 + v1, 17) + v0; 
@@ -178,7 +120,7 @@ crpx_xoroshiro_pp_seed128 (void *vstate) // 128++
 
 uint64_t
 crpx_xoroshiro_pp_seed256 (void *vstate) 
-{// https://github.com/quadram-institute-bioscience/biomcmc-lib/blob/master/lib/random_number_gen.c
+{
   uint64_t *v = (uint64_t *) vstate;
   uint64_t t = v[1] << 17; 
   uint64_t result = ROTL64(v[0] + v[3], 23) + v[0];
@@ -188,7 +130,7 @@ crpx_xoroshiro_pp_seed256 (void *vstate)
 
 uint64_t
 crpx_xoroshiro_star_seed256 (void *vstate) 
-{// https://github.com/quadram-institute-bioscience/biomcmc-lib/blob/master/lib/random_number_gen.c
+{
   uint64_t *v = (uint64_t *) vstate;
   uint64_t t = v[1] << 17; 
   uint64_t result = ROTL64(v[1] * 5, 7) * 9;
@@ -196,23 +138,76 @@ crpx_xoroshiro_star_seed256 (void *vstate)
   return result;
 }
 
+/* Mark Overton, Romu (2020), public-domain source at romu-random.org. State must contain a non-zero word. */
+uint64_t
+crpx_rng_romu_seed256 (void *vstate)
+{ // RomuQuad: rotate the previous fourth word into the first and third updates.
+  uint64_t *state = vstate;
+  uint64_t x = state[0], y = state[1], z = state[2], w = state[3];
+  state[0] = z + ROTL64(w, 52);
+  state[1] = y - x;
+  state[2] = ROTL64(y + w, 19);
+  state[3] = UINT64_C(15241094284759029579) * z;
+  return x;
+}
+
+uint64_t
+crpx_rng_romu_seed192 (void *vstate)
+{ // RomuTrio, with three 64-bit state words.
+  uint64_t *state = vstate;
+  uint64_t x = state[0], y = state[1], z = state[2];
+  state[0] = UINT64_C(15241094284759029579) * z;
+  state[1] = ROTL64(y - x, 12);
+  state[2] = ROTL64(z - y, 44);
+  return x;
+}
+
+uint64_t
+crpx_rng_romu_seed128 (void *vstate)
+{ // RomuDuo, with two 64-bit state words.
+  uint64_t *state = vstate;
+  uint64_t x = state[0], y = state[1];
+  state[0] = UINT64_C(15241094284759029579) * y;
+  state[1] = ROTL64(y, 36) + ROTL64(y, 15) - x;
+  return x;
+}
+
+/* Sebastiano Vigna's public-domain xoroshiro128+ (2016) and xorshift recurrences.
+   https://prng.di.unimi.it/ ; the 2016 xoroshiro variant is retained for existing explicit selections. */
+uint64_t
+crpx_xoroshiro_pv6_seed128 (void *vstate)
+{
+  uint64_t *state = vstate;
+  uint64_t first = state[0], second = state[1], result = first + second;
+  second ^= first;
+  state[0] = ROTL64(first, 55) ^ second ^ (second << 14);
+  state[1] = ROTL64(second, 36);
+  return result;
+}
+
 uint64_t
 crpx_rng_xorshift_star_seed64 (void *vstate)
-{ // https://github.com/opencoff/portable-lib/blob/master/src/xorshift.c
-  uint64_t *s = (uint64_t *) vstate;  
-  *s ^= *s >> 12; *s ^= *s << 25; *s ^= *s >> 27;
-  return (*s) * 2685821657736338717ULL;
+{ // xorshift64*, Vigna (2014); a zero initial state is forbidden.
+  uint64_t *state = vstate;
+  uint64_t value = *state;
+  value ^= value >> 12;
+  value ^= value << 25;
+  value ^= value >> 27;
+  *state = value;
+  return value * UINT64_C(2685821657736338717);
 }
 
 uint64_t
 crpx_rng_xorshift_p_seed128 (void *vstate)
-{ // https://github.com/opencoff/portable-lib/blob/master/src/xorshift.c
-  uint64_t *s = (uint64_t *) vstate;
-  uint64_t v1 = s[0], v0 = s[1];
-  s[0] = v0; 
-  v1 ^= (v1 << 23);
-  s[1] = v1 ^ v0 ^ (v1 >> 18) ^ (v0 >> 5);
-  return s[1] + v0;
+{ // Historical (23,18,5) xorshift128+ variant, with two 64-bit state words.
+  uint64_t *state = vstate;
+  uint64_t first = state[0], second = state[1];
+  first ^= first << 23;
+  first ^= first >> 18;
+  first ^= second ^ (second >> 5);
+  state[0] = second;
+  state[1] = first;
+  return first + second;
 }
 
 #define PCG_DEFAULT_MULTIPLIER_128 ((((__uint128_t)2549297995355413924ULL) << 64) + 4865540595714422341ULL)
@@ -232,7 +227,7 @@ crpx_rng_pcg_seed256 (void *vstate)
 
 uint64_t
 crpx_rng_mt19937_seed2504 (void *state) // needs 312 uint64_t for random state and last one is a counter
-{ // adapted from biomcmc
+{ // Nishimura and Matsumoto, MT19937-64 (2004), BSD-3-Clause; see LICENSES/.
   static const uint64_t mag01[2]={ 0ULL, 0xB5026F5AA96619E9ULL}; /* this is magic vector, don't change */
   uint64_t *r = (uint64_t *) state;
   uint64_t x;
@@ -258,37 +253,6 @@ crpx_rng_mt19937_seed2504 (void *state) // needs 312 uint64_t for random state a
   x ^= (x << 37) & 0xFFF7EEE000000000ULL;
   x ^= (x >> 43);
   return x;
-}
-
-uint64_t
-crpx_rng_xorshift_seed528 (void *state)
-{ /* x[66], with 64 states + x[64] aux variable and x[65] counter ; from biomcmc */
-  uint64_t *x = (uint64_t *) state;
-  uint64_t t, v;
-  uint8_t i;
-
-  x[65] = (x[65] + 1) & UINT64_C(63); // counter from 0-63
-  i = (uint8_t)(x[65]);
-  t = x[i];
-  v = x[(i+11) & 63];     /* Index is (i-53) mod 64 */
-  t ^= t << 33;  t ^= t >> 26; /* (I + L^a)(I + R^b) */
-  v ^= v << 27;  v ^= v >> 29; /* (I + L^c)(I + R^d) */
-  x[i] = (v ^= t) & 0xffffffffffffffffULL; /* Update circular array */
-  /* 0x61c8864680b583ebULL = odd approximation to 2**64*(3-sqrt(5))/2. */
-  x[64] += 0x61c8864680b583ebULL;/* Update Weyl generator */
-
-  return (v + (x[64] ^ (x[64] >> 27))) & 0xffffffffffffffffULL;
-}
-
-/* 32 bits */
-
-uint32_t
-crpx_rng_abyssinian_seed128 (void *vstate) // 2 x uint64_t 
-{ // https://github.com/opencoff/portable-lib/blob/master/src/abyssinian_rand.c
-  uint64_t *state = (uint64_t *)vstate;
-  state[0] = (uint64_t)0xfffd21a7 * (uint32_t)state[0] + (uint32_t)(state[0] >> 32);
-  state[1] = (uint64_t)0xfffd1361 * (uint32_t)state[1] + (uint32_t)(state[1] >> 32);
-  return ROTL32((uint32_t)state[0], 7) + (uint32_t)state[1];
 }
 
 uint32_t 
@@ -328,8 +292,6 @@ crpx_rng_jenkins13_seed128 (void *vstate) // 13 bits of avalanche
   return s[3];
 }
 
-/* Generation of seeds */ 
-
 void 
 crpx_rng_pcg_set_seed256 (void *vstate, uint64_t seed)
 { // https://github.com/lemire/testingRNG/blob/master/source/pcg64.h
@@ -351,35 +313,8 @@ crpx_rng_pcg_set_seed256 (void *vstate, uint64_t seed)
 }
 
 void
-cprx_rng_abyssinian_set_seed128 (void *vstate, uint32_t seed)
-{ // https://github.com/opencoff/portable-lib/blob/master/src/abyssinian_rand.c
-  uint64_t *state = (uint64_t *)vstate;
-  if (!seed) seed = 0xc3fdc7fU; // arbitrary prime number by @leomrtns
-  uint32_t seed_2 = seed;
-  seed += seed_2;
-  seed_2 += seed;
-  uint64_t seed_x = 0x9368e53c2f6af274ULL ^ seed;
-  uint64_t seed_y = 0x586dcd208f7cd3fdULL ^ seed_2;
-
-  seed_x *= 0xff51afd7ed558ccdULL;// Based on the mixing functions of MurmurHash3
-  seed_x ^= seed_x >> 33;
-  seed_x *= 0xc4ceb9fe1a85ec53ULL;
-  seed_x ^= seed_x >> 33;
-
-  seed_y *= 0xff51afd7ed558ccdULL;
-  seed_y ^= seed_y >> 33;
-  seed_y *= 0xc4ceb9fe1a85ec53ULL;
-  seed_y ^= seed_y >> 33;
-  // Inlined Next(): Discard first output
-  seed_x = (uint64_t)0xfffd21a7 * (uint32_t)seed_x + (uint32_t)(seed_x >> 32);
-  seed_y = (uint64_t)0xfffd1361 * (uint32_t)seed_y + (uint32_t)(seed_y >> 32);
-  state[0] = seed_x;
-  state[1] = seed_y;
-}
-
-void
 crpx_rng_mt19937_set_seed2504 (void *state, uint64_t seed)
-{ // adapted from biomcmc
+{ // Nishimura and Matsumoto, MT19937-64 (2004), BSD-3-Clause; see LICENSES/.
   uint64_t *r = (uint64_t *) state;
   if (!seed) seed = 0x8fc18365c966079ULL; // arbitrary prime number by @leomrtns
   r[312] = 313; // counter, forcing generation of 312 words at first call
@@ -388,29 +323,17 @@ crpx_rng_mt19937_set_seed2504 (void *state, uint64_t seed)
 }
 
 void
-crpx_rng_xorshift_set_seed528 (void *state, uint64_t seed)
-{ /* x[66], with 64 states + x[64] aux variable and x[65] counter */
-  uint64_t *x = (uint64_t *) state;
-  int i, j;
-  uint64_t t;
-
-  if (!seed) seed = 0x1db9b83a20cc6503ULL; 
-  for (int i = 0; i < 64; i++) x[i] = crpx_rng_splitmix_seed64 (&seed);
-
-  /* Avoid correlations for close seeds; Recurrence has period 2**64-1 */
-  for (x[64] = seed, i = 0; i < 64; i++) { /* Initialise circular array */
-    seed = crpx_hashint_pelican64 (seed);
-    x[i] = (x[i] ^ seed) + (x[64] += 0x61c8864680b583ebULL);
+crpx_rng_xoshiro_jump_seed256 (void *vstate)
+{ // Advance by 2^128 draws, using Blackman and Vigna's published jump polynomial.
+  static const uint64_t polynomial[4] = {
+    UINT64_C(0x180ec6d33cfd0aba), UINT64_C(0xd5a61266f0c9392c),
+    UINT64_C(0xa9582618e03fc9aa), UINT64_C(0x39abdc4529b1661c)
+  };
+  uint64_t *state = vstate, jumped[4] = {0};
+  for (size_t word = 0; word < 4; word++) for (unsigned bit = 0; bit < 64; bit++) {
+    if (polynomial[word] & (UINT64_C(1) << bit))
+      for (size_t i = 0; i < 4; i++) jumped[i] ^= state[i];
+    crpx_xoroshiro_pp_seed256 (state);
   }
-
-  for (i = 63, j = 0; j < 256; j++) { /* Discard first 256 results */
-    i = (i+1) & 63;
-    t = x[i];
-    seed = x[(i+11) & 63];               /* Index is (i-53) mod 64 */
-    t ^= t << 33; t ^= t >> 26;             /* (I + L^a)(I + R^b) */
-    seed ^= seed << 27; seed ^= seed >> 29; /* (I + L^c)(I + R^d) */
-    x[i] = (seed ^ t) & 0xffffffffffffffffULL; /* Update circular array */
-  }
-  x[65] = (uint64_t)(i);
-  return;
+  memcpy (state, jumped, sizeof (jumped));
 }

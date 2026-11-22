@@ -26,15 +26,18 @@ extern "C" {
 
 /* A stream belongs to one worker at a time. The same (seed, stream_id) reproduces its sequence, including seed zero.
    Use an explicit rank/worker identifier rather than thread IDs. Distinct identifiers produce distinct starting
-   states; streams are not guaranteed disjoint. */
-typedef struct { uint64_t state; } crpx_rng_stream;
+   states; streams are not guaranteed disjoint. For disjoint blocks, copy one seeded stream and jump each copy
+   successively; each block allows fewer than 2^128 draws. The generator is xoshiro256++ (not cryptographic). */
+typedef struct { uint64_t state[4]; } crpx_rng_stream;
 void crpx_rng_stream_init (crpx_rng_stream *stream, uint64_t seed, uint64_t stream_id);
+void crpx_rng_stream_jump (crpx_rng_stream *stream);
 uint64_t crpx_rng_stream_next (crpx_rng_stream *stream);
 crpx_status crpx_rng_stream_range (crpx_rng_stream *stream, uint64_t bound, uint64_t *result);
 double crpx_rng_stream_double (crpx_rng_stream *stream);
 
-/* Context draws are serialised across arbitrary host threads. Their assignment to workers depends on scheduling; use
-   worker-owned streams for reproducible parallel work. Seed zero requests entropy. */
+/* Historical generator IDs 0..20 are retained except retired ID 19 (Xorgens). The context default is ID 17,
+   xoshiro256++. Context draws are serialised across arbitrary host threads. Their assignment to workers depends on
+   scheduling; use worker-owned streams for reproducible parallel work. Seed zero requests entropy. */
 crpx_status crpx_set_random_generator_checked (crpx_global_t context, uint8_t generator, uint64_t seed);
 crpx_status crpx_random_range_checked (crpx_global_t context, uint64_t bound, uint64_t *result);
 void crpx_set_random_generator (crpx_global_t cglob, uint8_t rng_id, uint64_t seed);

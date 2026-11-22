@@ -57,11 +57,6 @@ int main(int argc, char **argv)
       x32 = crpx_hash_mailund_seed32 ((void*)(&i), sizeof (uint64_t), (void*)(&seed)); // OK
       fwrite (&x32, sizeof (uint32_t), 1, stdout);
     }
-  } else if (algo == 7) {
-    for (i=0; i < UINT64_MAX; i++) {
-      x32 = crpx_hash_rotating_seed32 ((void*)(&i), sizeof (uint64_t), (void*)(&seed)); // NG
-      fwrite (&x32, sizeof (uint32_t), 1, stdout);
-    }
   } else if (algo == 8) {
     for (i=0; i < UINT64_MAX; i++) {
       x64 = crpx_fasthash64_seed64 ((void*)(&i), sizeof (uint64_t), (void*)(&seed)); // OK +- // passed practrand 32bits

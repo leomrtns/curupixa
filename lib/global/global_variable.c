@@ -39,7 +39,7 @@ crpx_global_init (uint64_t seed, const char *level_string)
   cglob->avx = (__builtin_cpu_supports("avx2") > 0);
 #endif
   crpx_get_time_128bits(cglob->elapsed_time);
-  crpx_set_random_generator(cglob, 0, seed);
+  crpx_set_random_generator(cglob, 17, seed);
   if (!cglob->rng_seed_vector || !cglob->rng_get) {
     crpx_global_finalise(cglob);
     return NULL;

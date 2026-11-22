@@ -77,6 +77,8 @@ set(curupixa_phylogenetics_sources
   lib/global/lowlevel.c
   lib/global/maths_and_bits.c
   lib/global/internal_random_constants.c
+  lib/global/hash_bytes.c
+  lib/global/hash_metro.c
   lib/global/hash_functions_generators.c
   lib/global/hash_functions.c
   lib/global/random_number.c
@@ -207,7 +209,7 @@ configure_file(cmake/config.h.in include/curupixa/global/config.h)
 if(CURUPIXA_BUILD_TESTS)
   enable_testing()
   find_package(Threads REQUIRED)
-  foreach(test_name core tree runtime statistics probability hashing suffix_index topology alignment
+  foreach(test_name core tree runtime statistics probability hashing rng_hash suffix_index topology alignment
       compression gff3 phylogenetics minimiser svd clustering algorithms
       character_analysis substitution_model likelihood likelihood_prepared continuous_traits reconstruction tree_extensions tree_allocation
       spr reconciliation_roots quartet tanglegram dtl amalgamation inference tree_search paralog_quartets comparative tree_priors asr_sampling clocks)
@@ -249,7 +251,18 @@ elseif(UNIX)
 endif()
 
 if(CURUPIXA_INSTALL)
-  install(FILES LICENSES/SciPy-BSD-3-Clause.txt LICENSES/Cephes-BSD-3-Clause.txt
+  install(FILES
+    LICENSES/Apache-2.0.txt
+    LICENSES/Blackman-Vigna.txt
+    LICENSES/Cephes-BSD-3-Clause.txt
+    LICENSES/FastHash-MIT.txt
+    LICENSES/HashProspector-Unlicense.txt
+    LICENSES/MersenneTwister-BSD-3-Clause.txt
+    LICENSES/PCG-MIT.txt
+    LICENSES/RNG-hash-NOTICE.txt
+    LICENSES/SciPy-BSD-3-Clause.txt
+    LICENSES/SipHash-CC0.txt
+    LICENSES/SuperFastHash-BSD-3-Clause.txt
     DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/curupixa)
   install(TARGETS curupixa ${curupixa_libraries} EXPORT curupixaTargets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

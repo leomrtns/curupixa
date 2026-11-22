@@ -54,7 +54,6 @@ int main(int argc, char **argv)
     }
   } else {
     switch (algo) { // speed is comparable to 64bits (500mi~440mi numbers/second), which means half the throughput
-      case 32: rng2 = &crpx_rng_abyssinian_seed128; strcpy (algoname, "abyssin"); break; // OK // 3rd fastest
       case 33: rng2 = &crps_rng_widynski_seed192;   strcpy (algoname, "widynsk"); break; // excellent // 4th fastest
       case 34: rng2 = &crpx_rng_jenkins8_seed128;   strcpy (algoname, "32jenk8"); break; // OK // 1st fastest (practrand found a couple "unusual")
       case 35: rng2 = &crpx_rng_jenkins13_seed128;  strcpy (algoname, "32jen13"); break; // excellent // 2nd fastest

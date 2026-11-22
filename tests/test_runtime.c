@@ -44,10 +44,12 @@ static int test_random(void)
   crpx_global_t b = crpx_global_init(123456789, "fatal");
   CHECK(a && b);
   for (unsigned generator = 0; generator <= 20; generator++) {
+    if (generator == 19) continue;
     CHECK(crpx_set_random_generator_checked(a, generator, 123456789) == CRPX_OK);
     CHECK(crpx_set_random_generator_checked(b, generator, 123456789) == CRPX_OK);
     for (int i = 0; i < 500; i++) CHECK(crpx_random_64bits(a) == crpx_random_64bits(b));
   }
+  CHECK(crpx_set_random_generator_checked(a, 19, 123) == CRPX_ERROR_INVALID_ARGUMENT);
   CHECK(crpx_set_random_generator_checked(a, 255, 123) == CRPX_ERROR_INVALID_ARGUMENT);
   CHECK(crpx_set_random_generator_checked(a, 0, 123) == CRPX_OK);
   CHECK(crpx_set_random_generator_checked(b, 0, 124) == CRPX_OK);

@@ -18,10 +18,12 @@
 #include "random_number.h"
 #include "runtime_internal.h"
 
+static bool range_accept (uint64_t value, uint64_t bound, uint64_t *result);
+
 crpx_status
 crpx_set_random_generator_checked (crpx_global_t cglob, uint8_t rng_id, uint64_t seed)
 {
-  if (!cglob || rng_id > 20) return CRPX_ERROR_INVALID_ARGUMENT;
+  if (!cglob || (rng_id > 20 || rng_id == 19)) return CRPX_ERROR_INVALID_ARGUMENT;
   crpx_global_struct configuration = {0};
   switch (rng_id) {
     case 0:  configuration.rng_get = &crpx_rng_wyhash_state64;       configuration.rng_size = 1; strcpy (configuration.rng_name, "0.wyhash_64"); break;
@@ -39,11 +41,10 @@ crpx_set_random_generator_checked (crpx_global_t cglob, uint8_t rng_id, uint64_t
     case 12: configuration.rng_get = &crpx_rng_xorshift_p_seed128;   configuration.rng_size = 2; strcpy (configuration.rng_name, "12.xorshift_p_128"); break;
     case 13: configuration.rng_get = &crpx_rng_rrmixer_seed64;       configuration.rng_size = 1; strcpy (configuration.rng_name, "13.rrmixer_64"); break;
     case 14: configuration.rng_get = &crpx_xoroshiro_pp_seed128;     configuration.rng_size = 2; strcpy (configuration.rng_name, "14.xoroshiro_pp_128"); break;
-    case 15: configuration.rng_get = &crpx_xoroshiro_star_seed256;   configuration.rng_size = 4; strcpy (configuration.rng_name, "15.xoroshiro_s_256"); break;
+    case 15: configuration.rng_get = &crpx_xoroshiro_star_seed256;   configuration.rng_size = 4; strcpy (configuration.rng_name, "15.xoshiro256**"); break;
     case 16: configuration.rng_get = &crpx_rng_wyrand_seed64;        configuration.rng_size = 1; strcpy (configuration.rng_name, "16.wyrand_64"); break;
-    case 17: configuration.rng_get = &crpx_xoroshiro_pp_seed256;     configuration.rng_size = 4; strcpy (configuration.rng_name, "17.xoroshiro_pp_256"); break;
+    case 17: configuration.rng_get = &crpx_xoroshiro_pp_seed256;     configuration.rng_size = 4; strcpy (configuration.rng_name, "17.xoshiro256++"); break;
     case 18: configuration.rng_get = &crpx_rng_pcg_seed256;          configuration.rng_size = 4; strcpy (configuration.rng_name, "18.pcg_256"); break;
-    case 19: configuration.rng_get = &crpx_rng_xorshift_seed528;    configuration.rng_size = 66; strcpy (configuration.rng_name, "19.xorshift_528"); break;
     default: configuration.rng_get = &crpx_rng_mt19937_seed2504;   configuration.rng_size = 313; strcpy (configuration.rng_name, "20.mt19937"); break;
   }
   size_t bytes = configuration.rng_size * sizeof(uint64_t);
@@ -52,7 +53,6 @@ crpx_set_random_generator_checked (crpx_global_t cglob, uint8_t rng_id, uint64_t
   if (!seed && crpx_generate_bytesized_random_seeds_from_cpu(cglob, &seed, sizeof(seed)) != sizeof(seed))
     seed = UINT64_C(0x1576359c7fcbd9df);
   if (rng_id == 20) crpx_rng_mt19937_set_seed2504(state, seed);
-  else if (rng_id == 19) crpx_rng_xorshift_set_seed528(state, seed);
   else if (rng_id == 18) crpx_rng_pcg_set_seed256(state, seed);
   else {
     for (size_t i = 0; i < configuration.rng_size; i++) state[i] = crpx_rng_splitmix_seed64(&seed) | 1;
@@ -90,7 +90,7 @@ uint32_t
 crpx_random_32bits (crpx_global_t cglob)
 {
   uint64_t h = crpx_random_64bits (cglob);
-  return (uint32_t)(0xffffffff & (h - (h >> 32))); // Fermat residue (https://github.com/opencoff/portable-lib/blob/master/src/fasthash.c)
+  return (uint32_t)(h >> 32);
 }
 
 uint32_t
@@ -182,10 +182,7 @@ crpx_status
 crpx_random_range_checked (crpx_global_t context, uint64_t bound, uint64_t *result)
 {
   if (!context || !bound || !result) return CRPX_ERROR_INVALID_ARGUMENT;
-  uint64_t threshold = (uint64_t)(-bound) % bound;
-  uint64_t value;
-  do { value = crpx_random_64bits(context); } while (value < threshold);
-  *result = value % bound;
+  while (!range_accept (crpx_random_64bits (context), bound, result)) {}
   return CRPX_OK;
 }
 
@@ -195,23 +192,21 @@ crpx_rng_stream_init (crpx_rng_stream *stream, uint64_t seed, uint64_t stream_id
   if (!stream) return;
   /* Hash the worker/rank identifier before combining it with the user seed. */
   uint64_t identifier = stream_id;
-  stream->state = seed ^ crpx_rng_splitmix_seed64(&identifier);
+  uint64_t initial = seed ^ crpx_rng_splitmix_seed64 (&identifier);
+  for (size_t i = 0; i < 4; i++) stream->state[i] = crpx_rng_splitmix_seed64 (&initial);
 }
 
 uint64_t
 crpx_rng_stream_next (crpx_rng_stream *stream)
 {
-  return stream ? crpx_rng_splitmix_seed64(&stream->state) : 0;
+  return stream ? crpx_xoroshiro_pp_seed256 (stream->state) : 0;
 }
 
 crpx_status
 crpx_rng_stream_range (crpx_rng_stream *stream, uint64_t bound, uint64_t *result)
 {
   if (!stream || !bound || !result) return CRPX_ERROR_INVALID_ARGUMENT;
-  uint64_t threshold = (uint64_t)(-bound) % bound;
-  uint64_t value;
-  do { value = crpx_rng_stream_next(stream); } while (value < threshold);
-  *result = value % bound;
+  while (!range_accept (crpx_rng_stream_next (stream), bound, result)) {}
   return CRPX_OK;
 }
 
@@ -219,4 +214,20 @@ double
 crpx_rng_stream_double (crpx_rng_stream *stream)
 {
   return (double)(crpx_rng_stream_next(stream) >> 11) * 0x1.0p-53;
+}
+
+void
+crpx_rng_stream_jump (crpx_rng_stream *stream)
+{ // Copy a seeded stream before jumping it to assign successive non-overlapping blocks to workers.
+  if (stream) crpx_rng_xoshiro_jump_seed256 (stream->state);
+}
+
+static bool
+range_accept (uint64_t value, uint64_t bound, uint64_t *result)
+{ // Lemire, ACM TOMACS 29:1 (2019): multiply-high reduction with rejection removes modulo bias.
+  __uint128_t product = (__uint128_t)value * bound;
+  uint64_t low = (uint64_t)product;
+  if (low < bound && low < (uint64_t)(-bound) % bound) return false;
+  *result = (uint64_t)(product >> 64);
+  return true;
 }

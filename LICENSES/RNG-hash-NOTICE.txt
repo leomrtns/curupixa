@@ -1,0 +1,22 @@
+Original RNG and hash sources used by Curupixa
+
+MetroHash: Copyright 2015-2018 J. Andrew Rogers (Apache-2.0).
+TestingRNG: Daniel Lemire and contributors (Apache-2.0), retaining the
+original notices on incorporated generators.
+PCG: Copyright (c) 2014-2017 Melissa O'Neill and PCG Project contributors (MIT).
+Pelican mixer: Tommy Ettinger and contributors, sarong (Apache-2.0).
+FastHash: Copyright (C) 2012 Zilong Tan (MIT).
+SuperFastHash: Copyright (c) 2010 Paul Hsieh (BSD-3-Clause).
+MT19937-64: Copyright (C) 2004 Makoto Matsumoto and Takuji Nishimura (BSD-3-Clause).
+Xoshiro/xoroshiro and SplitMix: David Blackman and Sebastiano Vigna (public-domain grants).
+Hash-prospector integer permutations: Christopher Wellons and contributors (Unlicense).
+MurmurHash3: Austin Appleby (public domain).
+SipHash: Jean-Philippe Aumasson and Daniel J. Bernstein (CC0).
+Jenkins lookup2 and one-at-a-time: Bob Jenkins (public domain).
+FNV reference: Landon Curt Noll, Glenn Fowler and Phong Vo (CC0).
+Romu: Mark Overton (public domain).
+
+Curupixa adaptations use explicit state, retain historical parameters and offsets,
+and define unaligned byte reads. MetroHash, FastHash and SuperFastHash adapters
+are modified C17 versions; their upstream notices apply to the adapted code.
+Details and source revisions are in docs/random-hashing.md.
