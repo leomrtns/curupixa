@@ -1,12 +1,8 @@
 # Source references and attribution
 
-curupixa is free software; you can redistribute it and/or modify it under the terms of the GNU General Public
-License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later
-version (http://www.gnu.org/copyleft/gpl.html).
-```
-SPDX-License-Identifier: GPL-3.0-or-later
+Curupixa is licensed under MIT. Historical source references below retain their original licence descriptions; current incorporated third-party notices are in `LICENSES/`.
+
 Copyright (C) 2022-today --- Leonardo de Oliveira Martins
-```
 The references below record source implementations, algorithm descriptions and historical influences on curupixa. Current module behaviour is described in [Migration coverage](migration.md).
 
 ## List of libraries and algorithms supporting curupixa
@@ -104,7 +100,7 @@ The [current RNG/hash guide](random-hashing.md) records replacements and their g
 It is noted that most of these algorithms are in the public domain.
 
 #### Split distances and all-root reconciliation
-The greedy dSPR and directional reconciliation implementations adapt Leonardo de Oliveira Martins's `topology_splitset.c` and `topology_mrca.c` from [guenomu](https://bitbucket.org/leomrtns/guenomu) and the newer [genefam-dist](https://github.com/leomrtns/genefam-dist), under their GPL-2.0-or-later terms, incorporated here as GPL-3.0-or-later. Curupixa replaces attached scratch fields, the quadratic MRCA cache and all-pairs disagreement bitsets with separate analysis objects. The [distance guide](cladistic-distances.md) records conventions, corrections and heuristic differences.
+The greedy dSPR and directional reconciliation implementations adapt Leonardo de Oliveira Martins's `topology_splitset.c` and `topology_mrca.c` from [guenomu](https://bitbucket.org/leomrtns/guenomu) and the newer [genefam-dist](https://github.com/leomrtns/genefam-dist), originally released under GPL-2.0-or-later and relicensed here under MIT with the author’s confirmed rights. Curupixa replaces attached scratch fields, the quadratic MRCA cache and all-pairs disagreement bitsets with separate analysis objects. The [distance guide](cladistic-distances.md) records conventions, corrections and heuristic differences.
 
 #### reconciliation
 

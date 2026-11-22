@@ -13,6 +13,7 @@ For regression, binary-trait association, joint ancestral states and branch hist
 [Root selection](docs/rooting.md) includes midpoint, minimum variance and minimal ancestor deviation (MAD), with separate selection and rerooting operations.
 The [molecular-clock guide](docs/molecular-clocks.md) describes strict and relaxed rates, date conversion and reusable particle-weight calculations.
 Generic [graphs, assignment and clustering](docs/graph-clustering.md) include shortest paths, spanning trees, OPTICS, HDBSCAN and k-medoids. [Sequence hashing](docs/sequence-hashing.md) covers byte, DNA and protein rolling hashes.
+The [MIT transition record](docs/mit-transition.md) describes retained third-party notices and retired mixer interfaces.
 The guides to [probability kernels](docs/probability-numerics.md) and [random generators and hashes](docs/random-hashing.md) describe the APIs, permissive numerical sources, changed sequences and measured performance.
 ## Build and test
 You need CMake 3.16 or later and a C17 compiler. GCC and Clang on POSIX systems are tested. From this checkout:
@@ -47,5 +48,5 @@ For repeated calculations, create a workspace once and pass it to each evaluatio
 The libraries do not start worker threads. Your program can run independent calculations concurrently using a separate mutable workspace for each calculation. Read-only prepared objects can be shared where their headers permit it. [API guides](docs/README.md) describe the individual calculations and object lifetimes; [validation](docs/validation.md) records tested configurations and current limits.
 ## About
 Written by Leonardo de Oliveira Martins, Quadram Institute Bioscience, Norwich, UK. Curupixá is a Brazilian tree, *Micropholis venulosa*.
-Copyright (C) 2022–today Leonardo de Oliveira Martins. Licensed under [GPL-3.0-or-later](LICENSE). See [references and attribution](docs/references.md) and the [migration inventory](docs/migration.md).
+Copyright (C) 2022–today Leonardo de Oliveira Martins. Licensed under [MIT](LICENSE), with retained third-party notices in `LICENSES/`. See [references and attribution](docs/references.md) and the [migration inventory](docs/migration.md).
 The [logo owl](https://www.flickr.com/photos/biodivlibrary/51267563412/in/album-72157719506234015/) comes from *Fauna japonica*, volume 4, made available by the Biodiversity Heritage Library in the public domain.

@@ -1,7 +1,7 @@
 #include "gene_species_distances.h"
 /* Compile against an installed package:
  * cc -std=c17 gene_species_distances.c $(pkg-config --cflags --libs --static curupixa)
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 #include <curupixa/spr_distance.h>
 #include <curupixa/reconciliation_roots.h>
 #include <curupixa/taxon_map.h>

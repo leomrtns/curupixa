@@ -1,4 +1,4 @@
-/* Private shared log-space transition kernels. SPDX-License-Identifier: GPL-3.0-or-later */
+/* Private shared log-space transition kernels. SPDX-License-Identifier: MIT */
 /*! \file likelihood_kernel_internal.h
     \brief Internal transition and projection calculations shared by likelihood and ancestral reconstruction.
  */

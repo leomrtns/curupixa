@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /* The recurrence enumerates only the observed-tree histories defined below; it is not the extinction-aware model of
    Szöllősi et al. (2013), doi:10.1093/sysbio/syt054. */
 /* Calculate dated or undated finite-history DTL reconciliation costs with explicit tip correspondence. */

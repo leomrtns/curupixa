@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-3.0-or-later */
+/* SPDX-License-Identifier: MIT */
 /*! \file topology_counts_internal.h
     \brief Shared resolved/unresolved counting conventions for triplet and quartet comparisons. */
 #ifndef CURUPIXA_TOPOLOGY_COUNTS_INTERNAL_H

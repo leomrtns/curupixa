@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /* Compare induced quartet topologies using explicitly corresponding tips, including unresolved quartets. */
 #include "quartet_distance.h"
 #include "topology_counts_internal.h"

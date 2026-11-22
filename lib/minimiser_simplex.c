@@ -1,5 +1,5 @@
 /* Copyright (C) 2022-2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-License-Identifier: MIT
  * Nelder, J.A. and Mead, R. (1965), Computer Journal 7:308-313.
  * Replaces the incomplete GSL-derived draft with an independent implementation. */
 /* Minimise a supplied numerical objective using a simplex; parameters and stopping rules are explicit. */

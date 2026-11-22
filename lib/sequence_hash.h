@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /*! \file sequence_hash.h
     Split-rotation rolling hashes for DNA, protein and byte windows, complementing rolling_hash.h.
     DNA windows can exceed the exact two-bit k=32 limit of kmerhash.h. */

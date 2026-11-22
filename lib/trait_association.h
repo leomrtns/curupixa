@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
-   SPDX-License-Identifier: GPL-3.0-or-later */
+   SPDX-License-Identifier: MIT */
 /*! \file trait_association.h
     \brief Reusable binary-trait pairing and phylogenetic signal calculations.
     Brynildsrud et al. (2016), doi:10.1186/s13059-016-1108-8; Fritz and Purvis (2010), doi:10.1111/j.1523-1739.2010.01455.x. */

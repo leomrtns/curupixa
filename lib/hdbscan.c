@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /*! \file hdbscan.c
     HDBSCAN*: core distances, a mutual-reachability MST, hierarchy condensation and excess-of-mass/leaf selection.
     Written from Campello, Moulavi, Zimek and Sander (2015), doi:10.1145/2733381. Equal-weight merges are collapsed

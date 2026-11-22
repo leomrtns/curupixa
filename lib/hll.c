@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-License-Identifier: MIT
  * Classic HyperLogLog estimator from Flajolet, Fusy, Gandouet and Meunier (2007):
  * https://algo.inria.fr/flajolet/Publications/FlFuGaMe07.pdf
  * Fresh implementation; no mutable lookup tables. */

@@ -1,5 +1,5 @@
 /* Copyright (C) 2022-2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /*! \file hash_bytes_internal.h
     Read hash keys as little-endian words, without alignment or aliasing assumptions. */
 #ifndef CRPX_HASH_BYTES_INTERNAL_H

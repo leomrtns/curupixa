@@ -258,8 +258,11 @@ elseif(UNIX)
 endif()
 
 if(CURUPIXA_INSTALL)
+  install(FILES LICENSE DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/curupixa)
   install(FILES
     LICENSES/Assignment-SciPy-BSD-3-Clause.txt
+    LICENSES/Geohash-BSD-3-Clause.txt
+    LICENSES/Wyhash-Unlicense.txt
     LICENSES/ntHash-MIT.txt
     LICENSES/Apache-2.0.txt
     LICENSES/Blackman-Vigna.txt

@@ -1,9 +1,9 @@
 /* Copyright (C) 2022-2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT AND Apache-2.0 AND Unlicense */
 /*! \file hash_functions_generators.c
     Integer permutations and multiplication mixers used to construct hashes. */
 
-/* Integer permutations retain their mathematical constants and Curupixa's historical offsets.
+/* Modified C17 adapters: integer permutations retain their mathematical constants and Curupixa's historical offsets.
    Wellons: Unlicense; Stafford/SplitMix: public domain; Appleby: public domain; Pelican: Apache-2.0.
    See docs/random-hashing.md for the original sources and scope of the provenance review. */
 #include "lowlevel.h"
@@ -90,23 +90,7 @@ crpx_hashint_murmurmix64 (uint64_t k)
   return k;
 }
 
-uint64_t
-crpx_hashint_rrmixer64 (uint64_t x)
-{ // https://mostlymangling.blogspot.com/2018/07/
-  x ^= ROTR64(x, 49) ^ ROTR64(x, 24); x *= 0x9fb21c651e98df25LL;
-  x ^= x >> 28; x *= 0x9fb21c651e98df25LL;
-  return x ^ x >> 28;
-}
 
-uint64_t
-crpx_hashint_nasam64 (uint64_t x)
-{ // https://mostlymangling.blogspot.com/2020/01/nasam-not-another-strange-acronym-mixer.html
-  x ^= 0xb50b2ed9ebf398e9ULL; // 64 bits prime number added by @leomrtns
-  x ^= ROTR64(x, 25) ^ ROTR64(x, 47);
-  x *= 0x9E6C63D0676A9A99UL; x ^= x >> 23 ^ x >> 51;
-  x *= 0x9E6D62D06F6A9A9BUL; x ^= x >> 23 ^ x >> 51;
-  return x;
-}
 
 uint64_t
 crpx_hashint_pelican64 (uint64_t z)
@@ -117,22 +101,7 @@ crpx_hashint_pelican64 (uint64_t z)
   return z ^ z >> 28;
 }
 
-uint64_t
-crpx_hashint_moremur64 (uint64_t x)
-{ // https://mostlymangling.blogspot.com/2019/12/stronger-better-morer-moremur-better.html
-  x ^= x >> 27; x *= 0x3C79AC492BA7B653UL;
-  x ^= x >> 33; x *= 0x1C69B3F74AC4AE35UL; x ^= x >> 27;
-  return x;
-}
 
-uint64_t
-crpx_hashint_entropy (uint64_t x)
-{ // https://zimbry.blogspot.com/2011/09/better-bit-mixing-improving-on.html (by David Stafford)
-  x += 0x9a730fb1ULL; // 32bit primer number added by @leomrtns
-  x ^= x >> 31; x *= 0x7fb5d329728ea185;
-  x ^= x >> 27; x *= 0x81dadef4bc2dd44d;
-  return x ^ (x >> 33);
-}
 
 uint32_t
 crpx_hashint_jenkins (uint32_t a) // slower than most

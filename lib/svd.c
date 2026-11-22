@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /* Decompose numerical matrices and solve related linear-algebra problems with reusable storage. */
 #include "svd.h"
 #include <float.h>

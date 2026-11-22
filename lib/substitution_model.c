@@ -1,5 +1,5 @@
 /* Copyright (C) 2006-2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-License-Identifier: MIT
  * Derived analytic HKY process: biomcmc-recomb/src/likelihood.c and guenomu/lib/phylogeny.c. */
 /* Construct finite-state substitution models used by likelihood and ancestral reconstruction. */
 #include "substitution_model_internal.h"
@@ -477,4 +477,45 @@ crpx_private_rates_log_matrix (const crpx_substitution_model *model, double leng
   crpx_status status = rates_transition (model, length, mode, matrix);
   for (size_t i = 0; i < 16; i++)
     out[i] = status == CRPX_OK ? log (matrix[i]) : NAN;
+}
+
+crpx_status
+crpx_substitution_model_gtr (const double frequencies[4], const double exchangeabilities[6],
+                             crpx_substitution_model **out)
+{ /* Construct the reversible generator and remove its otherwise redundant overall rate scale. */
+  if (!out) return CRPX_ERROR_INVALID_ARGUMENT;
+  *out = NULL;
+  if (!frequencies || !exchangeabilities) return CRPX_ERROR_INVALID_ARGUMENT;
+  double pi[4], q[16] = {0}, total = 0, mean = 0;
+  for (size_t i = 0; i < 4; i++) {
+    if (!isfinite (frequencies[i]) || frequencies[i] <= 0) return CRPX_ERROR_INVALID_ARGUMENT;
+    total += frequencies[i];
+  }
+  if (!isfinite (total)) return CRPX_ERROR_INVALID_ARGUMENT;
+  for (size_t i = 0; i < 4; i++) pi[i] = frequencies[i] / total;
+  size_t k = 0;
+  for (size_t i = 0; i < 4; i++) for (size_t j = i + 1; j < 4; j++, k++) {
+    if (!isfinite (exchangeabilities[k]) || exchangeabilities[k] <= 0) return CRPX_ERROR_INVALID_ARGUMENT;
+    q[4 * i + j] = exchangeabilities[k] * pi[j];
+    q[4 * j + i] = exchangeabilities[k] * pi[i];
+  }
+  for (size_t i = 0; i < 4; i++) for (size_t j = 0; j < 4; j++) if (i != j) {
+    q[5 * i] -= q[4 * i + j];
+    mean += pi[i] * q[4 * i + j];
+  }
+  if (!isfinite (mean) || mean <= 0) return CRPX_ERROR_OVERFLOW;
+  for (size_t i = 0; i < 16; i++) q[i] /= mean;
+  return crpx_substitution_model_rates4 (q, pi, out);
+}
+
+bool
+crpx_substitution_model_is_reversible (const crpx_substitution_model *model)
+{ /* Detailed balance with the actual root distribution is necessary for root-invariant likelihoods. */
+  if (!model) return false;
+  if (!model->rates) return true;
+  for (size_t i = 0; i < 4; i++) for (size_t j = i + 1; j < 4; j++) {
+    double a = model->pi[i] * model->rates[4 * i + j], b = model->pi[j] * model->rates[4 * j + i];
+    if (fabs (a - b) > 1e-12 * fmax (a, b)) return false;
+  }
+  return true;
 }

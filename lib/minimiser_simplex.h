@@ -1,5 +1,5 @@
 /* Copyright (C) 2022-2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /*! \file minimiser_simplex.h
     \brief Minimise a supplied numerical objective using a simplex; parameters and stopping rules are explicit.
  */

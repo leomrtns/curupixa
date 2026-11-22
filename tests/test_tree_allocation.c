@@ -1,6 +1,6 @@
 /* Fault injection compiles the implementation locally so allocator interception
  * remains confined to this test; production code needs no allocator hooks.
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>

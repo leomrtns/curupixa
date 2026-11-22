@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
-   SPDX-License-Identifier: GPL-3.0-or-later */
+   SPDX-License-Identifier: MIT */
 #include "molecular_clock.h"
 #include "prob_distribution.h"
 #include <math.h>

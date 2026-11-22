@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /* Search tree topologies by NNI using an objective supplied by the application. */
 #include "tree_search.h"
 #include <math.h>

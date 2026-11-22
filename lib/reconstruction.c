@@ -1,6 +1,6 @@
 /* Full-data messages inspired by branchtraits/src/discrete.c, generalised to
  * curupixa model/data contracts. Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /* Reconstruct marginal ancestral probabilities or optimal parsimony states from discrete observations. */
 #include "reconstruction.h"
 #include "parsimony_internal.h"

@@ -1,5 +1,5 @@
 /* Copyright (C) 2006-2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-License-Identifier: MIT
  * Analytic HKY formulas follow biomcmc-recomb and guenomu, with explicit state/ownership. */
 /*! \file substitution_model.h
     \brief Construct finite-state substitution models used by likelihood and ancestral reconstruction.
@@ -7,6 +7,7 @@
 #ifndef CURUPIXA_SUBSTITUTION_MODEL_H
 #define CURUPIXA_SUBSTITUTION_MODEL_H
 #include <stddef.h>
+#include <stdbool.h>
 #include "status.h"
 #ifdef __cplusplus
 extern "C" {
@@ -34,6 +35,12 @@ crpx_status crpx_substitution_model_rates4 (const double generator[16], const do
    Evaluate both through ordinary likelihood/ASR; model fitting is separate. */
 crpx_status crpx_substitution_model_binary_pair (const double rates[8], const double root_weights[4],
                                                  crpx_substitution_model **out);
+/* GTR, exchangeabilities ordered AC,AG,AT,CG,CT,GT. Positive weights and frequencies are normalised;
+   stationary mean exit rate is one. */
+crpx_status crpx_substitution_model_gtr (const double frequencies[4], const double exchangeabilities[6],
+                                        crpx_substitution_model **out);
+/* True only for a stationary reversible process (including a checked rates4 model). */
+bool crpx_substitution_model_is_reversible (const crpx_substitution_model *model);
 void crpx_substitution_model_free (crpx_substitution_model *model);
 size_t crpx_substitution_model_states (const crpx_substitution_model *model);
 const double *crpx_substitution_model_frequencies (const crpx_substitution_model *model);

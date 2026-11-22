@@ -52,4 +52,4 @@ The default curupixa convention attaches one process to each supplied non-root e
 - Zero purine or pyrimidine mass causes division by zero in the legacy analytic projectors. Curupixa requires positive finite frequency weights and checks representability after normalisation.
 - Global real/dummy likelihood function pointers and cyclic proposal-vector ownership belong to the original applications. Curupixa keeps scoring mode, data ownership and cache validity in explicit objects.
 
-Both reference sources credit Leonardo de Oliveira Martins and carry GPL-2.0-or-later notices (2006 and 2009 respectively). Derived curupixa sources retain that attribution and use the project's GPL-3.0-or-later designation.
+Both reference sources credit Leonardo de Oliveira Martins and carry GPL-2.0-or-later notices (2006 and 2009 respectively). Derived Curupixa sources retain that attribution and are now offered under MIT with the author’s confirmed rights.

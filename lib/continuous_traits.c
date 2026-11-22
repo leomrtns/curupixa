@@ -1,6 +1,6 @@
 /* Linear Gaussian pruning and PIC adapted from branchtraits/src/continuous.c.
  * Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /* Fit Brownian trait models, reconstruct ancestral traits and calculate independent contrasts. */
 /* Felsenstein (1985), Phylogenies and the comparative method, doi:10.1086/284325. */
 #include "continuous_traits.h"

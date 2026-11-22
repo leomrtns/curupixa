@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
-   SPDX-License-Identifier: GPL-3.0-or-later */
+   SPDX-License-Identifier: MIT */
 /*! \file triplet_distance.h
     \brief Compare rooted triplets with the same count and unresolved conventions as quartets. */
 #ifndef CURUPIXA_TRIPLET_DISTANCE_H

@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /* Zhang et al. (2020), ASTRAL-Pro, doi:10.1093/molbev/msaa139, Definitions 1–5. Rooting and event tags are supplied by
    the application. */
 /* Prepare and score ASTRAL-Pro quartet classes from rooted, tagged multi-copy gene trees. */

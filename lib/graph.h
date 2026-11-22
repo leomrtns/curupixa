@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /*! \file graph.h
     Shortest paths and minimum spanning forests for arbitrary weighted graphs and supplied pairwise weights.
     No tree, sequence or clustering representation is required. */

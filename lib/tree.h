@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-3.0-or-later
+/* SPDX-License-Identifier: MIT
  * Copyright (C) 2022-today Leonardo de Oliveira Martins
  * General-purpose tree operations reimplemented from biomcmc-lib's topology and Newick modules.
  */

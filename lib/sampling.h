@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
-   SPDX-License-Identifier: GPL-3.0-or-later */
+   SPDX-License-Identifier: MIT */
 /*! \file sampling.h
     \brief Reusable draws and tree construction, independent of biological prior models. */
 #ifndef CURUPIXA_SAMPLING_H

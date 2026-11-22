@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-3.0-or-later
+/* SPDX-License-Identifier: MIT
  * Copyright (C) 2022-today Leonardo de Oliveira Martins
  * Reimplementation of biomcmc-lib Newick/tree collections with explicit ownership.
  */

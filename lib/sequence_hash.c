@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /*! \file sequence_hash.c
     ntHash2 split-rotation recurrence (Kazemi et al., Bioinformatics 38:4812, 2022), generalised to supplied alphabets.
     The one-step rotations and DNA seed constants follow Hamid Mohamadi's MIT-licensed ntHash source; notice retained

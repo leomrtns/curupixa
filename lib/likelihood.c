@@ -1,5 +1,5 @@
 /* Copyright (C) 2006-2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-License-Identifier: MIT
  * Pruning follows biomcmc-recomb/guenomu, using explicit worker state and log-space scaling. */
 /* Felsenstein (1981), Evolutionary trees from DNA sequences: a maximum likelihood approach, doi:10.1007/BF01734359. */
 /* Evaluate discrete-state tree likelihoods with reusable numerical storage and optional prepared tip mapping. */

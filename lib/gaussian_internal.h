@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-3.0-or-later */
+/* SPDX-License-Identifier: MIT */
 /*! \file gaussian_internal.h
     \brief Shared Gaussian message products for Brownian calculations and binary-trait dispersion. */
 #ifndef CURUPIXA_GAUSSIAN_INTERNAL_H

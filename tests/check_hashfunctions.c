@@ -1,6 +1,6 @@
 /* This test file is part of curupixa, a low-level library for phylogenomic analysis.
  * Copyright (C) 2022-today  Leonardo de Oliveira Martins [ leomrtns at gmail.com;  http://www.leomartins.org ]
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 
 #include <curupixa.h>
 #include <check.h>

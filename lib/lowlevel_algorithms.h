@@ -1,6 +1,6 @@
 /* Reimplementation of biomcmc-lib lowlevel algorithms (Leonardo de Oliveira Martins).
  * Copyright (C) 2019-2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /*! \file lowlevel_algorithms.h
     \brief Solve assignment and edit-distance problems used by tree and sequence comparisons.
  */

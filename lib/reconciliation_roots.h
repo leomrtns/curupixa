@@ -1,6 +1,6 @@
 /* Derived from guenomu/genefam-dist topology_mrca.
  * Copyright (C) 2009-2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /*! \file reconciliation_roots.h
     \brief Score alternative gene roots and extract their mappings using reusable directional messages.
  */

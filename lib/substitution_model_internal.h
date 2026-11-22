@@ -1,4 +1,4 @@
-/* Private closed-form kernel cache. SPDX-License-Identifier: GPL-3.0-or-later */
+/* Private closed-form kernel cache. SPDX-License-Identifier: MIT */
 /*! \file substitution_model_internal.h
     \brief Internal model representation shared by numerical transition calculations.
  */

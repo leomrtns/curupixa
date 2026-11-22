@@ -1,6 +1,6 @@
 /* Reimplementation of biomcmc-lib splitset distances (Leonardo de Oliveira Martins).
  * Copyright (C) 2019-2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /*! \file splitset_distances.h
     \brief Extract comparable unrooted splits and calculate RF or split-assignment costs.
 

@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /*! \file assignment.h
     Rectangular Jonker-Volgenant assignment alongside the Hungarian solver in lowlevel_algorithms.h.
     The workspace avoids allocations when successive cost matrices fit the original dimensions. */

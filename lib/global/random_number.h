@@ -1,14 +1,6 @@
 /* This file is part of curupixa, a low-level library for phylogenomic analysis.
  * Copyright (C) 2022-today  Leonardo de Oliveira Martins [ leomrtns at gmail.com;  http://www.leomartins.org ]
- * SPDX-License-Identifier: GPL-3.0-or-later
- *
- * curupixa is free software; you can redistribute it and/or modify it under the terms of the GNU General Public
- * License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later
- * version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
- * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
+ * SPDX-License-Identifier: MIT
  */
 
 /*! \file random_number.h
@@ -35,7 +27,7 @@ uint64_t crpx_rng_stream_next (crpx_rng_stream *stream);
 crpx_status crpx_rng_stream_range (crpx_rng_stream *stream, uint64_t bound, uint64_t *result);
 double crpx_rng_stream_double (crpx_rng_stream *stream);
 
-/* Historical generator IDs 0..20 are retained except retired ID 19 (Xorgens). The context default is ID 17,
+/* Historical generator IDs 0..20 are retained except retired IDs 2 (Moremur), 13 (RRMixer) and 19 (Xorgens). The context default is ID 17,
    xoshiro256++. Context draws are serialised across arbitrary host threads. Their assignment to workers depends on
    scheduling; use worker-owned streams for reproducible parallel work. Seed zero requests entropy. */
 crpx_status crpx_set_random_generator_checked (crpx_global_t context, uint8_t generator, uint64_t seed);

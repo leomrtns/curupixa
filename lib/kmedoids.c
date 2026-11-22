@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /*! \file kmedoids.c
     Deterministic PAM BUILD and the shared-accumulator FastPAM1 SWAP equations of Schubert and Rousseeuw (2021).
     These are generic dissimilarity calculations; no Euclidean coordinates or random initialisation are assumed. */

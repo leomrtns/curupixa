@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-3.0-or-later */
+/* SPDX-License-Identifier: MIT */
 /*! \file union_find_internal.h
     Path compression and union by component size, shared by Kruskal and density hierarchies. */
 #ifndef CRPX_UNION_FIND_INTERNAL_H

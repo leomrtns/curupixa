@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /* Prepare mapped tree comparisons, then call the shared split, dSPR and tanglegram calculations. */
 #include "gene_species_distances.h"
 #include <stdlib.h>

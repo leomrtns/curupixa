@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
-   SPDX-License-Identifier: GPL-3.0-or-later */
+   SPDX-License-Identifier: MIT */
 /*! \file quasi_sequence.h
     \brief Context-free, seekable low-discrepancy sequences with deterministic reset.
     Bratley and Fox (1988), doi:10.1145/42288.214372. */

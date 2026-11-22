@@ -1,5 +1,5 @@
 /* Copyright (C) 2006-2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /*! \file likelihood.h
     \brief Evaluate discrete-state tree likelihoods with reusable numerical storage and optional prepared tip mapping.
 

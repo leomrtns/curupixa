@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /*! \file priority_queue_internal.h
     Indexed minimum heap for graph searches and OPTICS. Equal priorities use the smallest item identifier. */
 #ifndef CRPX_PRIORITY_QUEUE_INTERNAL_H

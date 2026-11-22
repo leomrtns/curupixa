@@ -1,6 +1,6 @@
 /* Derived from guenomu/genefam-dist topology_splitset (Leonardo de Oliveira Martins, 2009).
  * Copyright (C) 2009-2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /*! \file spr_distance.h
     \brief Calculate the historical greedy dSPR approximation from ordinary or previously prepared splitsets.
  */

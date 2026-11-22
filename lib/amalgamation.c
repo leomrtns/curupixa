@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /* Szöllősi et al. (2013), Efficient Exploration of the Space of Reconciled Gene Trees, doi:10.1093/sysbio/syt054. Only
    the empirical conditional-clade component is implemented here. */
 /* Build a conditional-clade distribution from sampled trees; evaluate and sample amalgamated gene trees. */

@@ -1,5 +1,5 @@
 /* Copyright (C) 2019-2026 Leonardo de Oliveira Martins
-   SPDX-License-Identifier: GPL-3.0-or-later */
+   SPDX-License-Identifier: MIT */
 /*! \file prob_distribution.h
     \brief Evaluate probability distributions and draw variates with an explicit random stream.
  */

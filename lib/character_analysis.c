@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /* Calculate likelihood or Sankoff parsimony from the same discrete-character observations. */
 #include "character_analysis.h"
 #include "parsimony_internal.h"

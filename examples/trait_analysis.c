@@ -1,5 +1,5 @@
 /* Standalone C17/C++17 example using an installed curupixa package.
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 #include <curupixa/likelihood.h>
 #include <curupixa/reconstruction.h>
 #include <curupixa/continuous_traits.h>

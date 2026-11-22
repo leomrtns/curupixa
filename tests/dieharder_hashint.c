@@ -28,16 +28,13 @@ int main(int argc, char **argv)
 
   sscanf (argv[1], " %hhu ", &algo);
 
+  if (algo == 2 || algo == 4 || algo == 5 || algo == 7) return TEST_SKIPPED;
   if (algo < 8) {
     switch (algo) { //fastmix64, murmurmix64 fail
       case 0: h = &crpx_hashint_splitmix64;   strcpy (algoname, "splitmix64"); break; // fails a few dieharder // 2^32 practrand
       case 1: h = &crpx_hashint_degski64;     strcpy (algoname, "degski64  "); break; // fails some dieharder // fail practrand
-      case 2: h = &crpx_hashint_nasam64;      strcpy (algoname, "nasam64   "); break; // great dieharder // pass practrand >2^36
       case 3: h = &crpx_hashint_pelican64;    strcpy (algoname, "pelican64 "); break; // great dieharder // pass practrand >2^36  
-      case 4: h = &crpx_hashint_rrmixer64;    strcpy (algoname, "rrmixer64 "); break; // ok    dieharder // pass practrand >2^35
-      case 5: h = &crpx_hashint_moremur64;    strcpy (algoname, "moremur64 "); break; // great dieharder // 2^32 practrand
       case 6: h = &crpx_hashint_staffordmix64;strcpy (algoname, "stafford64"); break; // fails a few dieharder // 2^32 practrand
-      case 7: h = &crpx_hashint_entropy;      strcpy (algoname, "entropy   "); break; // fails a few dieharder // 2^34 practrand
     }
   } else { // 32 bits
     switch (algo) {
@@ -56,7 +53,8 @@ int main(int argc, char **argv)
     uint64_t x[BUFFERSIZE];
     uint32_t *x2 = (uint32_t*) x;
     for (i=0; i < UINT64_MAX; i++) {
-      if (algo < 8) for (j=0; j < BUFFERSIZE; j++) x[j]  = h(k++);
+      if (algo == 2 || algo == 4 || algo == 5 || algo == 7) return TEST_SKIPPED;
+  if (algo < 8) for (j=0; j < BUFFERSIZE; j++) x[j]  = h(k++);
       else for (j=0; j < 2 * BUFFERSIZE; j++) x2[j] = h2((uint32_t) k++);
       fwrite (&x, sizeof (uint64_t), BUFFERSIZE, stdout);
       /*DEBUG*/ // for (j=0; j < BUFFERSIZE; j++) {printf ("%16lx ", x[j]); if ((j+1) % 8 == 0) printf ("\n");}
@@ -66,7 +64,8 @@ int main(int argc, char **argv)
     sscanf (argv[2], " %lu ", &ntries);
     k = 1234;
     for (j = 0; j < 10; j++) {
-      if (algo < 8) for (i=0; i < ntries; i++) h(k++); // throws away actual values; k grows indefinitely
+      if (algo == 2 || algo == 4 || algo == 5 || algo == 7) return TEST_SKIPPED;
+  if (algo < 8) for (i=0; i < ntries; i++) h(k++); // throws away actual values; k grows indefinitely
       else for (i=0; i < ntries; i++) h2((uint32_t)(k++));
       t = crpx_update_elapsed_time_128bits (cglob->elapsed_time);
       fprintf (stderr, "%s %2d x %lu :  %lf seconds = %.1lf million numbers/second\n", algoname, j, ntries, t, ((double)ntries)/(t*1.0e6)); 

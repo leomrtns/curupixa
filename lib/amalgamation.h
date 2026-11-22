@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /*! \file amalgamation.h
     \brief Build a conditional-clade distribution from sampled trees; evaluate and sample amalgamated gene trees.
 

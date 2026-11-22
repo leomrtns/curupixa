@@ -1,5 +1,5 @@
 /* Copyright (C) 2019-2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /* Cluster objects from supplied distances using the generalised OPTICS calculation. */
 #include "clustering_goptics.h"
 #include "quickselect_quantile.h"

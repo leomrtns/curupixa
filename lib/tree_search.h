@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-3.0-or-later */
+/* SPDX-License-Identifier: MIT */
 /*! \file tree_search.h
     \brief Search tree topologies by NNI using an objective supplied by the application.
  */

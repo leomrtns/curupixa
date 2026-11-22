@@ -44,4 +44,4 @@ Embedding needs no separate installation or bootstrap. Alternatively, configure 
 - [Build-system decision](build-systems.md) — CMake and Autotools installation choices.
 - [Source references and attribution](references.md) — Scientific references and implementation provenance.
 ## Licence
-Curupixa is licensed under GPL-3.0-or-later.
+Curupixa is licensed under MIT; incorporated third-party components retain their notices in `LICENSES/`.

@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /*! \file paralog_quartets.h
     \brief Prepare and score ASTRAL-Pro quartet classes from rooted, tagged multi-copy gene trees.
 

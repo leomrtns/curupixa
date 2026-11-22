@@ -1,13 +1,6 @@
 /* This file is part of curupixa, a low-level library for phylogenomic analysis.
  * Copyright (C) 2022-today  Leonardo de Oliveira Martins [ leomrtns at gmail.com;  http://www.leomartins.org ]
- * SPDX-License-Identifier: GPL-3.0-or-later
- *
- * curupixa is free software; you can redistribute it and/or modify it under the terms of the GNU General Public
- * License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later
- * version.
- *
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
- * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html). 
+ * SPDX-License-Identifier: MIT
  */
 
 /*! \file random_number.c
@@ -23,12 +16,11 @@ static bool range_accept (uint64_t value, uint64_t bound, uint64_t *result);
 crpx_status
 crpx_set_random_generator_checked (crpx_global_t cglob, uint8_t rng_id, uint64_t seed)
 {
-  if (!cglob || (rng_id > 20 || rng_id == 19)) return CRPX_ERROR_INVALID_ARGUMENT;
+  if (!cglob || (rng_id > 20 || rng_id == 2 || rng_id == 13 || rng_id == 19)) return CRPX_ERROR_INVALID_ARGUMENT;
   crpx_global_struct configuration = {0};
   switch (rng_id) {
     case 0:  configuration.rng_get = &crpx_rng_wyhash_state64;       configuration.rng_size = 1; strcpy (configuration.rng_name, "0.wyhash_64"); break;
     case 1:  configuration.rng_get = &crpx_rng_lehmer_seed128;       configuration.rng_size = 2; strcpy (configuration.rng_name, "1.lehmer_64"); break;
-    case 2:  configuration.rng_get = &crpx_rng_moremur_seed64;       configuration.rng_size = 1; strcpy (configuration.rng_name, "2.moremur_64"); break;
     case 3:  configuration.rng_get = &crpx_rng_splitmix_seed64;      configuration.rng_size = 1; strcpy (configuration.rng_name, "3.splitmix_64"); break;
     case 4:  configuration.rng_get = &crpx_rng_romu_seed128;         configuration.rng_size = 2; strcpy (configuration.rng_name, "4.romu_128"); break;
     case 5:  configuration.rng_get = &crpx_rng_jenkins13_seed256;    configuration.rng_size = 4; strcpy (configuration.rng_name, "5.jenkins13_256"); break;
@@ -39,7 +31,6 @@ crpx_set_random_generator_checked (crpx_global_t cglob, uint8_t rng_id, uint64_t
     case 10: configuration.rng_get = &crpx_xoroshiro_pv8_seed128;    configuration.rng_size = 2; strcpy (configuration.rng_name, "10.xoroshiro_pv8_128"); break;
     case 11: configuration.rng_get = &crpx_rng_romu_seed256;         configuration.rng_size = 4; strcpy (configuration.rng_name, "11.romu_256"); break;
     case 12: configuration.rng_get = &crpx_rng_xorshift_p_seed128;   configuration.rng_size = 2; strcpy (configuration.rng_name, "12.xorshift_p_128"); break;
-    case 13: configuration.rng_get = &crpx_rng_rrmixer_seed64;       configuration.rng_size = 1; strcpy (configuration.rng_name, "13.rrmixer_64"); break;
     case 14: configuration.rng_get = &crpx_xoroshiro_pp_seed128;     configuration.rng_size = 2; strcpy (configuration.rng_name, "14.xoroshiro_pp_128"); break;
     case 15: configuration.rng_get = &crpx_xoroshiro_star_seed256;   configuration.rng_size = 4; strcpy (configuration.rng_name, "15.xoshiro256**"); break;
     case 16: configuration.rng_get = &crpx_rng_wyrand_seed64;        configuration.rng_size = 1; strcpy (configuration.rng_name, "16.wyrand_64"); break;

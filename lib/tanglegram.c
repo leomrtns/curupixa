@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /* Minimise crossings between explicit tip links by reordering both trees, including unequal tree sizes. */
 #include "tanglegram.h"
 #include <stdlib.h>

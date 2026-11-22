@@ -1,5 +1,5 @@
 /* Copyright (C) 2019-2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-License-Identifier: MIT
  * Format reference: https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md */
 /* Read GFF3 feature annotations alongside their associated sequence data. */
 #include "gff3_format.h"

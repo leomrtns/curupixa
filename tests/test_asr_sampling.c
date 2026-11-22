@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-3.0-or-later */
+/* SPDX-License-Identifier: MIT */
 #include "reconstruction.h"
 #include "stochastic_mapping.h"
 #include "global/random_number.h"

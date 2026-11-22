@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-3.0-or-later
+/* SPDX-License-Identifier: MIT
  * Copyright (C) 2022-today Leonardo de Oliveira Martins
  * Reimplementation of biomcmc-lib distance-based tree construction.
  * BioNJ equations follow Gascuel (1997), doi:10.1093/oxfordjournals.molbev.a025808.

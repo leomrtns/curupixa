@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-3.0-or-later
+/* SPDX-License-Identifier: MIT
  * Independent generator/uniformisation/resolvent checks for the analytic models. */
 #ifdef NDEBUG
 #undef NDEBUG
@@ -259,6 +259,24 @@ int main(void)
   const double general[] = {1,2,3,7,4,8,9}; compare_model(7,general,1,0);
   const double constant[] = {9}; compare_model(1,constant,1,0);
   test_binary_and_limits(); test_frequency_extremes(); test_skewed_slow_transitions(); test_error_contracts();
+  /* GTR reduces to HKY at the matching exchangeabilities and has unit stationary exit rate. */
+  double exchange[] = {1,2.7,1,1,2.7,1}, q[16], a[16], b[16];
+  crpx_substitution_model *gtr, *hky;
+  OK(crpx_substitution_model_gtr(dna,exchange,&gtr));
+  OK(crpx_substitution_model_hky(dna,2.7,&hky));
+  assert(crpx_substitution_model_is_reversible(gtr));
+  OK(crpx_substitution_model_generator(gtr,q,16));
+  double mean = 0;
+  for (size_t j=0;j<4;j++) mean -= dna[j]*q[5*j];
+  assert(fabs(mean-1)<1e-12);
+  OK(crpx_substitution_model_transition(gtr,.73,CRPX_BRANCH_FIXED,a,16));
+  OK(crpx_substitution_model_transition(hky,.73,CRPX_BRANCH_FIXED,b,16));
+  for (size_t j=0;j<16;j++) assert(fabs(a[j]-b[j])<1e-12);
+  crpx_substitution_model_free(gtr); crpx_substitution_model_free(hky);
+  double cycle[] = {-1,1,0,0, 0,-1,1,0, 0,0,-1,1, 1,0,0,-1}, pi[] = {1,1,1,1};
+  OK(crpx_substitution_model_rates4(cycle,pi,&gtr));
+  assert(!crpx_substitution_model_is_reversible(gtr));
+  crpx_substitution_model_free(gtr);
   puts("analytic substitutions vs independent generators/uniformisation/resolvents: passed");
   return 0;
 }

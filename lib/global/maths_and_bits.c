@@ -1,15 +1,7 @@
 /* 
  * This file is part of curupixa, a low-level library for phylogenomic analysis.
  * Copyright (C) 2022-today  Leonardo de Oliveira Martins [ leomrtns at gmail.com;  http://www.leomartins.org ]
- * SPDX-License-Identifier: GPL-3.0-or-later
- *
- * curupixa is free software; you can redistribute it and/or modify it under the terms of the GNU General Public
- * License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later
- * version.
- *
- * This program is distributed in the hope that it will be usefulull, but WITHOUT ANY WARRANTY; without even the implied 
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULLAR PURPOSE.  See the GNU General Public License for more 
- * details (file "COPYING" or http://www.gnu.org/copyleft/gpl.html).
+ * SPDX-License-Identifier: MIT AND BSD-3-Clause
  */
 
 /*! \file maths_and_bits.c
@@ -49,6 +41,7 @@ crpx_reverse_bits32 (uint32_t v)
 uint64_t
 crpx_interleave_64bits (uint64_t xylo) /* [y4y3y2y1 x4x3x2x1] --> [y4x4 y3x3 y2x2 y1x1] */
 { // https://github.com/yinqiwen/geohash-int/blob/master/geohash.c; https://graphics.stanford.edu/~seander/bithacks.html has for 32bits
+  /* yinqiwen (2013), BSD-3-Clause; see LICENSES/Geohash-BSD-3-Clause.txt. */
   static const uint64_t B[] = { 0x5555555555555555, 0x3333333333333333, 0x0F0F0F0F0F0F0F0F, 0x00FF00FF00FF00FF, 0x0000FFFF0000FFFF };
   static const unsigned int S[] = { 1, 2, 4, 8, 16 };
   uint64_t x = xylo & UINT64_C(0xFFFFFFFF);  // Interleave lower  bits of x and y, so the bits of x
@@ -66,6 +59,7 @@ crpx_interleave_64bits (uint64_t xylo) /* [y4y3y2y1 x4x3x2x1] --> [y4x4 y3x3 y2x
 uint64_t
 crpx_deinterleave_64bits (uint64_t interleaved) /* [y4y3y2y1 x4x3x2x1] <-- [y4x4 y3x3 y2x2 y1x1] */
 { // https://github.com/yinqiwen/geohash-int/blob/master/geohash.c
+  /* yinqiwen (2013), BSD-3-Clause; see LICENSES/Geohash-BSD-3-Clause.txt. */
   static const uint64_t B[] = { 0x5555555555555555, 0x3333333333333333, 0x0F0F0F0F0F0F0F0F, 0x00FF00FF00FF00FF, 0x0000FFFF0000FFFF, 0x00000000FFFFFFFF };
   static const unsigned int S[] = { 0, 1, 2, 4, 8, 16 };
   uint64_t x = interleaved; ///reverse the interleave process (http://stackoverflow.com/questions/4909263/how-to-efficiently-de-interleave-bits-inverse-morton)
@@ -102,7 +96,7 @@ crpx_choose_n_k (int n, int k)
 /* order-th lexicographically ordered set of k elements out of n; output is in result (of length at least k) */
 void 
 crpx_ordered_combination_n_k (int* result, int n, int k, int order)
-{ // https://stackoverflow.com/questions/561/how-to-use-combinations-of-sets-as-test-data#794
+{ /* Independently unrank lexicographic combinations by counting each possible suffix. */
   int count = crpx_choose_n_k(n, k);
   if (!result || !count || k <= 0 || order < 0 || order >= count) return;
   /* Preserve the legacy one-based elements; index_arrangement uses zero-based elements. */

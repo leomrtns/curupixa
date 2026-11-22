@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /*! \file hdbscan.h
     HDBSCAN* from general dissimilarities or a supplied mutual-reachability minimum spanning tree.
     Condensed edges and selected cluster stabilities remain available for downstream analysis. */

@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-3.0-or-later */
+/* SPDX-License-Identifier: MIT */
 /*! \file clustering_internal.h
     Clustering requires non-negative values; the distance generator already checks finiteness. */
 #ifndef CRPX_CLUSTERING_INTERNAL_H

@@ -1,4 +1,4 @@
-/* Lightweight context declarations. SPDX-License-Identifier: GPL-3.0-or-later */
+/* Lightweight context declarations. SPDX-License-Identifier: MIT */
 /*! \file context_types.h
     \brief Declare the shared runtime context type without importing logging or random-number implementations.
  */

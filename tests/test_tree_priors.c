@@ -1,5 +1,7 @@
-/* SPDX-License-Identifier: GPL-3.0-or-later */
+/* SPDX-License-Identifier: MIT */
 #include "inference.h"
+#include "clock.h"
+#include <string.h>
 #include "global/random_number.h"
 #include <assert.h>
 #include <math.h>
@@ -121,5 +123,38 @@ main (void)
   crpx_tree_free (resolved);
   crpx_tree_free (tree);
   free (wide_parents);
+  /* Conditional root splits have known probabilities; waiting times retain their marginal distribution. */
+  const char *split_names[] = {"A","B","C","D"};
+  bool split_side[] = {true,true,false,false};
+  for (unsigned kind=0;kind<4;kind++) {
+    crpx_tree_prior prior = {(crpx_tree_prior_kind)kind,2,.5,3,1};
+    double singleton, balanced, root_mean=0;
+    OK (crpx_tree_prior_split_log_probability (&prior,4,1,&singleton));
+    OK (crpx_tree_prior_split_log_probability (&prior,4,2,&balanced));
+    assert (fabs (4*exp(singleton)+3*exp(balanced)-1)<1e-12);
+    for (size_t rep=0;rep<1000;rep++) {
+      OK (crpx_tree_prior_sample_split (&prior,4,split_names,split_side,uniform,&stream,&tree));
+      crpx_node_id r=crpx_tree_root(tree), first=crpx_tree_first_child(tree,r);
+      size_t left=0, left_a=0;
+      for (crpx_node_id v=0;v<crpx_tree_node_count(tree);v++) if (crpx_tree_first_child(tree,v)==CRPX_NODE_NONE) {
+        crpx_node_id top=v;
+        while (crpx_tree_parent(tree,top)!=r) top=crpx_tree_parent(tree,top);
+        if (top==first) { left++; left_a += !strcmp(crpx_tree_label(tree,v),"A") || !strcmp(crpx_tree_label(tree,v),"B"); }
+      }
+      assert(left==2 && (left_a==0 || left_a==2));
+      OK (crpx_tree_prior_log_density (&prior,tree,&value));
+      assert(isfinite(value-balanced));
+      if (kind==CRPX_TREE_PRIOR_COALESCENT) {
+        crpx_tree_workspace *work;
+        double ages[7];
+        OK (crpx_tree_workspace_new(CRPX_TREE_WORKSPACE_TRAVERSAL,&work));
+        OK (crpx_tree_ages(tree,NULL,1e-9,work,ages,7));
+        root_mean+=ages[r]/1000;
+        crpx_tree_workspace_free(work);
+      }
+      crpx_tree_free(tree);
+    }
+    if (kind==CRPX_TREE_PRIOR_COALESCENT) assert(fabs(root_mean-1.5)<.12);
+  }
   return 0;
 }

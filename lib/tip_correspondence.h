@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
-   SPDX-License-Identifier: GPL-3.0-or-later */
+   SPDX-License-Identifier: MIT */
 /*! \file tip_correspondence.h
     \brief Match complete sets of unique tip names once for ordinary tree comparisons. */
 #ifndef CURUPIXA_TIP_CORRESPONDENCE_H

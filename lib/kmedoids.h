@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /*! \file kmedoids.h
     PAM medoids for arbitrary finite non-negative dissimilarities, using FastPAM1 swap evaluation.
     The result records representatives, assignments and the sum of distances to the representatives. */

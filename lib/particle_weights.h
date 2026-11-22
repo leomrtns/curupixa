@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
-   SPDX-License-Identifier: GPL-3.0-or-later */
+   SPDX-License-Identifier: MIT */
 /*! \file particle_weights.h
     \brief Normalise importance weights, choose temperatures and resample particle indices.
     Del Moral, Doucet and Jasra (2006), doi:10.1111/j.1467-9868.2006.00553.x. */

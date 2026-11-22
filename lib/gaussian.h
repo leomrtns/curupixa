@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
-   SPDX-License-Identifier: GPL-3.0-or-later */
+   SPDX-License-Identifier: MIT */
 /*! \file gaussian.h
     \brief Reuse a positive-definite covariance factor across generalised least-squares fits.
     Breslow and Clayton (1993), doi:10.2307/2290687 (PQL). */

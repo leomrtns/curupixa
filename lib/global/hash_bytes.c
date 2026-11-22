@@ -1,5 +1,5 @@
 /* Copyright (C) 2022-2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT AND BSD-3-Clause AND CC0-1.0 */
 /*! \file hash_bytes.c
     Byte-array hashes with explicit seeds. See docs/random-hashing.md for original sources, licences and changed outputs.
     Tan fast-hash: MIT; Hsieh SuperFastHash: BSD-3-Clause; Jenkins, FNV, MurmurHash and SipHash: public domain/CC0. */

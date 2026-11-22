@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /* Match gene labels to species labels and return an explicit node-indexed correspondence. */
 #include "taxon_map.h"
 #include "hashtable.h"

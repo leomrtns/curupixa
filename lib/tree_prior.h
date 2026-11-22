@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
-   SPDX-License-Identifier: GPL-3.0-or-later */
+   SPDX-License-Identifier: MIT */
 /*! \file tree_prior.h
     \brief Sample and evaluate tree priors with explicit conditioning and random state.
     Kingman (1982), doi:10.1016/0304-4149(82)90011-4;
@@ -28,6 +28,14 @@ typedef struct {
    All outputs are rooted binary; labels are copied. Independent calls share no state. */
 crpx_status crpx_tree_prior_sample (const crpx_tree_prior *prior, size_t leaves, const char *const *labels,
                                     crpx_uniform_function uniform, void *state, crpx_tree **out);
+/* Condition on a specified root bipartition: side[i] assigns input tip i to either side; both must be nonempty.
+   Uniform uses independent PDA resolutions on the two sides. Dated priors condition their ranked topology on the
+   split while retaining their original branching-time distribution. No rejection sampling of rare splits is used. */
+crpx_status crpx_tree_prior_sample_split (const crpx_tree_prior *prior, size_t leaves, const char *const *labels,
+                                          const bool *side, crpx_uniform_function uniform, void *state, crpx_tree **out);
+/* Probability of one particular unordered root split, whose first side contains first_side tips. */
+crpx_status crpx_tree_prior_split_log_probability (const crpx_tree_prior *prior, size_t leaves,
+                                                   size_t first_side, double *out);
 /* Density of labelled, non-plane trees with respect to ordered branching ages;
    child order contributes no factor. Inputs for dated priors must be ultrametric,
    have positive edges and contemporary tips. Uniform ignores lengths. No fitting

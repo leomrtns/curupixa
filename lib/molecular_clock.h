@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
-   SPDX-License-Identifier: GPL-3.0-or-later */
+   SPDX-License-Identifier: MIT */
 /*! \file molecular_clock.h
     \brief Sample and evaluate branch-rate models independently of an inference algorithm.
     Drummond et al. (2006), doi:10.1371/journal.pbio.0040088;

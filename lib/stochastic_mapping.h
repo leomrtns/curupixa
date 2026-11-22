@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
-   SPDX-License-Identifier: GPL-3.0-or-later */
+   SPDX-License-Identifier: MIT */
 /*! \file stochastic_mapping.h
     \brief Sample CTMC branch histories conditional on endpoint states by uniformisation.
     Hobolth and Stone (2009), doi:10.1214/09-AOAS247. */

@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /*! \file dtl.h
     \brief Calculate dated or undated finite-history DTL reconciliation costs with explicit tip correspondence.
 

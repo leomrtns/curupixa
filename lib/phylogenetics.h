@@ -1,4 +1,4 @@
-/* General phylogenetics interfaces. SPDX-License-Identifier: GPL-3.0-or-later */
+/* General phylogenetics interfaces. SPDX-License-Identifier: MIT */
 /*! \file phylogenetics.h
     \brief Collect general tree, sequence and numerical interfaces, usable on gene trees as well as species trees.
  */

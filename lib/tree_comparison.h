@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
-   SPDX-License-Identifier: GPL-3.0-or-later */
+   SPDX-License-Identifier: MIT */
 /*! \file tree_comparison.h
     \brief Prepare explicit tip correspondences for repeated split, length and rooted-vector comparisons.
     Robinson and Foulds (1981), doi:10.1016/0025-5564(81)90043-2;

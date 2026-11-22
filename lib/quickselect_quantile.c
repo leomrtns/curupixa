@@ -1,5 +1,5 @@
 /* Copyright (C) 2019-2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 /* Select order statistics and calculate sample summaries without fully sorting every input. */
 #include "quickselect_quantile.h"
 #include <math.h>

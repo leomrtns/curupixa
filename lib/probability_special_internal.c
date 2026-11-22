@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
-   SPDX-License-Identifier: GPL-3.0-or-later
+   SPDX-License-Identifier: MIT AND BSD-3-Clause
    The Temme expansion and inverse-normal rational approximation are adapted from
    scipy/xsf (SciPy 2024; Stephen L. Moshier 1984, 1987, 1989), BSD-3-Clause.
    See LICENSES/SciPy-BSD-3-Clause.txt. */

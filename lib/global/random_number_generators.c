@@ -1,7 +1,7 @@
 /* Copyright (C) 2022-2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT AND Apache-2.0 AND BSD-3-Clause AND Unlicense */
 /*! \file random_number_generators.c
-    Small stateful generators. Original permissive sources and notices are recorded in docs/random-hashing.md.
+    Small stateful generators, modified for explicit Curupixa state and C17. Original permissive sources and notices are recorded in docs/random-hashing.md.
     Blackman and Vigna's xoshiro256++ is the default; the other generators retain their historical identifiers. */
 #include "random_number_generators.h"
 #include "hash_functions_generators.h"
@@ -73,30 +73,7 @@ crpx_rng_jenkins19_seed256 (void *vstate) // 18.4 bits of avalanche
   return s[3];
 }
 
-uint64_t
-crpx_rng_rrmixer_seed64 (void *vstate)
-{
-  uint64_t *state = (uint64_t *) vstate;
-  uint64_t k = (*state += UINT64_C(0x2adca2f5d6da1507)); // large prime by @leomrtns
-  k ^= ROTR64(k, 49) ^ ROTR64(k, 24);
-  k *= 0x9fb21c651e98df25LL;
-  k ^= k >> 28;
-  k *= 0x9fb21c651e98df25LL;
-  return k ^ k >> 28;
-}
 
-uint64_t
-crpx_rng_moremur_seed64 (void *vstate)
-{
-  uint64_t *state = (uint64_t *) vstate;
-  uint64_t x = (*state += UINT64_C(0x0be40fe266ab1ec7)); // large prime by @leomrtns
-  x ^= x >> 27;
-  x *= 0x3C79AC492BA7B653UL;
-  x ^= x >> 33;
-  x *= 0x1C69B3F74AC4AE35UL;
-  x ^= x >> 27;
-  return x;
-}
 
 uint64_t
 crpx_xoroshiro_pv8_seed128 (void *vstate) // 128+ V 2018

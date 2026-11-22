@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
-   SPDX-License-Identifier: GPL-3.0-or-later */
+   SPDX-License-Identifier: MIT */
 /*! \file probability_special_internal.h
     \brief Shared log-tail incomplete gamma and inverse-normal calculations. */
 #ifndef CURUPIXA_PROBABILITY_SPECIAL_INTERNAL_H

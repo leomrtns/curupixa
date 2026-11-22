@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
-   SPDX-License-Identifier: GPL-3.0-or-later */
+   SPDX-License-Identifier: MIT */
 /*! \file phylogenetic_regression.h
     \brief Construct Brownian/OU trait covariances for the shared Gaussian regression API.
     Felsenstein (1985), doi:10.1086/284325; Pagel (1999), doi:10.1038/44766. */

@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT */
 #include "global/global_variable.h"
 #include "index_arrangement.h"
 #include "quasi_random.h"
@@ -44,11 +44,13 @@ static int test_random(void)
   crpx_global_t b = crpx_global_init(123456789, "fatal");
   CHECK(a && b);
   for (unsigned generator = 0; generator <= 20; generator++) {
-    if (generator == 19) continue;
+    if (generator == 2 || generator == 13 || generator == 19) continue;
     CHECK(crpx_set_random_generator_checked(a, generator, 123456789) == CRPX_OK);
     CHECK(crpx_set_random_generator_checked(b, generator, 123456789) == CRPX_OK);
     for (int i = 0; i < 500; i++) CHECK(crpx_random_64bits(a) == crpx_random_64bits(b));
   }
+  CHECK(crpx_set_random_generator_checked(a, 2, 123) == CRPX_ERROR_INVALID_ARGUMENT);
+  CHECK(crpx_set_random_generator_checked(a, 13, 123) == CRPX_ERROR_INVALID_ARGUMENT);
   CHECK(crpx_set_random_generator_checked(a, 19, 123) == CRPX_ERROR_INVALID_ARGUMENT);
   CHECK(crpx_set_random_generator_checked(a, 255, 123) == CRPX_ERROR_INVALID_ARGUMENT);
   CHECK(crpx_set_random_generator_checked(a, 0, 123) == CRPX_OK);

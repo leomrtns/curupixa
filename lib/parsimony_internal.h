@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
-   SPDX-License-Identifier: GPL-3.0-or-later */
+   SPDX-License-Identifier: MIT */
 /*! \file parsimony_internal.h
     \brief Shared state-cost transformations for scoring and ancestral reconstruction.
     Sankoff (1975), doi:10.1137/0128004. Internal arrays must contain states entries. */

@@ -20,3 +20,8 @@ Curupixa adaptations use explicit state, retain historical parameters and offset
 and define unaligned byte reads. MetroHash, FastHash and SuperFastHash adapters
 are modified C17 versions; their upstream notices apply to the adapted code.
 Details and source revisions are in docs/random-hashing.md.
+
+Wang Yi, wyhash/wyrand family: Unlicense; see Wyhash-Unlicense.txt.
+Bit interleaving: Copyright (c) 2013 yinqiwen, BSD-3-Clause; see Geohash-BSD-3-Clause.txt.
+Sean Eron Anderson's individual Bit Twiddling Hacks snippets: public domain.
+Unresolved RRMixer/NASAM/Moremur/entropy variants were removed in the MIT transition.

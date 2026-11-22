@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
-   SPDX-License-Identifier: GPL-3.0-or-later */
+   SPDX-License-Identifier: MIT */
 /*! \file clock.h
     \brief Convert dated nodes and branch rates to lengths without changing a tree. */
 #ifndef CURUPIXA_CLOCK_H

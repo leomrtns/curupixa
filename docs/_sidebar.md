@@ -1,5 +1,7 @@
 - [Curupixá](README.md)
 - [Language bindings](language-bindings.md)
+- [MIT transition and third-party notices](mit-transition.md)
+- [Integer mixers and retired variants](integer-mixers.md)
 - [Library organisation](library-architecture.md)
 - [Comparison and inference interfaces](comparison-and-inference.md)
 - [Comparative methods](comparative-methods.md)

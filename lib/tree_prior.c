@@ -1,9 +1,12 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
-   SPDX-License-Identifier: GPL-3.0-or-later */
+   SPDX-License-Identifier: MIT */
 #include "tree_prior.h"
 #include "tree_comparison.h"
+#include "clock.h"
+#include "prob_distribution.h"
 #include <math.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 static crpx_status validate_prior (const crpx_tree_prior *prior);
 static double bd_cdf (double age, double birth, double death);
@@ -168,7 +171,7 @@ crpx_tree_prior_log_density (const crpx_tree_prior *prior, const crpx_tree *tree
   } else {
     double birth = prior->birth_rate, death = prior->kind == CRPX_TREE_PRIOR_YULE ? 0 : prior->death_rate;
     double normaliser = log (bd_cdf (prior->origin_age, birth, death));
-    score = lgamma ((double) leaves);
+    score = crpx_lgammafn ((double)leaves, NULL);
     for (size_t i = 0; i < count; i++) {
       if (times[i] >= prior->origin_age) {
         score = -INFINITY;
@@ -295,5 +298,104 @@ draw_index (size_t count, crpx_uniform_function uniform, void *state, size_t *ou
   double draw;
   crpx_status status = crpx_sample_uniform (uniform, state, &draw);
   if (status == CRPX_OK) *out = (size_t) ((long double) draw * count);
+  return status;
+}
+
+crpx_status
+crpx_tree_prior_split_log_probability (const crpx_tree_prior *prior, size_t leaves, size_t first_side, double *out)
+{ /* PDA split counts, or the Kingman/Yule ranked-topology root-split probability. */
+  if (!out || !first_side || first_side >= leaves || validate_prior (prior) != CRPX_OK)
+    return CRPX_ERROR_INVALID_ARGUMENT;
+  double value = 0;
+  if (prior->kind == CRPX_TREE_PRIOR_UNIFORM) {
+    for (size_t i = 2; i <= leaves; i++) value -= log (2 * (double)i - 3);
+    for (size_t i = 2; i <= first_side; i++) value += log (2 * (double)i - 3);
+    for (size_t i = 2; i <= leaves - first_side; i++) value += log (2 * (double)i - 3);
+  } else {
+    value = log (2.0 / (leaves - 1)) - crpx_lgammafn ((double)leaves + 1, NULL) +
+            crpx_lgammafn ((double)first_side + 1, NULL) + crpx_lgammafn ((double)(leaves - first_side) + 1, NULL);
+  }
+  *out = value;
+  return CRPX_OK;
+}
+
+crpx_status
+crpx_tree_prior_sample_split (const crpx_tree_prior *prior, size_t leaves, const char *const *labels,
+                              const bool *side, crpx_uniform_function uniform, void *state, crpx_tree **out)
+{ /* Sample the conditional topology directly. For ranked histories the Doob transition chooses a side in proportion
+     to its number of remaining within-side mergers. Times are independent of the ranked labelled topology. */
+  if (!out) return CRPX_ERROR_INVALID_ARGUMENT;
+  *out = NULL;
+  if (!side || !uniform || leaves < 2) return CRPX_ERROR_INVALID_ARGUMENT;
+  if (leaves > UINT32_MAX / 2 || leaves > SIZE_MAX / 4 / sizeof (size_t)) return CRPX_ERROR_OVERFLOW;
+  size_t counts[2] = {0, 0};
+  for (size_t i = 0; i < leaves; i++) counts[side[i]]++;
+  double probability;
+  crpx_status status = crpx_tree_prior_split_log_probability (prior, leaves, counts[0], &probability);
+  if (status != CRPX_OK) return status;
+  crpx_tree *tree = NULL;
+  if (prior->kind == CRPX_TREE_PRIOR_UNIFORM) {
+    crpx_node_id root, groups[2];
+    status = crpx_tree_new (&tree);
+    if (status == CRPX_OK) status = crpx_tree_add_node (tree, CRPX_NODE_NONE, &root);
+    for (size_t g = 0; g < 2 && status == CRPX_OK; g++) {
+      status = crpx_tree_add_node (tree, root, groups + g);
+      for (size_t i = 0; i < leaves && status == CRPX_OK; i++) if ((size_t)side[i] == g) {
+        crpx_node_id tip = groups[g];
+        if (counts[g] > 1) status = crpx_tree_add_node (tree, groups[g], &tip);
+        if (status == CRPX_OK && labels) status = crpx_tree_set_label (tree, tip, labels[i]);
+        if (status == CRPX_OK && !labels) {
+          char name[32];
+          snprintf (name, sizeof (name), "%zu", i);
+          status = crpx_tree_set_label (tree, tip, name);
+        }
+      }
+    }
+    if (status == CRPX_OK) status = crpx_tree_resolution_sample (tree, uniform, state, out);
+    crpx_tree_free (tree);
+    return status;
+  }
+  status = crpx_tree_prior_sample (prior, leaves, labels, uniform, state, &tree);
+  if (status != CRPX_OK) return status;
+  size_t nodes = 2 * leaves - 1;
+  double *original = malloc (nodes * sizeof (*original)), *ages = calloc (nodes, sizeof (*ages));
+  double *times = malloc ((leaves - 1) * sizeof (*times));
+  size_t *active = malloc (leaves * sizeof (*active)), *children = malloc (2 * (leaves - 1) * sizeof (*children));
+  if (!original || !ages || !times || !active || !children) status = CRPX_ERROR_ALLOCATION;
+  crpx_tree_workspace *traversal = NULL;
+  if (status == CRPX_OK) status = crpx_tree_workspace_new (CRPX_TREE_WORKSPACE_TRAVERSAL, &traversal);
+  if (status == CRPX_OK) status = crpx_tree_ages (tree, NULL, 1e-9, traversal, original, nodes);
+  crpx_tree_workspace_free (traversal);
+  size_t used = 0;
+  if (status == CRPX_OK) {
+    for (size_t v = 0; v < nodes; v++) if (crpx_tree_first_child (tree, v) != CRPX_NODE_NONE) times[used++] = original[v];
+    qsort (times, used, sizeof (*times), compare_double);
+    size_t offset[2] = {0, counts[0]}, next[2] = {0, counts[0]};
+    for (size_t i = 0; i < leaves; i++) active[next[side[i]]++] = i;
+    for (size_t remaining = leaves; remaining > 1 && status == CRPX_OK; remaining--) {
+      size_t node = leaves + leaves - remaining;
+      if (remaining == 2) {
+        children[2 * (node - leaves)] = active[offset[0]];
+        children[2 * (node - leaves) + 1] = active[offset[1]];
+      } else {
+        double draw;
+        status = crpx_sample_uniform (uniform, state, &draw);
+        if (status != CRPX_OK) break;
+        size_t g = draw * (remaining - 2) < counts[0] - 1 ? 0 : 1, a, b;
+        if (status == CRPX_OK) status = draw_index (counts[g], uniform, state, &a);
+        if (status != CRPX_OK) break;
+        size_t left = active[offset[g] + a];
+        active[offset[g] + a] = active[offset[g] + --counts[g]];
+        status = draw_index (counts[g], uniform, state, &b);
+        if (status != CRPX_OK) break;
+        children[2 * (node - leaves)] = left;
+        children[2 * (node - leaves) + 1] = active[offset[g] + b];
+        active[offset[g] + b] = node;
+      }
+      ages[node] = times[leaves - remaining];
+    }
+    if (status == CRPX_OK) status = crpx_tree_from_binary_history (leaves, children, nodes - 1, ages, labels, out);
+  }
+  free (original); free (ages); free (times); free (active); free (children); crpx_tree_free (tree);
   return status;
 }

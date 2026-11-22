@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT AND BSD-3-Clause */
 /*! \file assignment.c
     Modified Jonker-Volgenant shortest augmenting paths, following Crouse (2016), doi:10.1109/TAES.2016.140952.
     C17 adaptation of PM Larsen's BSD-licensed SciPy rectangular_lsap.cpp; SciPy notices are retained in

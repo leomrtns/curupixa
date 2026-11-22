@@ -1,4 +1,5 @@
 # Probability kernels and provenance
+Historical review: the [MIT transition record](mit-transition.md) supersedes statements below about the current project licence and unresolved items.
 The public `prob_distribution.h` interface retains its existing signatures: gamma takes shape and rate, normal takes mean and standard deviation, and `log_p` selects log probabilities or log probability inputs for quantiles. The R-derived numerical kernels have been replaced. The library links platform libm, including its re-entrant `lgamma_r`; it has no R, GSL, SciPy or C++ runtime dependency.
 ## Source provenance
 | Files | Current source and method |

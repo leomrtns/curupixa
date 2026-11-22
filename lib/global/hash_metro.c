@@ -1,5 +1,5 @@
 /* Copyright (C) 2022-2026 Leonardo de Oliveira Martins
- * SPDX-License-Identifier: GPL-3.0-or-later */
+ * SPDX-License-Identifier: MIT AND Apache-2.0 */
 /*! \file hash_metro.c
     MetroHash 64/128 v1/v2 from J. Andrew Rogers' original Apache-2.0 source (2015-2018).
     Modified for Curupixa: C17, unaligned little-endian reads, native uint64_t seeds and optional 128-bit output.

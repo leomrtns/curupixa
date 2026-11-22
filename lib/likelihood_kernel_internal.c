@@ -1,4 +1,4 @@
-/* Shared by pruning and full-data reconstruction. SPDX-License-Identifier: GPL-3.0-or-later */
+/* Shared by pruning and full-data reconstruction. SPDX-License-Identifier: MIT */
 /* Internal transition and projection calculations shared by likelihood and ancestral reconstruction. */
 #include "likelihood_kernel_internal.h"
 #include <math.h>

@@ -1,4 +1,4 @@
-/* Gene-tree species-tree interfaces. SPDX-License-Identifier: GPL-3.0-or-later */
+/* Gene-tree species-tree interfaces. SPDX-License-Identifier: MIT */
 /*! \file gene_species.h
     \brief Collect interfaces that interpret explicit gene-copy-to-species mappings.
  */

@@ -1,5 +1,5 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
-   SPDX-License-Identifier: GPL-3.0-or-later */
+   SPDX-License-Identifier: MIT */
 /* Public distribution interfaces; numerical kernels are separate from sampling state. */
 #include "prob_distribution.h"
 #include "probability_special_internal.h"
