@@ -1,7 +1,7 @@
 /* Copyright (C) 2026 Leonardo de Oliveira Martins
  * SPDX-License-Identifier: GPL-3.0-or-later */
 /*! \file inference.h
-    \brief Evaluate conditional DTL-history probabilities and acceptance decisions; include sampling and tree-search APIs.
+    \brief Evaluate clock and conditional-history probabilities; include sampling and tree-search APIs.
  */
 #ifndef CURUPIXA_INFERENCE_H
 #define CURUPIXA_INFERENCE_H
@@ -9,6 +9,7 @@
 #include "amalgamation.h"
 #include "tree_search.h"
 #include "tree_prior.h"
+#include "molecular_clock.h"
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -33,6 +33,13 @@ crpx_status crpx_tree_from_binary_history (size_t leaves, const size_t *children
    Unary nodes are retained. Uniformity is conditional on the supplied clades. */
 crpx_status crpx_tree_resolve_random (const crpx_tree *tree, crpx_uniform_function uniform, void *state,
                                       crpx_tree **out);
+/* Insert a new labelled tip on edge child's incoming edge; child=root inserts
+   above the root. Non-root edge length is split by fraction measured from parent.
+   At a root insertion stem_length supplies the new edge to the old root. The
+   pendant length is supplied separately. Input is unchanged; output node IDs may
+   differ. All existing non-root lengths must be finite and nonnegative. */
+crpx_status crpx_tree_insert_tip (const crpx_tree *tree, crpx_node_id child, double fraction, double pendant_length,
+                                  double stem_length, const char *label, crpx_tree **out);
 #ifdef __cplusplus
 }
 #endif

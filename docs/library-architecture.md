@@ -22,6 +22,8 @@ RF and quartet measures with optimised correspondence between repeated labels ar
 | `continuous_traits.h`, `reconstruction.h`, `parsimony.h` | General phylogenetics | Trees and the existing trait or discrete-state calculations. |
 | `gaussian.h`, `phylogenetic_regression.h`, `trait_association.h` | General phylogenetics | Covariance factors and Gaussian messages; tree preparation is separate from regression. |
 | `sampling.h`, `quasi_sequence.h`, `stochastic_mapping.h` | General phylogenetics | Explicit random callbacks, tree builders and existing substitution generators. |
+| `clock.h`, `particle_weights.h` | General phylogenetics | Tree/date conversion, existing random callbacks and allocation-free numerical weights. |
+| `molecular_clock.h` | Inference | Tree traversals and the existing lognormal probability functions; no particle population. |
 | `tree_prior.h` | Inference | General tree constructors, draws and comparison indices. |
 | `dtl.h` | General phylogenetics | Explicit correspondence and prepared host-tree states; no inference dependency. |
 | `reconciliation.h`, `reconciliation_roots.h` | Gene/species methods | Trees and ancestry indices from general phylogenetics. |

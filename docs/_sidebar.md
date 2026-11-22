@@ -3,6 +3,7 @@
 - [Library organisation](library-architecture.md)
 - [Comparison and inference interfaces](comparison-and-inference.md)
 - [Comparative methods](comparative-methods.md)
+- [Molecular clocks and particle weights](molecular-clocks.md)
 - [Tree sampling](tree-sampling.md)
 - [Source and installed files](general_structure.md)
 - [Migration coverage](migration.md)

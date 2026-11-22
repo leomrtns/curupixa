@@ -16,7 +16,8 @@ test_spr_LDADD = ../lib/libcurupixa_gene_species.la $(LDADD)
 test_reconciliation_roots_LDADD = ../lib/libcurupixa_gene_species.la $(LDADD)
 endif
 if BUILD_INFERENCE
-check_PROGRAMS += test_amalgamation test_inference test_tree_search test_tree_priors
+check_PROGRAMS += test_amalgamation test_inference test_tree_search test_tree_priors test_clocks
+test_clocks_LDADD = ../lib/libcurupixa_inference.la $(LDADD)
 test_tree_priors_LDADD = ../lib/libcurupixa_inference.la $(LDADD)
 test_tree_search_LDADD = ../lib/libcurupixa_inference.la $(LDADD)
 test_amalgamation_LDADD = ../lib/libcurupixa_inference.la $(LDADD)

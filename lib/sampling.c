@@ -319,3 +319,49 @@ bounded (size_t bound, crpx_uniform_function uniform, void *state, size_t *value
   if (status == CRPX_OK) *value = (size_t) ((long double) draw * bound);
   return status;
 }
+
+crpx_status
+crpx_tree_insert_tip (const crpx_tree *source, crpx_node_id child, double fraction, double pendant_length,
+                      double stem_length, const char *label, crpx_tree **out)
+{ /* Build the augmented parent array once, including the above-root alternative. */
+  if (!out) return CRPX_ERROR_INVALID_ARGUMENT;
+  *out = NULL;
+  size_t nodes = crpx_tree_node_count (source);
+  if (!source || child >= nodes || !label || !*label || !isfinite (fraction) || fraction <= 0 || fraction >= 1 ||
+      !isfinite (pendant_length) || pendant_length < 0 || !isfinite (stem_length) || stem_length < 0)
+    return CRPX_ERROR_INVALID_ARGUMENT;
+  if (nodes > UINT32_MAX - 2 || nodes > SIZE_MAX / sizeof (const char *) - 2 || nodes > SIZE_MAX / sizeof (double) - 2)
+    return CRPX_ERROR_OVERFLOW;
+  crpx_status status =
+    crpx_tree_validate_policy (source, CRPX_TREE_REQUIRE_COMPLETE_LENGTHS | CRPX_TREE_REQUIRE_NONNEGATIVE_LENGTHS);
+  if (status != CRPX_OK) return status;
+  crpx_node_id *parents = malloc ((nodes + 2) * sizeof (*parents));
+  const char **labels = calloc (nodes + 2, sizeof (*labels));
+  double *lengths = calloc (nodes + 2, sizeof (*lengths));
+  if (!parents || !labels || !lengths) {
+    status = CRPX_ERROR_ALLOCATION;
+    goto done;
+  }
+  for (size_t node = 0; node < nodes; node++) {
+    parents[node] = crpx_tree_parent (source, (crpx_node_id) node);
+    labels[node] = crpx_tree_label (source, (crpx_node_id) node);
+    if (parents[node] != CRPX_NODE_NONE) (void) crpx_tree_branch_length (source, (crpx_node_id) node, lengths + node);
+  }
+  parents[nodes] = parents[child];
+  parents[child] = (crpx_node_id) nodes;
+  parents[nodes + 1] = (crpx_node_id) nodes;
+  labels[nodes + 1] = label;
+  lengths[nodes + 1] = pendant_length;
+  if (parents[nodes] == CRPX_NODE_NONE)
+    lengths[child] = stem_length;
+  else {
+    lengths[nodes] = lengths[child] * fraction;
+    lengths[child] *= 1 - fraction;
+  }
+  status = crpx_tree_from_parents (parents, nodes + 2, labels, lengths, out);
+done:
+  free (parents);
+  free (labels);
+  free (lengths);
+  return status;
+}

@@ -47,6 +47,8 @@
 #include "tanglegram.h"
 #include "dtl.h"
 #include "sampling.h"
+#include "clock.h"
+#include "particle_weights.h"
 #include "tip_correspondence.h"
 #include "stochastic_mapping.h"
 #include "quasi_sequence.h"
